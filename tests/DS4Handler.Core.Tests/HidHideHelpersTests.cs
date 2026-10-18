@@ -66,12 +66,36 @@ public class HidHideHelpersTests
     public void IoctlCodes_MatchDriver()
     {
         Assert.Equal(0x80016000u, HidHideClient.IOCTL_GET_WHITELIST);
+        Assert.Equal(0x80016004u, HidHideClient.IOCTL_SET_WHITELIST);
+        Assert.Equal(0x80016008u, HidHideClient.IOCTL_GET_BLACKLIST);
+        Assert.Equal(0x8001600Cu, HidHideClient.IOCTL_SET_BLACKLIST);
+        Assert.Equal(0x80016010u, HidHideClient.IOCTL_GET_ACTIVE);
         Assert.Equal(0x80016014u, HidHideClient.IOCTL_SET_ACTIVE);
+        Assert.Equal(0x80016018u, HidHideClient.IOCTL_GET_WLINVERSE);
     }
 
     [Fact]
     public void NotWindows_IsInstalledFalse()
     {
-        if (!OperatingSystem.IsWindows()) Assert.False(HidHideClient.IsInstalled());
+        if (!OperatingSystem.IsWindows()) { Assert.False(HidHideClient.IsInstalled()); Assert.Equal(HidHideStatus.NotInstalled, HidHideClient.GetStatus()); }
     }
+
+    [Theory]
+    [InlineData(@"C:\Program Files\dotnet\dotnet.exe", true)]
+    [InlineData(@"c:\x\DOTNET.EXE", true)]
+    [InlineData(@"C:\x\DS4Handler.exe", false)]
+    [InlineData("", false)]
+    [InlineData(null, false)]
+    public void SharedHostGuard(string? path, bool expected) => Assert.Equal(expected, HidHideClient.IsSharedHostExecutable(path));
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData("relative.exe")]
+    public void DosPathToNtPath_BadInput_ReturnsNull(string? p) => Assert.Null(HidHideClient.DosPathToNtPath(p));
+
+    [Fact]
+    public void Encode_SkipsBlankEntries()
+        => Assert.Equal(new[] { "a" }, MultiString.Decode(MultiString.Encode(new[] { "", "  ", "a" })));
 }

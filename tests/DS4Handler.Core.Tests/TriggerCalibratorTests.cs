@@ -125,12 +125,31 @@ public class TriggerCalibratorTests
         for (int i = 0; i < 5; i++) FullPress(c, rng, stop: 200);
         Assert.InRange(c.EndStop, 195f, 201f);
 
-        for (int i = 0; i < 7; i++) FullPress(c, rng, stop: 180);
+        for (int i = 0; i < 7; i++) FullPress(c, rng, stop: 190);
         Assert.InRange(c.EndStop, 195f, 201f); // not enough evidence yet
 
-        for (int i = 0; i < 16; i++) FullPress(c, rng, stop: 180);
+        for (int i = 0; i < 16; i++) FullPress(c, rng, stop: 190);
+        Assert.InRange(c.EndStop, 185f, 191f);
+        for (int i = 0; i < 24; i++) FullPress(c, rng, stop: 180);
         Assert.InRange(c.EndStop, 175f, 181f);
         Assert.Equal(1f, c.Map(180));
+    }
+
+    [Fact]
+    public void Sudden_big_drop_is_not_learned_automatically_but_guided_calibration_fixes_it()
+    {
+        var c = new TriggerCalibrator();
+        var rng = new Random(15);
+        for (int i = 0; i < 5; i++) FullPress(c, rng, stop: 255);
+        for (int i = 0; i < 30; i++) FullPress(c, rng, stop: 200);
+        Assert.True(c.EndStop >= 250f, $"end stop {c.EndStop}"); // a 55-count jump looks like a steady partial hold
+
+        c.StartGuidedEndStop();
+        Assert.True(c.GuidedInProgress);
+        for (int i = 0; i < 3; i++) FullPress(c, rng, stop: 200);
+        Assert.False(c.GuidedInProgress);
+        Assert.Equal(PlateauKind.Guided, c.EndStopKind);
+        Assert.Equal(1f, c.Map(200));
     }
 
     [Fact]
@@ -315,5 +334,134 @@ public class TriggerCalibratorTests
 
         c.Import(null);
         Assert.Equal(255f, c.EndStop);
+    }
+
+    // ------------------------------------------------------------ round 2: impact, rest, guided
+
+    [Fact]
+    public void Slowly_eased_into_partial_holds_are_not_learned_even_when_pinned()
+    {
+        var c = new TriggerCalibrator();
+        for (int p = 0; p < 12; p++)
+        {
+            for (int v = 0; v <= 180; v++) c.Process((byte)v);           // ease in at 1 count per sample
+            for (int i = 0; i < 1000; i++) c.Process(180);                // perfectly still
+            for (int v = 180; v >= 0; v -= 10) c.Process((byte)v);
+            for (int i = 0; i < 60; i++) c.Process(0);
+        }
+        Assert.False(c.EndStopLearned);
+    }
+
+    [Fact]
+    public void First_learning_never_goes_below_the_highest_plateau_ever_seen()
+    {
+        var c = new TriggerCalibrator();
+        var rng = new Random(30);
+        // One long full press on the healthy trigger, then many pinned presses at 180 (e.g. a game
+        // whose trigger effect blocks travel). The one press proves the trigger goes further.
+        Press(c, rng, 255, holdSamples: 500, jitter: 0);
+        for (int i = 0; i < 20; i++) FullPress(c, rng, stop: 180);
+        Assert.True(c.HighestPlateau >= 250f);
+        Assert.False(c.EndStopLearned && c.EndStop < 250f, $"end stop {c.EndStop}");
+
+        var d = new TriggerCalibrator();
+        d.Import(c.Export());
+        Assert.Equal(c.HighestPlateau, d.HighestPlateau);
+    }
+
+    [Fact]
+    public void Rest_jumps_to_where_a_sticky_trigger_settles_after_release()
+    {
+        var c = new TriggerCalibrator();
+        var rng = new Random(31);
+        for (int i = 0; i < 500; i++) c.Process(0);
+        FullPress(c, rng, stop: 220);
+        // Next press: it now comes back only to 15 and sits there for 4 s.
+        for (int v = 0; v <= 220; v += 20) c.Process((byte)v);
+        for (int i = 0; i < 250; i++) c.Process(220);
+        for (int v = 220; v >= 15; v -= 15) c.Process((byte)v);
+        for (int i = 0; i < 1000; i++) c.Process((byte)(15 + rng.Next(0, 2)));
+        Assert.InRange(c.Rest, 14f, 17f);
+        Assert.Equal(0f, c.Map(16));
+    }
+
+    [Fact]
+    public void Slow_squeeze_after_a_release_is_not_learned_as_rest()
+    {
+        var c = new TriggerCalibrator();
+        var rng = new Random(32);
+        for (int i = 0; i < 500; i++) c.Process(0);
+        FullPress(c, rng, stop: 220);
+        for (int i = 0; i < 300; i++) c.Process(0);
+        for (int i = 0; i < 1000; i++) c.Process((byte)(i * 35 / 1000));  // squeeze up to 35 over 4 s
+        for (int i = 0; i < 1000; i++) c.Process((byte)(35 + rng.Next(-1, 2)));
+        Assert.True(c.Rest < 2f, $"rest {c.Rest}");
+    }
+
+    [Fact]
+    public void Guided_calibration_learns_a_noisy_stop_in_three_presses_and_is_never_lowered()
+    {
+        var c = new TriggerCalibrator();
+        var rng = new Random(33);
+        c.StartGuidedEndStop();
+        Assert.Equal(3, c.GuidedPressesRemaining);
+        Press(c, rng, 196, holdSamples: 100, jitter: 3);
+        Assert.Equal(2, c.GuidedPressesRemaining);
+        Press(c, rng, 196, holdSamples: 100, jitter: 3);
+        Press(c, rng, 196, holdSamples: 100, jitter: 3);
+        Assert.False(c.GuidedInProgress);
+        Assert.True(c.EndStopLearned);
+        Assert.Equal(PlateauKind.Guided, c.EndStopKind);
+        Assert.True(c.Map(196) >= 0.99f, $"end stop {c.EndStop}");
+
+        // Automatic learning never lowers it ...
+        for (int i = 0; i < 30; i++) FullPress(c, rng, stop: 186);
+        Assert.True(c.EndStop >= 190f, $"guided end stop lowered to {c.EndStop}");
+        // ... but raises it when the trigger reaches further.
+        for (int i = 0; i < 3; i++) FullPress(c, rng, stop: 230);
+        Assert.InRange(c.EndStop, 225f, 231f);
+        Assert.Equal(PlateauKind.Guided, c.EndStopKind);
+
+        // Persisted.
+        var d = new TriggerCalibrator();
+        d.Import(c.Export());
+        Assert.Equal(PlateauKind.Guided, d.EndStopKind);
+        Assert.Equal(c.EndStop, d.EndStop);
+    }
+
+    [Fact]
+    public void Guided_calibration_respects_the_floor_works_with_learning_off_and_can_be_cancelled()
+    {
+        var c = new TriggerCalibrator { LearningEnabled = false };
+        var rng = new Random(34);
+        c.StartGuidedEndStop();
+        for (int i = 0; i < 3; i++) FullPress(c, rng, stop: 120);
+        Assert.Equal(160f, c.EndStop);
+        Assert.Equal(PlateauKind.Guided, c.EndStopKind);
+
+        var d = new TriggerCalibrator();
+        d.StartGuidedEndStop();
+        FullPress(d, rng, stop: 200);
+        d.CancelGuided();
+        Assert.False(d.GuidedInProgress);
+        Assert.Equal(0, d.GuidedPressesRemaining);
+        FullPress(d, rng, stop: 200);
+        FullPress(d, rng, stop: 200);
+        Assert.False(d.EndStopLearned);
+        Assert.Equal(255f, d.EndStop);
+    }
+
+    [Fact]
+    public void Guided_quick_taps_do_not_count()
+    {
+        var c = new TriggerCalibrator();
+        c.StartGuidedEndStop();
+        for (int k = 0; k < 5; k++)
+        {
+            for (int v = 0; v <= 200; v += 40) c.Process((byte)v);
+            for (int v = 200; v >= 0; v -= 40) c.Process((byte)v);
+            for (int i = 0; i < 20; i++) c.Process(0);
+        }
+        Assert.Equal(3, c.GuidedPressesRemaining);
     }
 }

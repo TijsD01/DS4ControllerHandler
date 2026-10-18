@@ -29,7 +29,7 @@ public class ControllerCalibrationTests
     {
         var c = new ControllerCalibration(id, ControllerModel.DualShock4);
         var rng = new Random(42);
-        for (int i = 0; i < 6; i++) PressR2(c, rng);
+        for (int i = 0; i < 8; i++) PressR2(c, rng);
         for (int i = 0; i < 600; i++) c.Process(Raw(0));
         return c;
     }

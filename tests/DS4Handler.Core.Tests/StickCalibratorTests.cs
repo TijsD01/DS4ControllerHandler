@@ -331,4 +331,83 @@ public class StickCalibratorTests
             for (int y = 0; y < 256; y += 15)
                 Assert.Equal(factory.Map((byte)x, (byte)y), c.Map((byte)x, (byte)y));
     }
+
+    [Fact]
+    public void GuidedCenter_FixesBigDriftJump()
+    {
+        var c = LearnDrift(0f, 0f, seed: 20);
+        int releases = c.Releases;
+        Assert.True(releases >= 5);
+        var rnd = new Random(21);
+
+        // Drift jumps by 0.2: too far for normal learning, which stays where it was.
+        for (int i = 0; i < 20; i++)
+        {
+            Rest(c, 0.2f, 0f, rnd, 250);
+            Flick(c, 0.2f, 0f, (float)(rnd.NextDouble() * 2 * Math.PI));
+        }
+        Assert.InRange(c.CenterX, -0.02f, 0.02f);
+
+        c.StartGuidedCenter();
+        Assert.True(c.GuidedInProgress);
+        Rest(c, 0.2f, 0f, rnd, 100);
+        Assert.True(c.GuidedInProgress); // not still long enough yet
+        Rest(c, 0.2f, 0f, rnd, 100);
+        Assert.False(c.GuidedInProgress);
+        Assert.InRange(c.CenterX, 0.19f, 0.21f);
+        Assert.InRange(c.CenterY, -0.01f, 0.01f);
+        Assert.Empty(c.Export().OuterRadii);
+        Assert.True(c.Deadzone < 0.06f);
+        Assert.True(c.Releases > releases);
+
+        var (bx, by) = Raw(0.2f, 0f);
+        Assert.Equal((0f, 0f), c.Map(bx, by));
+
+        // Normal learning carries on from the new center, and the profile keeps it.
+        for (int i = 0; i < 10; i++)
+        {
+            Rest(c, 0.2f, 0f, rnd, 250);
+            Flick(c, 0.2f, 0f, (float)(rnd.NextDouble() * 2 * Math.PI));
+        }
+        Assert.InRange(c.CenterX, 0.19f, 0.21f);
+        var restored = new StickCalibrator();
+        restored.Import(c.Export());
+        Assert.Equal(c.CenterX, restored.CenterX);
+        Assert.Equal(c.Map(bx, by), restored.Map(bx, by));
+    }
+
+    [Fact]
+    public void GuidedCenter_WaitsForStillStick_IsCapped_AndWorksWithLearningOff()
+    {
+        var c = new StickCalibrator { LearningEnabled = false };
+        var rnd = new Random(22);
+        c.StartGuidedCenter();
+
+        // Moving or trembling stick does not finish it.
+        Rest(c, 0.3f, 0.3f, rnd, 1000, noise: 4);
+        Assert.True(c.GuidedInProgress);
+        Assert.Equal(0f, c.CenterX);
+
+        // Released far off: center is set, but capped at 0.35 from the middle.
+        Rest(c, 0.3f, 0.3f, rnd, 200);
+        Assert.False(c.GuidedInProgress);
+        float len = MathF.Sqrt(c.CenterX * c.CenterX + c.CenterY * c.CenterY);
+        Assert.InRange(len, 0.34f, 0.3501f);
+        Assert.InRange(c.CenterX - c.CenterY, -0.01f, 0.01f);
+    }
+
+    [Fact]
+    public void CancelGuided_ChangesNothing()
+    {
+        var c = LearnDrift(0.05f, 0f, seed: 23);
+        var before = c.Export();
+        c.StartGuidedCenter();
+        Rest(c, 0.05f, 0f, new Random(24), 50);
+        c.CancelGuided();
+        Assert.False(c.GuidedInProgress);
+        c.LearningEnabled = false;
+        Rest(c, 0.2f, 0.1f, new Random(25), 500);
+        Assert.Equal(before.CenterX, c.CenterX);
+        Assert.Equal(before.CenterY, c.CenterY);
+    }
 }

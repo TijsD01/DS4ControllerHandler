@@ -2,18 +2,22 @@ namespace DS4Handler.Core.Calibration;
 
 /// <summary>
 /// How flat a held trigger position was. A mechanical end stop pins the value; a finger holding a
-/// partial press always wobbles a little.
+/// partial press always wobbles a little. <see cref="Guided"/> marks an end stop set by the guided
+/// calibration (the user was asked to press fully), which automatic learning never lowers.
 /// </summary>
 public enum PlateauKind
 {
-    /// <summary>Held, but noisy (spread up to <see cref="TriggerCalibrationOptions.LoosePlateauSpread"/>).</summary>
+    /// <summary>Held, but noisy.</summary>
     Loose = 0,
 
-    /// <summary>Held steadily (spread up to <see cref="TriggerCalibrationOptions.SteadyPlateauSpread"/>) for a sustained run.</summary>
+    /// <summary>Held steadily (about ±1 count) for a sustained run.</summary>
     Steady = 1,
 
-    /// <summary>Pinned against a hard stop: practically no movement (spread up to <see cref="TriggerCalibrationOptions.PinnedPlateauSpread"/>).</summary>
+    /// <summary>Pinned: the value sits on one or two adjacent counts.</summary>
     Pinned = 2,
+
+    /// <summary>End stop set by <see cref="TriggerCalibrator.StartGuidedEndStop"/>.</summary>
+    Guided = 3,
 }
 
 /// <summary>Tunables for <see cref="TriggerCalibrator"/>. Values are in raw counts (0..255), samples assume ~250 Hz.</summary>
@@ -36,32 +40,52 @@ public sealed record TriggerCalibrationOptions
     /// <summary>Samples a loose plateau must last.</summary>
     public int LoosePlateauSamples { get; init; } = 30;
 
+    /// <summary>Largest spread of a rough plateau: a noisy end stop (±3) that is held for a long time.</summary>
+    public float RoughPlateauSpread { get; init; } = 6f;
+
+    /// <summary>Samples a rough plateau must last (about 1 s); a human hold drifts more than that over so long.</summary>
+    public int RoughPlateauSamples { get; init; } = 250;
+
     /// <summary>Largest max-min spread of a steady plateau (about ±1 count).</summary>
     public float SteadyPlateauSpread { get; init; } = 2f;
 
     /// <summary>Samples a steady or pinned plateau must last (about 0.25 s).</summary>
     public int SteadyPlateauSamples { get; init; } = 60;
 
-    /// <summary>Largest max-min spread of a pinned plateau (the value sits on one or two adjacent counts).</summary>
+    /// <summary>Largest max-min spread of a pinned plateau.</summary>
     public float PinnedPlateauSpread { get; init; } = 1f;
+
+    /// <summary>
+    /// Rise per sample (counts) that counts as hitting the plateau hard. A trigger slammed into its
+    /// mechanical stop arrives fast and stops dead; a finger easing to a partial position decelerates.
+    /// </summary>
+    public float ImpactVelocity { get; init; } = 4f;
+
+    /// <summary>Samples before a plateau starts in which the impact velocity must be seen.</summary>
+    public int ImpactLookback { get; init; } = 3;
 
     // ---- end stop decisions
 
     /// <summary>Recent presses kept to find the trigger's real end stop.</summary>
     public int PeakHistory { get; init; } = 16;
 
-    /// <summary>Steady or pinned presses that must agree before an end stop is first learned.</summary>
-    public int SteadyPeaksForEndStop { get; init; } = 5;
+    /// <summary>Pinned presses (with impact) that must agree before an end stop is first learned.</summary>
+    public int PinnedPeaksForEndStop { get; init; } = 5;
 
-    /// <summary>Presses of any kind that must agree before an end stop is first learned from loose plateaus only.</summary>
-    public int LoosePeaksForEndStop { get; init; } = 8;
+    /// <summary>Presses of any flatness (with impact) that must agree before an end stop is first learned.</summary>
+    public int PeaksForEndStop { get; init; } = 8;
 
     /// <summary>
-    /// Agreeing presses needed to lower an already learned end stop. They must also be at least as
-    /// flat as the presses that confirmed the current end stop, so a wobbly partial hold can never
-    /// lower an end stop that was confirmed by pinned full presses.
+    /// Agreeing presses needed to lower an already learned end stop. They must have impact and be at
+    /// least as flat as the presses that confirmed the current end stop.
     /// </summary>
     public int PeaksToLowerEndStop { get; init; } = 8;
+
+    /// <summary>
+    /// Automatic learning lowers a learned end stop by at most this many counts at a time (gradual wear).
+    /// A sudden big drop is far more likely a steady partial hold; use the guided calibration for that.
+    /// </summary>
+    public float MaxLowerStep { get; init; } = 12f;
 
     /// <summary>Agreeing presses needed to raise the end stop (the trigger reaches further than we thought).</summary>
     public int PeaksToRaiseEndStop { get; init; } = 3;
@@ -72,6 +96,17 @@ public sealed record TriggerCalibrationOptions
     /// <summary>The learned end stop is never set below this (counts), so a bad guess cannot make light presses read as full.</summary>
     public float MinimumEndStop { get; init; } = 160f;
 
+    // ---- guided calibration
+
+    /// <summary>Full presses the guided calibration uses.</summary>
+    public int GuidedPresses { get; init; } = 3;
+
+    /// <summary>Largest spread of a plateau during guided calibration.</summary>
+    public float GuidedPlateauSpread { get; init; } = 6f;
+
+    /// <summary>Samples a plateau must last during guided calibration.</summary>
+    public int GuidedPlateauSamples { get; init; } = 30;
+
     // ---- rest position
 
     /// <summary>Deadzone above the learned rest position (counts).</summary>
@@ -80,17 +115,26 @@ public sealed record TriggerCalibrationOptions
     /// <summary>The output reaches 100% this many counts before the end stop, so jitter at full press still reads as full.</summary>
     public float SaturationMargin { get; init; } = 2f;
 
-    /// <summary>Largest rest position the calibrator will accept (counts).</summary>
-    public float MaxRest { get; init; } = 20f;
+    /// <summary>Largest rest position the calibrator will accept (counts), e.g. a sticky trigger that no longer returns fully.</summary>
+    public float MaxRest { get; init; } = 40f;
 
-    /// <summary>The rest position only follows a still value that is at most this many counts above it.</summary>
+    /// <summary>The rest position creeps up only from a still value at most this many counts above it.</summary>
     public float RestRiseWindow { get; init; } = 4f;
 
-    /// <summary>Largest rise of the rest position per sample (0.004 ≈ 1 count per second at 250 Hz). Dropping is immediate.</summary>
+    /// <summary>Largest creep of the rest position per sample (0.004 ≈ 1 count per second at 250 Hz). Dropping is immediate.</summary>
     public float RestRisePerSample { get; init; } = 0.004f;
 
     /// <summary>Before any rest is learned: samples the trigger must sit still to adopt that value as the initial rest.</summary>
-    public int InitialRestSamples { get; init; } = 200;
+    public int InitialRestSamples { get; init; } = 375;
+
+    /// <summary>
+    /// After a release: samples the trigger must sit still (starting right after it came down) for that
+    /// value to become the new rest, even if it is more than <see cref="RestRiseWindow"/> above the old one.
+    /// </summary>
+    public int ReleasedRestSamples { get; init; } = 750;
+
+    /// <summary>Samples after a press ends within which the trigger must have settled for <see cref="ReleasedRestSamples"/> to apply.</summary>
+    public int ReleaseSettleSamples { get; init; } = 100;
 }
 
 /// <summary>Learned state of one trigger, for saving to a profile.</summary>
@@ -102,58 +146,89 @@ public sealed record TriggerCalibrationData
     public bool EndStopLearned { get; init; }
     public PlateauKind EndStopKind { get; init; }
     public int PressCount { get; init; }
+
+    /// <summary>Highest plateau ever seen on this trigger; a first-learned end stop is never below it.</summary>
+    public float HighestPlateau { get; init; }
+
     public float[] RecentPeaks { get; init; } = Array.Empty<float>();
     public PlateauKind[] RecentPeakKinds { get; init; } = Array.Empty<PlateauKind>();
+    public bool[] RecentPeakImpacts { get; init; } = Array.Empty<bool>();
 }
 
 /// <summary>
 /// Learns the real travel of an analog trigger from normal play and remaps it to the full 0..1 range.
 ///
 /// A worn trigger often stops short (an R2 that never gets past 200 of 255). The calibrator watches
-/// each press and records where the trigger comes to a stop (a plateau) and how flat that plateau
-/// was. A mechanical end stop is repeatable and pins the value; partial presses land all over the
-/// place and wobble. Once enough presses agree on a value, that value becomes the new 100%.
+/// each press and records where the trigger comes to a stop (a plateau), how flat that plateau was
+/// and whether it was hit hard (impact). A mechanical end stop is repeatable, hit fast and pins the
+/// value; partial presses land all over the place, are eased into and wobble. Once enough presses
+/// agree on a value, that value becomes the new 100%.
 ///
 /// Safeguards against learning a partial hold:
-/// - a plateau must last a while (a quick tap never counts);
-/// - first learning needs several agreeing presses (5 steady/pinned, or 8 if they are all wobbly);
-/// - lowering a learned end stop needs 8 agreeing presses that are at least as flat as the ones that
-///   confirmed it, and no recent press may have gone clearly further;
+/// - a plateau must last a while (a quick tap never counts) and only presses with impact count;
+/// - first learning needs 5 agreeing pinned presses, or 8 of any flatness, and may not be below the
+///   highest plateau ever seen on this trigger;
+/// - lowering a learned end stop needs 8 agreeing presses at least as flat as the ones that confirmed
+///   it, no recent press may have gone clearly further, and it moves at most 12 counts at a time;
+/// - a guided end stop (<see cref="StartGuidedEndStop"/>) is never lowered automatically;
 /// - the end stop never goes below <see cref="TriggerCalibrationOptions.MinimumEndStop"/>.
-/// The rest position only creeps up slowly and only from values right above it, so a light held
-/// throttle or a slow squeeze is never learned as "released".
+///
+/// The rest position creeps up only slowly from values right above it, or jumps to a value the trigger
+/// settles on for several seconds right after a release (a sticky trigger), so a light held throttle
+/// or a slow squeeze is never learned as "released".
 /// </summary>
 public sealed class TriggerCalibrator
 {
+    private const int LooseRun = 0, RoughRun = 1, SteadyRun = 2, PinnedRun = 3, GuidedRun = 4;
+
     private readonly TriggerCalibrationOptions _o;
     private readonly float[] _window;
     private int _windowCount;
     private int _windowIndex;
 
-    private readonly Queue<(float Value, PlateauKind Kind)> _peaks = new();
+    private readonly Queue<Peak> _peaks = new();
     private bool _inPress;
     private readonly Run[] _runs;
-    private readonly float[] _bestPlateau = new float[3];
+    private readonly float[] _best = new float[5];
+    private readonly bool[] _bestImpact = new bool[5];
+    private readonly float[] _recent;
+    private int _recentCount;
+    private int _recentIndex;
 
-    private Run _restRun;
+    private readonly Run _initialRestRun;
+    private readonly Run _releasedRestRun;
+    private bool _afterRelease;
+    private int _samplesSinceRelease;
+
     private float _rest;
     private bool _restLearned;
+    private float _lowestStill = float.MaxValue;
     private float _endStop = 255f;
     private bool _endStopLearned;
     private PlateauKind _endStopKind;
+    private float _highestPlateau;
     private int _pressCount;
+
+    private int _guidedRemaining;
+    private readonly List<float> _guidedPeaks = new();
+
+    private readonly record struct Peak(float Value, PlateauKind Kind, bool Impact);
 
     public TriggerCalibrator(TriggerCalibrationOptions? options = null)
     {
         _o = options ?? new TriggerCalibrationOptions();
         _window = new float[Math.Max(2, _o.StableWindow)];
+        _recent = new float[Math.Max(2, _o.ImpactLookback + 1)];
         _runs = new[]
         {
             new Run(_o.LoosePlateauSpread, _o.LoosePlateauSamples),
+            new Run(_o.RoughPlateauSpread, _o.RoughPlateauSamples),
             new Run(_o.SteadyPlateauSpread, _o.SteadyPlateauSamples),
             new Run(_o.PinnedPlateauSpread, _o.SteadyPlateauSamples),
+            new Run(_o.GuidedPlateauSpread, _o.GuidedPlateauSamples),
         };
-        _restRun = new Run(_o.StableTolerance, _o.InitialRestSamples);
+        _initialRestRun = new Run(_o.StableTolerance, _o.InitialRestSamples);
+        _releasedRestRun = new Run(_o.StableTolerance, _o.ReleasedRestSamples);
         ClearPress();
     }
 
@@ -165,18 +240,44 @@ public sealed class TriggerCalibrator
 
     public bool EndStopLearned => _endStopLearned;
 
-    /// <summary>How flat the presses were that confirmed the current end stop.</summary>
+    /// <summary>How the current end stop was confirmed (flatness of its presses, or guided).</summary>
     public PlateauKind EndStopKind => _endStopKind;
+
+    /// <summary>Highest plateau ever seen on this trigger (counts).</summary>
+    public float HighestPlateau => _highestPlateau;
 
     public int PressCount => _pressCount;
 
-    /// <summary>When false, the calibrator only maps values and stops learning.</summary>
+    /// <summary>When false, the calibrator only maps values and stops learning (a guided calibration still runs).</summary>
     public bool LearningEnabled { get; set; } = true;
+
+    /// <summary>True while the guided calibration waits for full presses.</summary>
+    public bool GuidedInProgress => _guidedRemaining > 0;
+
+    /// <summary>Full presses the guided calibration still needs.</summary>
+    public int GuidedPressesRemaining => _guidedRemaining;
+
+    /// <summary>
+    /// Starts the guided end stop calibration: the next full presses (the UI asks the user to press the
+    /// trigger all the way and hold it briefly) decide the end stop with relaxed rules. The result is
+    /// marked <see cref="PlateauKind.Guided"/> and is never lowered by automatic learning, only raised.
+    /// </summary>
+    public void StartGuidedEndStop()
+    {
+        _guidedRemaining = Math.Max(1, _o.GuidedPresses);
+        _guidedPeaks.Clear();
+    }
+
+    public void CancelGuided()
+    {
+        _guidedRemaining = 0;
+        _guidedPeaks.Clear();
+    }
 
     /// <summary>Feeds one raw sample (0..255), updates the model and returns the calibrated value (0..1).</summary>
     public float Process(byte raw)
     {
-        if (LearningEnabled) Learn(raw);
+        if (LearningEnabled || GuidedInProgress) Learn(raw);
         return Map(raw);
     }
 
@@ -194,14 +295,21 @@ public sealed class TriggerCalibrator
     {
         _rest = 0;
         _restLearned = false;
+        _lowestStill = float.MaxValue;
         _endStop = 255f;
         _endStopLearned = false;
         _endStopKind = PlateauKind.Loose;
+        _highestPlateau = 0;
         _pressCount = 0;
         _peaks.Clear();
         _inPress = false;
         _windowCount = 0;
-        _restRun.Clear();
+        _initialRestRun.Clear();
+        _releasedRestRun.Clear();
+        _afterRelease = false;
+        _recentCount = 0;
+        _recentIndex = 0;
+        CancelGuided();
         ClearPress();
     }
 
@@ -213,8 +321,10 @@ public sealed class TriggerCalibrator
         EndStopLearned = _endStopLearned,
         EndStopKind = _endStopKind,
         PressCount = _pressCount,
+        HighestPlateau = _highestPlateau,
         RecentPeaks = _peaks.Select(p => p.Value).ToArray(),
         RecentPeakKinds = _peaks.Select(p => p.Kind).ToArray(),
+        RecentPeakImpacts = _peaks.Select(p => p.Impact).ToArray(),
     };
 
     /// <summary>Restores a saved state. Corrupt values (NaN, infinity, out of range, missing arrays) fall back to defaults.</summary>
@@ -233,18 +343,26 @@ public sealed class TriggerCalibrator
             _endStopKind = Enum.IsDefined(data.EndStopKind) ? data.EndStopKind : PlateauKind.Loose;
         }
 
+        _highestPlateau = float.IsFinite(data.HighestPlateau) ? Math.Clamp(data.HighestPlateau, 0f, 255f) : 0f;
         _pressCount = Math.Max(0, data.PressCount);
 
         var peaks = data.RecentPeaks ?? Array.Empty<float>();
         var kinds = data.RecentPeakKinds ?? Array.Empty<PlateauKind>();
+        var impacts = data.RecentPeakImpacts ?? Array.Empty<bool>();
         int start = Math.Max(0, peaks.Length - _o.PeakHistory);
         for (int i = start; i < peaks.Length; i++)
         {
             if (!float.IsFinite(peaks[i])) continue;
-            var kind = kinds.Length == peaks.Length && Enum.IsDefined(kinds[i]) ? kinds[i] : PlateauKind.Loose;
-            _peaks.Enqueue((Math.Clamp(peaks[i], 0f, 255f), kind));
+            var kind = kinds.Length == peaks.Length && Enum.IsDefined(kinds[i]) && kinds[i] != PlateauKind.Guided
+                ? kinds[i] : PlateauKind.Loose;
+            bool impact = impacts.Length == peaks.Length && impacts[i];
+            float value = Math.Clamp(peaks[i], 0f, 255f);
+            _peaks.Enqueue(new Peak(value, kind, impact));
+            _highestPlateau = Math.Max(_highestPlateau, value);
         }
     }
+
+    // ------------------------------------------------------------------ learning
 
     private void Learn(byte raw)
     {
@@ -258,9 +376,10 @@ public sealed class TriggerCalibrator
             {
                 _inPress = true;
                 ClearPress();
-                _restRun.Clear();
+                _initialRestRun.Clear();
+                _afterRelease = false;
             }
-            else
+            else if (LearningEnabled)
             {
                 LearnRest(raw);
             }
@@ -268,18 +387,40 @@ public sealed class TriggerCalibrator
 
         if (_inPress)
         {
+            // Largest rise per sample over the last few samples: how hard the press is arriving.
+            float velocity = 0f;
+            float next = raw;
+            for (int i = 1; i <= _recentCount; i++)
+            {
+                float prev = _recent[(_recentIndex - i + _recent.Length) % _recent.Length];
+                velocity = Math.Max(velocity, next - prev);
+                next = prev;
+            }
+            bool impactNow = velocity >= _o.ImpactVelocity;
+
             for (int k = 0; k < _runs.Length; k++)
             {
-                _runs[k].Add(raw);
-                if (_runs[k].IsLongEnough && !(_bestPlateau[k] >= _runs[k].Mean)) _bestPlateau[k] = _runs[k].Mean; // NaN-safe max
+                _runs[k].Add(raw, impactNow);
+                if (_runs[k].IsLongEnough && !(_best[k] >= _runs[k].Mean)) // NaN-safe max
+                {
+                    _best[k] = _runs[k].Mean;
+                    _bestImpact[k] = _runs[k].Impact;
+                }
             }
 
             if (raw < _rest + _o.PressThreshold / 2f)
             {
                 _inPress = false;
                 EndPress();
+                _afterRelease = true;
+                _samplesSinceRelease = 0;
+                _releasedRestRun.Clear();
             }
         }
+
+        _recent[_recentIndex] = raw;
+        _recentIndex = (_recentIndex + 1) % _recent.Length;
+        if (_recentCount < _recent.Length) _recentCount++;
     }
 
     private void LearnRest(byte raw)
@@ -287,11 +428,36 @@ public sealed class TriggerCalibrator
         if (!_restLearned)
         {
             // Nothing learned yet: adopt a value the trigger sits still on for a long time.
-            _restRun.Add(raw);
-            if (_restRun.IsLongEnough && _restRun.Mean <= _o.MaxRest)
+            // Never higher than a still value seen before (resting at 0, then holding 35, is a press).
+            _initialRestRun.Add(raw, false);
+            if (TryGetStableValue(out float still)) _lowestStill = Math.Min(_lowestStill, still);
+            if (_initialRestRun.IsLongEnough && _initialRestRun.Mean <= _o.MaxRest
+                && _initialRestRun.Mean <= _lowestStill + _o.StableTolerance)
             {
-                _rest = _restRun.Mean;
+                _rest = _initialRestRun.Mean;
                 _restLearned = true;
+            }
+        }
+
+        if (_afterRelease)
+        {
+            // Right after a release: if the trigger settles and then sits still for a few seconds,
+            // that is where it now rests (a sticky trigger), even well above the old rest.
+            _samplesSinceRelease++;
+            bool restarted = _releasedRestRun.Add(raw, false);
+            if (restarted && _samplesSinceRelease > _o.ReleaseSettleSamples)
+            {
+                _afterRelease = false; // it moved again after settling: not a release rest
+            }
+            else if (_releasedRestRun.IsLongEnough)
+            {
+                float mean = _releasedRestRun.Mean;
+                if (mean <= _o.MaxRest && mean > _rest)
+                {
+                    _rest = mean;
+                    _restLearned = true;
+                }
+                _afterRelease = false;
             }
         }
 
@@ -312,27 +478,60 @@ public sealed class TriggerCalibrator
     private void ClearPress()
     {
         foreach (var r in _runs) r.Clear();
-        Array.Fill(_bestPlateau, float.NaN);
+        Array.Fill(_best, float.NaN);
+        Array.Fill(_bestImpact, false);
     }
 
     private void EndPress()
     {
-        // Math.Max with NaN yields NaN, so seed the best values explicitly.
-        float peak = float.NaN;
-        foreach (var v in _bestPlateau)
-            if (!float.IsNaN(v) && (float.IsNaN(peak) || v > peak)) peak = v;
-        if (float.IsNaN(peak)) return; // never held still: a tap, not evidence of anything
-
-        var kind = PlateauKind.Loose;
-        for (int k = _bestPlateau.Length - 1; k > 0; k--)
+        if (GuidedInProgress && !float.IsNaN(_best[GuidedRun]))
         {
-            if (!float.IsNaN(_bestPlateau[k]) && _bestPlateau[k] >= peak - _o.ClusterTolerance / 2f)
+            float g = _best[GuidedRun];
+            for (int k = 0; k < GuidedRun; k++)
+                if (!float.IsNaN(_best[k]) && _best[k] > g) g = _best[k];
+            _guidedPeaks.Add(g);
+            _guidedRemaining--;
+            if (_guidedRemaining == 0) FinishGuided();
+        }
+
+        float peak = float.NaN;
+        int bestRun = -1;
+        for (int k = 0; k < GuidedRun; k++)
+        {
+            if (!float.IsNaN(_best[k]) && (float.IsNaN(peak) || _best[k] > peak))
             {
-                kind = (PlateauKind)k;
-                break;
+                peak = _best[k];
+                bestRun = k;
             }
         }
-        RecordPeak(peak, kind);
+        if (bestRun < 0) return; // never held still: a tap, not evidence of anything
+
+        var kind = PlateauKind.Loose;
+        bool impact = _bestImpact[bestRun];
+        if (!float.IsNaN(_best[PinnedRun]) && _best[PinnedRun] >= peak - _o.ClusterTolerance / 2f)
+        {
+            kind = PlateauKind.Pinned;
+            impact |= _bestImpact[PinnedRun];
+        }
+        else if (!float.IsNaN(_best[SteadyRun]) && _best[SteadyRun] >= peak - _o.ClusterTolerance / 2f)
+        {
+            kind = PlateauKind.Steady;
+            impact |= _bestImpact[SteadyRun];
+        }
+
+        if (LearningEnabled) RecordPeak(peak, kind, impact);
+    }
+
+    private void FinishGuided()
+    {
+        var sorted = _guidedPeaks.OrderBy(v => v).ToArray();
+        _guidedPeaks.Clear();
+        if (sorted.Length == 0) return;
+        // Median, but not more than a little above the lowest press so every full press reads 100%.
+        float stop = Math.Min(sorted[sorted.Length / 2], sorted[0] + _o.ClusterTolerance / 2f);
+        _endStop = Math.Clamp(stop, _o.MinimumEndStop, 255f);
+        _endStopKind = PlateauKind.Guided;
+        _endStopLearned = true;
     }
 
     private bool TryGetStableValue(out float value)
@@ -351,44 +550,47 @@ public sealed class TriggerCalibrator
         return true;
     }
 
-    private void RecordPeak(float peak, PlateauKind kind)
+    private void RecordPeak(float peak, PlateauKind kind, bool impact)
     {
         _pressCount++;
-        _peaks.Enqueue((peak, kind));
+        _highestPlateau = Math.Max(_highestPlateau, peak);
+        _peaks.Enqueue(new Peak(peak, kind, impact));
         while (_peaks.Count > _o.PeakHistory) _peaks.Dequeue();
+        if (GuidedInProgress) return; // the guided calibration decides
 
         // 1. The trigger reaches further than the learned end stop: raise quickly.
         if (_endStopLearned
-            && TryFindCluster(PlateauKind.Loose, _o.PeaksToRaiseEndStop, out float up, out var upKind)
+            && TryFindCluster(PlateauKind.Loose, false, _o.PeaksToRaiseEndStop, out float up, out var upKind)
             && up > _endStop)
         {
             _endStop = Math.Min(255f, up);
-            _endStopKind = upKind;
+            if (_endStopKind != PlateauKind.Guided) _endStopKind = upKind;
             return;
         }
 
-        // 2. First learning, or lowering a learned end stop.
-        PlateauKind minKind = _endStopLearned ? _endStopKind : PlateauKind.Loose;
-        bool found;
         float stop;
         PlateauKind stopKind;
         if (_endStopLearned)
         {
-            found = TryFindCluster(minKind, _o.PeaksToLowerEndStop, out stop, out stopKind);
+            // 2. Lowering (wear): never below a guided end stop, only small steps, strong evidence.
+            if (_endStopKind == PlateauKind.Guided) return;
+            if (!TryFindCluster(_endStopKind, true, _o.PeaksToLowerEndStop, out stop, out stopKind)) return;
+            if (stop >= _endStop || stop < _endStop - _o.MaxLowerStep) return;
         }
         else
         {
-            found = TryFindCluster(PlateauKind.Steady, _o.SteadyPeaksForEndStop, out stop, out stopKind);
-            if (TryFindCluster(PlateauKind.Loose, _o.LoosePeaksForEndStop, out float loose, out var looseKind)
-                && (!found || loose > stop))
+            // 3. First learning.
+            bool found = TryFindCluster(PlateauKind.Pinned, true, _o.PinnedPeaksForEndStop, out stop, out stopKind);
+            if (TryFindCluster(PlateauKind.Loose, true, _o.PeaksForEndStop, out float any, out var anyKind) && (!found || any > stop))
             {
-                (found, stop, stopKind) = (true, loose, looseKind);
+                (found, stop, stopKind) = (true, any, anyKind);
             }
+            if (!found) return;
+            // Never below a plateau this trigger has ever reached.
+            if (stop < _highestPlateau - _o.ClusterTolerance * 2) return;
         }
-        if (!found) return;
 
-        // A learned end stop only moves down, and never while a recent press went clearly further.
-        if (_endStopLearned && stop >= _endStop) return;
+        // No recent press may have gone clearly further.
         if (_peaks.Any(p => p.Value > stop + _o.ClusterTolerance * 2)) return;
 
         _endStop = Math.Clamp(stop, _o.MinimumEndStop, 255f);
@@ -398,14 +600,17 @@ public sealed class TriggerCalibrator
 
     /// <summary>
     /// Finds the highest value that at least <paramref name="minSupport"/> recent presses of at least
-    /// <paramref name="minKind"/> flatness agree on. Returns a value at the lower part of that group so
-    /// the output reliably hits 100%, and the flatness most of the group had.
+    /// <paramref name="minKind"/> flatness (and with impact, if required) agree on. Returns a value at the
+    /// lower part of that group so the output reliably hits 100%, and the flatness most of the group had.
     /// </summary>
-    private bool TryFindCluster(PlateauKind minKind, int minSupport, out float stop, out PlateauKind kind)
+    private bool TryFindCluster(PlateauKind minKind, bool needImpact, int minSupport, out float stop, out PlateauKind kind)
     {
         stop = 0;
         kind = PlateauKind.Loose;
-        var sorted = _peaks.Where(p => p.Kind >= minKind).OrderByDescending(p => p.Value).ToArray();
+        var sorted = _peaks
+            .Where(p => p.Kind >= minKind && (!needImpact || p.Impact))
+            .OrderByDescending(p => p.Value)
+            .ToArray();
         for (int i = 0; i < sorted.Length; i++)
         {
             float top = sorted[i].Value;
@@ -416,7 +621,6 @@ public sealed class TriggerCalibrator
 
             var group = sorted[i..(j + 1)];
             stop = Math.Min(group[group.Length / 2].Value, group[^1].Value + _o.ClusterTolerance / 2f);
-            // The weakest flatness shared by the majority of the group.
             var kinds = group.Select(g => g.Kind).OrderByDescending(k => k).ToArray();
             kind = kinds[kinds.Length / 2];
             return true;
@@ -424,7 +628,11 @@ public sealed class TriggerCalibrator
         return false;
     }
 
-    /// <summary>A run of samples whose max-min spread stays within a limit.</summary>
+    /// <summary>
+    /// A run of samples whose max-min spread stays within a limit. <see cref="Impact"/> tells whether
+    /// the run was entered with a hard rise; a run that restarts because of noise at the same level
+    /// keeps the impact of the run before it.
+    /// </summary>
     private sealed class Run
     {
         private readonly float _maxSpread;
@@ -440,10 +648,16 @@ public sealed class TriggerCalibrator
 
         public bool IsLongEnough => _count >= _minSamples;
         public float Mean => _count == 0 ? 0f : _sum / _count;
+        public bool Impact { get; private set; }
 
-        public void Clear() => _count = 0;
+        public void Clear()
+        {
+            _count = 0;
+            Impact = false;
+        }
 
-        public void Add(float v)
+        /// <summary>Adds a sample; returns true when the run had to restart.</summary>
+        public bool Add(float v, bool impactNow)
         {
             if (_count > 0 && Math.Max(_max, v) - Math.Min(_min, v) <= _maxSpread)
             {
@@ -451,10 +665,13 @@ public sealed class TriggerCalibrator
                 _max = Math.Max(_max, v);
                 _sum += v;
                 _count++;
-                return;
+                return false;
             }
+            bool continuation = _count > 0 && Impact && Math.Abs(v - Mean) <= _maxSpread * 1.5f;
+            Impact = impactNow || continuation;
             _min = _max = _sum = v;
             _count = 1;
+            return true;
         }
     }
 }

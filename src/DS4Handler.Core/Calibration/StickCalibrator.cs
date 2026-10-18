@@ -13,7 +13,7 @@ public sealed record StickCalibrationOptions
     /// <summary>All samples in the window must be this close to their mean for the stick to count as still.</summary>
     public float RestTolerance { get; init; } = 0.02f;
 
-    /// <summary>A rest position further than this from the middle is never treated as drift.</summary>
+    /// <summary>Normal learning (start-up releases and drift jumps) never puts the center further than this from the middle.</summary>
     public float MaxDrift { get; init; } = 0.2f;
 
     /// <summary>The stick must go at least this far from the center before the next rest counts as a release.</summary>
@@ -22,8 +22,23 @@ public sealed record StickCalibrationOptions
     /// <summary>Still samples in a row needed after a deflection before it counts as a release (about 0.5 s).</summary>
     public int ReleaseStillSamples { get; init; } = 125;
 
-    /// <summary>The first few releases may land anywhere within <see cref="MaxDrift"/>, so drift is found quickly.</summary>
-    public int BootstrapReleases { get; init; } = 3;
+    /// <summary>The first few releases may land anywhere within <see cref="MaxDrift"/>; the center is their median.</summary>
+    public int BootstrapReleases { get; init; } = 5;
+
+    /// <summary>Releases in a row that must agree on a new spot outside the gate before the center jumps there.</summary>
+    public int RecenterReleases { get; init; } = 5;
+
+    /// <summary>Those releases must all be within this distance of their median to count as agreeing.</summary>
+    public float RecenterClusterRadius { get; init; } = 0.04f;
+
+    /// <summary>
+    /// Largest sudden jump of the center. Bigger offsets that keep repeating are more likely a held aim
+    /// than drift; slow changes are still followed, and Reset clears everything.
+    /// </summary>
+    public float RecenterMaxJump { get; init; } = 0.11f;
+
+    /// <summary>Furthest from the middle a guided center (see <see cref="StickCalibrator.StartGuidedCenter"/>) may be set; also the cap on imported centers.</summary>
+    public float GuidedMaxDrift { get; init; } = 0.35f;
 
     /// <summary>After the first releases, a release only counts when it lands within the deadzone plus this margin.</summary>
     public float CenterGateMargin { get; init; } = 0.04f;
@@ -111,10 +126,13 @@ public sealed record StickCalibrationData
 /// second. Each release is one vote, however long the stick then rests. The very first rest after
 /// start-up also counts.</item>
 /// <item>Center: the first few releases may land anywhere within
-/// <see cref="StickCalibrationOptions.MaxDrift"/>, and are averaged so drift is found quickly. After
-/// that, a release only counts when it lands close to the learned center (within the deadzone plus a
-/// small margin), so a held aim offset is never learned as drift. The center moves part of the way
-/// towards each accepted release.</item>
+/// <see cref="StickCalibrationOptions.MaxDrift"/>, and the center is their median, so drift is found
+/// quickly and a couple of held aims among them do not matter. After that, a release only counts
+/// when it lands close to the learned center (within the deadzone plus a small margin), so a held aim
+/// offset is not learned as drift. The center moves part of the way towards each accepted release.</item>
+/// <item>Drift jumps: if several releases in a row all land outside that gate on the same new spot
+/// (with no normal release in between, and not too far away), the drift has changed (a dropped
+/// controller, or drift that grew between sessions), and the center jumps to that spot.</item>
 /// <item>Noise: for each accepted release, the average jitter while still.</item>
 /// <item>Rest spread: worn springs return to a slightly different spot on every release. For each
 /// accepted release it measures how far it landed from the learned center and keeps a running
@@ -156,6 +174,9 @@ public sealed class StickCalibrator
     private float _outerRefX, _outerRefY;
     private int _restSamples;
     private int _releases;
+    private bool _guided;
+    private readonly List<(float X, float Y)> _boot = new();
+    private readonly List<(float X, float Y)> _rejected = new();
 
     public StickCalibrator(StickCalibrationOptions? options = null)
     {
@@ -181,10 +202,35 @@ public sealed class StickCalibrator
     /// <summary>When false, the calibrator only maps values and stops learning.</summary>
     public bool LearningEnabled { get; set; } = true;
 
+    /// <summary>Number of releases learned from so far.</summary>
+    public int Releases => _releases;
+
+    /// <summary>True while a guided centering started with <see cref="StartGuidedCenter"/> is waiting for a still stick.</summary>
+    public bool GuidedInProgress => _guided;
+
+    /// <summary>
+    /// Guided centering for a setup wizard: the user lets go of the stick, and the next still period
+    /// (about half a second) becomes the center directly, ignoring the usual gates. Use it when the
+    /// drift changed too much for normal learning to follow. Works even while learning is disabled.
+    /// Spread is reset, noise is taken from that still period, and the learned reach is cleared.
+    /// </summary>
+    public void StartGuidedCenter()
+    {
+        _guided = true;
+        ClearStillRun();
+    }
+
+    /// <summary>Stops a guided centering without changing anything.</summary>
+    public void CancelGuided()
+    {
+        _guided = false;
+        ClearStillRun();
+    }
+
     /// <summary>Feeds one raw sample (0..255 per axis), updates the model and returns the calibrated position.</summary>
     public (float X, float Y) Process(byte rawX, byte rawY)
     {
-        if (LearningEnabled) Learn(ToX(rawX), ToY(rawY));
+        if (LearningEnabled || _guided) Learn(ToX(rawX), ToY(rawY));
         return Map(rawX, rawY);
     }
 
@@ -211,6 +257,9 @@ public sealed class StickCalibrator
         _spread = 0;
         _restSamples = 0;
         _releases = 0;
+        _boot.Clear();
+        _rejected.Clear();
+        _guided = false;
         Array.Clear(_outer);
         _outerRefX = 0;
         _outerRefY = 0;
@@ -241,10 +290,10 @@ public sealed class StickCalibrator
 
         float cx = Sanitize(data.CenterX), cy = Sanitize(data.CenterY);
         float len = MathF.Sqrt(cx * cx + cy * cy);
-        if (len > _o.MaxDrift)
+        if (len > _o.GuidedMaxDrift)
         {
-            cx *= _o.MaxDrift / len;
-            cy *= _o.MaxDrift / len;
+            cx *= _o.GuidedMaxDrift / len;
+            cy *= _o.GuidedMaxDrift / len;
         }
         _centerX = cx;
         _centerY = cy;
@@ -254,6 +303,9 @@ public sealed class StickCalibrator
         _spread = Math.Clamp(Sanitize(data.RestSpread), 0f, 1f);
         _restSamples = Math.Max(0, data.RestSamples);
         _releases = Math.Max(0, data.Releases);
+        // Mid-bootstrap: the individual releases are not saved, so stand in the saved center for them.
+        if (_releases < _o.BootstrapReleases)
+            for (int i = 0; i < _releases; i++) _boot.Add((cx, cy));
         if (data.OuterRadii is { } radii && radii.Length == _outer.Length)
         {
             for (int i = 0; i < _outer.Length; i++) _outer[i] = Math.Clamp(Sanitize(radii[i]), 0f, _o.MaxOuterRadius + 0.3f);
@@ -279,6 +331,13 @@ public sealed class StickCalibrator
         _winY[_winIndex] = y;
         _winIndex = (_winIndex + 1) % _winX.Length;
         if (_winCount < _winX.Length) _winCount++;
+
+        if (_guided)
+        {
+            LearnGuided();
+            return;
+        }
+        if (!LearningEnabled) return;
 
         float ox = x - _centerX, oy = y - _centerY;
         if (ox * ox + oy * oy >= _o.ReleaseDeflection * _o.ReleaseDeflection)
@@ -307,6 +366,42 @@ public sealed class StickCalibrator
         LearnOuter(x, y);
     }
 
+    private void LearnGuided()
+    {
+        if (!IsStill(out float mx, out float my, out float jitter))
+        {
+            ClearStillRun();
+            return;
+        }
+        _stillRun++;
+        _stillSumX += mx;
+        _stillSumY += my;
+        _stillSumJitter += jitter;
+        if (_stillRun < _o.ReleaseStillSamples) return;
+
+        float cx = _stillSumX / _stillRun, cy = _stillSumY / _stillRun;
+        float len = Dist(cx, cy);
+        if (len > _o.GuidedMaxDrift)
+        {
+            cx *= _o.GuidedMaxDrift / len;
+            cy *= _o.GuidedMaxDrift / len;
+        }
+        _centerX = cx;
+        _centerY = cy;
+        _noise = _stillSumJitter / _stillRun;
+        _spread = 0;
+        _restSamples += _stillRun;
+        _releases = Math.Max(_releases + 1, _o.BootstrapReleases);
+        _boot.Clear();
+        _rejected.Clear();
+        Array.Clear(_outer);
+        _outerRefX = cx;
+        _outerRefY = cy;
+        _guided = false;
+        _armed = false;
+        ClearStillRun();
+    }
+
     private bool IsStill(out float mx, out float my, out float maxDist)
     {
         mx = my = maxDist = 0;
@@ -328,28 +423,71 @@ public sealed class StickCalibrator
 
     private void LearnRelease(float mx, float my, float jitter, int samples)
     {
-        if (MathF.Sqrt(mx * mx + my * my) > _o.MaxDrift) return;
+        if (_releases < _o.BootstrapReleases)
+        {
+            if (Dist(mx, my) > _o.MaxDrift) return;
+            // Early on: any rest within MaxDrift counts, and the center is the median of them, so a
+            // couple of held aims among the first releases cannot pull it away.
+            _boot.Add((mx, my));
+            _releases++;
+            _restSamples += samples;
+            _centerX = Median(_boot.Select(b => b.X));
+            _centerY = Median(_boot.Select(b => b.Y));
+            _noise += (jitter - _noise) * Math.Max(_o.NoiseRate, 1f / _releases);
+            if (_releases >= _o.BootstrapReleases)
+            {
+                _spread = Median(_boot.Select(b => Dist(b.X - _centerX, b.Y - _centerY)));
+                _boot.Clear();
+            }
+            AfterCenterMoved();
+            return;
+        }
 
         float ox = mx - _centerX, oy = my - _centerY;
-        float d = MathF.Sqrt(ox * ox + oy * oy);
-        bool bootstrap = _releases < _o.BootstrapReleases;
-        if (!bootstrap && d > Deadzone + _o.CenterGateMargin) return; // a held offset, not a release
-
-        if (!bootstrap)
+        float d = Dist(ox, oy);
+        if (d > Deadzone + _o.CenterGateMargin)
         {
-            float spreadRate = d > _spread ? _o.SpreadRiseRate : _o.SpreadFallRate;
-            _spread += (d - _spread) * spreadRate;
+            // Probably a held aim, but if many releases in a row agree on a new spot the drift has changed.
+            ConsiderRecenter(mx, my, jitter, samples);
+            return;
         }
+        _rejected.Clear();
+
+        float spreadRate = d > _spread ? _o.SpreadRiseRate : _o.SpreadFallRate;
+        _spread += (d - _spread) * spreadRate;
 
         _releases++;
         _restSamples += samples;
-        // Plain average over the first releases, then a running average: one vote per release.
-        float warm = 1f / _releases;
-        float centerRate = Math.Max(_o.CenterRate, warm);
-        _centerX += ox * centerRate;
-        _centerY += oy * centerRate;
-        _noise += (jitter - _noise) * Math.Max(_o.NoiseRate, warm);
+        // One vote per release: the center moves part of the way towards it.
+        _centerX += ox * _o.CenterRate;
+        _centerY += oy * _o.CenterRate;
+        _noise += (jitter - _noise) * _o.NoiseRate;
+        AfterCenterMoved();
+    }
 
+    private void ConsiderRecenter(float mx, float my, float jitter, int samples)
+    {
+        _rejected.Add((mx, my));
+        if (_rejected.Count > _o.RecenterReleases) _rejected.RemoveAt(0);
+        if (_rejected.Count < _o.RecenterReleases) return;
+
+        float cx = Median(_rejected.Select(r => r.X));
+        float cy = Median(_rejected.Select(r => r.Y));
+        if (_rejected.Any(r => Dist(r.X - cx, r.Y - cy) > _o.RecenterClusterRadius)) return;
+        if (Dist(cx - _centerX, cy - _centerY) > _o.RecenterMaxJump || Dist(cx, cy) > _o.MaxDrift) return;
+
+        _centerX = cx;
+        _centerY = cy;
+        _spread = Median(_rejected.Select(r => Dist(r.X - cx, r.Y - cy)));
+        _noise += (jitter - _noise) * _o.NoiseRate;
+        _releases++;
+        _restSamples += samples;
+        _rejected.Clear();
+        AfterCenterMoved();
+    }
+
+    private void AfterCenterMoved()
+    {
         float rx = _centerX - _outerRefX, ry = _centerY - _outerRefY;
         if (rx * rx + ry * ry > _o.OuterResetDistance * _o.OuterResetDistance)
         {
@@ -358,6 +496,16 @@ public sealed class StickCalibrator
             _outerRefX = _centerX;
             _outerRefY = _centerY;
         }
+    }
+
+    private static float Dist(float x, float y) => MathF.Sqrt(x * x + y * y);
+
+    private static float Median(IEnumerable<float> values)
+    {
+        var v = values.OrderBy(x => x).ToArray();
+        if (v.Length == 0) return 0f;
+        int m = v.Length / 2;
+        return v.Length % 2 == 1 ? v[m] : (v[m - 1] + v[m]) / 2f;
     }
 
     private void LearnOuter(float x, float y)

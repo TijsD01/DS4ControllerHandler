@@ -11,7 +11,7 @@ public static class MultiString
         var sb = new StringBuilder();
         foreach (var s in items)
         {
-            if (string.IsNullOrEmpty(s)) continue; // an empty entry would terminate the list
+            if (string.IsNullOrWhiteSpace(s)) continue; // an empty entry would terminate the list
             sb.Append(s).Append('\0');
         }
         sb.Append('\0');

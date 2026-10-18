@@ -30,6 +30,7 @@ public sealed class ControllerManager : IDisposable
     private readonly object _scanGate = new();   // one scan at a time; I/O happens under this, not _lock
     private readonly Dictionary<string, ControllerSession> _sessions = new(StringComparer.OrdinalIgnoreCase); // by device path
     private readonly Dictionary<string, DateTime> _blockedUntil = new(StringComparer.OrdinalIgnoreCase);     // paths that failed to open
+    private readonly Dictionary<string, bool> _isVirtual = new(StringComparer.OrdinalIgnoreCase);              // path → made by ViGEmBus (checked once)
     private readonly HashSet<string> _duplicates = new(StringComparer.OrdinalIgnoreCase);                     // second interface of an open pad
     private readonly ProfileStore _store;
     private readonly Func<string, (bool Learning, OutputMode Output)> _optionsFor;
@@ -147,6 +148,10 @@ public sealed class ControllerManager : IDisposable
         {
             var model = ReportParser.ModelForProductId(device.ProductID);
             if (model == null) continue;
+            // Our own virtual DualShock 4 is a "Sony" device too: never pick it up as a controller.
+            if (!_isVirtual.TryGetValue(device.DevicePath, out bool isVirtual))
+                _isVirtual[device.DevicePath] = isVirtual = VirtualDeviceFilter.IsVirtual(device.DevicePath);
+            if (isVirtual) continue;
             int inputLength;
             try { inputLength = device.GetMaxInputReportLength(); } catch { continue; }
             if (inputLength <= 0) continue; // not the gamepad collection
@@ -154,6 +159,10 @@ public sealed class ControllerManager : IDisposable
             var connection = inputLength > 64 ? ConnectionType.Bluetooth : ConnectionType.Usb;
             present[device.DevicePath] = (device, model.Value, connection);
         }
+
+        foreach (var path in _isVirtual.Keys.ToList())
+            if (!present.ContainsKey(path) && !_isVirtual[path]) _isVirtual.Remove(path);
+        if (_isVirtual.Count > 256) _isVirtual.Clear();
 
         var removed = new List<ControllerSession>();
         bool changed = false;

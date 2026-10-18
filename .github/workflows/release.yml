@@ -1,0 +1,129 @@
+name: Release
+
+# Builds the downloadable Windows app:
+#   DS4Handler-Setup-<versie>.exe  installer, installs ViGEmBus/HidHide too when they are missing
+#   DS4Handler-<versie>-portable.exe  one exe, no installation (drivers must be installed separately)
+#
+# Push a tag like v1.0.0 and the files land on the GitHub Releases page.
+# "Run workflow" (manual) or a pull request that touches the packaging only builds them and keeps
+# them as a workflow artifact, without making a release.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - 'installer/**'
+      - 'src/DS4Handler.App/DS4Handler.App.csproj'
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Bepaal versie
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $v = "${{ github.ref_name }}".TrimStart('v')
+          } else {
+            $v = "0.0.0-dev.${{ github.run_number }}"
+          }
+          # Assembly versions only take numbers; drop any "-beta" style suffix there.
+          $numeric = ($v -split '-')[0]
+          "version=$v" >> $env:GITHUB_OUTPUT
+          "numeric=$numeric" >> $env:GITHUB_OUTPUT
+          Write-Host "Versie: $v"
+
+      - name: Tests
+        run: dotnet test tests/DS4Handler.Core.Tests -c Release
+
+      - name: Publiceer als één exe (zonder losse .NET-installatie)
+        shell: pwsh
+        run: >
+          dotnet publish src/DS4Handler.App -c Release -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:DebugType=none
+          -p:Version=${{ steps.version.outputs.numeric }}
+          -p:InformationalVersion=${{ steps.version.outputs.version }}
+          -o build/publish
+
+      - name: Download ViGEmBus- en HidHide-installers
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          New-Item -ItemType Directory -Force build/drivers | Out-Null
+          $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; 'User-Agent' = 'ds4handler-release' }
+          function Get-Setup($repo, $pattern, $target) {
+            $release = Invoke-RestMethod -Headers $headers "https://api.github.com/repos/$repo/releases/latest"
+            # Prefer an x64 (or universal) setup; fall back to any matching .exe.
+            $candidates = $release.assets | Where-Object { $_.name -match $pattern }
+            $asset = ($candidates | Where-Object { $_.name -match 'x64' } | Select-Object -First 1)
+            if (-not $asset) { $asset = $candidates | Select-Object -First 1 }
+            if (-not $asset) { throw "Geen installer gevonden in $repo $($release.tag_name) (zocht naar '$pattern')." }
+            Write-Host "$repo $($release.tag_name): $($asset.name)"
+            Invoke-WebRequest -Headers $headers $asset.browser_download_url -OutFile "build/drivers/$target"
+            "$repo $($release.tag_name)" | Out-File -Append build/drivers/versions.txt
+          }
+          Get-Setup 'nefarius/ViGEmBus' '^ViGEmBus.*\.exe$' 'ViGEmBus_Setup.exe'
+          Get-Setup 'nefarius/HidHide'  '^HidHide.*\.exe$' 'HidHide_Setup.exe'
+          Get-Content build/drivers/versions.txt
+
+      - name: Installeer Inno Setup
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup --no-progress -y }
+
+      - name: Bouw installer
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc installer/DS4Handler.iss `
+            "/DAppVersion=${{ steps.version.outputs.version }}" `
+            "/DSourceDir=$PWD\build\publish" `
+            "/DDriverDir=$PWD\build\drivers" `
+            "/DOutputDir=$PWD\build\dist"
+          if ($LASTEXITCODE -ne 0) { throw "ISCC faalde ($LASTEXITCODE)" }
+          Copy-Item build/publish/DS4Handler.exe "build/dist/DS4Handler-${{ steps.version.outputs.version }}-portable.exe"
+          Get-ChildItem build/dist | Format-Table Name, Length
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DS4Handler-${{ steps.version.outputs.version }}
+          path: build/dist/*.exe
+
+      - name: Maak GitHub-release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: DS4 Handler ${{ steps.version.outputs.version }}
+          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+          files: build/dist/*.exe
+          body: |
+            ## Downloaden
+
+            **[DS4Handler-Setup-${{ steps.version.outputs.version }}.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/DS4Handler-Setup-${{ steps.version.outputs.version }}.exe)** is de makkelijkste keuze: download, dubbelklik en volg de stappen. De installer zet ook ViGEmBus en HidHide op je pc als die nog ontbreken. .NET hoef je niet apart te installeren.
+
+            Liever zonder installatie? Neem `DS4Handler-${{ steps.version.outputs.version }}-portable.exe` en installeer [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases) (en bij voorkeur [HidHide](https://github.com/nefarius/HidHide/releases)) zelf. De app waarschuwt bij het starten als een driver ontbreekt.
+
+            Windows SmartScreen kan "Onbekende uitgever" tonen omdat de app niet ondertekend is. Klik dan op *Meer informatie* en *Toch uitvoeren*.
+          generate_release_notes: true

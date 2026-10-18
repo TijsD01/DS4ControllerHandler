@@ -25,7 +25,10 @@ public sealed class UpdateService
     /// True when this exe was put here by the installer. The portable exe can't update itself
     /// in place, so it gets a link to the download page instead.
     /// </summary>
-    public static bool IsInstalled { get; } = DetectInstalled();
+    public static bool IsInstalled => InstalledForAllUsers.HasValue;
+
+    /// <summary>null = not installed (portable); true = installed for all users (Program Files); false = for this user.</summary>
+    private static bool? InstalledForAllUsers { get; } = DetectInstalled();
 
     /// <summary>Returns the newer version, or null when up to date or when GitHub can't be reached.</summary>
     public async Task<UpdateInfo?> CheckAsync(CancellationToken ct = default)
@@ -99,7 +102,9 @@ public sealed class UpdateService
         Log.Info("Update-installer starten.");
         Process.Start(new ProcessStartInfo(setupPath)
         {
-            Arguments = "/SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /UPDATE=1",
+            // Same install mode as last time, so the update replaces that copy instead of adding a second one.
+            Arguments = "/SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /UPDATE=1 "
+                        + (InstalledForAllUsers == true ? "/ALLUSERS" : "/CURRENTUSER"),
             UseShellExecute = true,
         });
     }
@@ -124,23 +129,24 @@ public sealed class UpdateService
         return n == null ? default : new ReleaseVersion(n.Major, n.Minor, Math.Max(0, n.Build));
     }
 
-    private static bool DetectInstalled()
+    private static bool? DetectInstalled()
     {
         try
         {
             var exeDir = Path.GetDirectoryName(Environment.ProcessPath ?? "");
-            if (string.IsNullOrEmpty(exeDir)) return false;
+            if (string.IsNullOrEmpty(exeDir)) return null;
             foreach (var root in new[] { Registry.CurrentUser, Registry.LocalMachine })
             {
                 using var key = root.OpenSubKey(UninstallKey);
-                if (key?.GetValue("InstallLocation") is string location && SameFolder(location, exeDir)) return true;
+                if (key?.GetValue("InstallLocation") is string location && SameFolder(location, exeDir))
+                    return root == Registry.LocalMachine;
             }
         }
         catch (Exception ex)
         {
             Log.Warn("Controleren of de app geïnstalleerd is mislukt", ex);
         }
-        return false;
+        return null;
     }
 
     private static bool SameFolder(string a, string b) =>

@@ -99,7 +99,11 @@ public sealed class MainViewModel : ObservableObject
         {
             foreach (var c in Controllers) c.Tick();
         }
-        if (!visible || _slowTick++ % 15 == 0) UpdateStatus();
+        if (!visible || _slowTick++ % 15 == 0)
+        {
+            Settings.Updates.Tick();
+            UpdateStatus();
+        }
     }
 
     public void SetLearningAll(bool enabled)
@@ -180,7 +184,7 @@ public sealed class MainViewModel : ObservableObject
     private void UpdateNotices(ControllerManager manager, HidHideService hidHide, bool hidHideEnabled)
     {
         int blocked = manager.BlockedCount;
-        string key = $"{manager.DriverState}|{hidHide.Availability}|{hidHide.Problem}|{hidHideEnabled}|{blocked}";
+        string key = $"{manager.DriverState}|{hidHide.Availability}|{hidHide.Problem}|{hidHideEnabled}|{blocked}|{Settings.Updates.Version}";
         if (key == _noticeKey && hidHide.Version == _hidHideVersion) return;
         _noticeKey = key;
         _hidHideVersion = hidHide.Version;
@@ -281,6 +285,8 @@ public sealed class MainViewModel : ObservableObject
             });
         }
 
+        list.AddRange(Settings.Updates.Notices());
+
         Notices.Clear();
         foreach (var n in list) Notices.Add(n);
     }
@@ -300,6 +306,7 @@ public sealed class SettingsViewModel : ObservableObject
         DownloadViGEmCommand = new RelayCommand(() => AppHost.OpenUrl(AppHost.ViGEmDownloadUrl));
         OpenProfilesCommand = new RelayCommand(() => AppHost.OpenFolder(host.Profiles.Directory));
         OpenLogCommand = new RelayCommand(() => AppHost.OpenUrl(Log.FilePath));
+        Updates = new UpdateViewModel(host);
     }
 
     public ICommand RecheckHidHideCommand { get; }
@@ -308,8 +315,11 @@ public sealed class SettingsViewModel : ObservableObject
     public ICommand OpenProfilesCommand { get; }
     public ICommand OpenLogCommand { get; }
 
+    /// <summary>The Updates block on this page; also feeds the update banner of the main window.</summary>
+    public UpdateViewModel Updates { get; }
+
     public string Version =>
-        "Versie " + (typeof(SettingsViewModel).Assembly.GetName().Version?.ToString(3) ?? "?");
+        "Versie " + UpdateService.CurrentVersion;
 
     public string ProfileFolder => _host.Profiles.Directory;
 

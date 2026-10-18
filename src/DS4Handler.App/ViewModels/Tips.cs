@@ -96,6 +96,13 @@ public static class Tips
     public const string DownloadViGEm =
         "Opent de downloadpagina van ViGEmBus, de driver die de virtuele Xbox-controller maakt. Start de app na installatie opnieuw.";
     public const string OpenProfiles = "Opent de map waarin per controller de geleerde kalibratie staat.";
+    public const string CheckForUpdates =
+        "Kijkt bij het opstarten (en daarna twee keer per dag) op GitHub of er een nieuwe versie van DS4 Handler is. Je ziet dan bovenin wat er nieuw is en kunt met één klik bijwerken. Er wordt nooit iets geïnstalleerd zonder dat je erop klikt.";
+    public const string CheckNow = "Kijk nu meteen of er een nieuwe versie is.";
+    public const string UpdateNow =
+        "Downloadt de nieuwe versie en installeert die over de oude heen. De app sluit even en start daarna vanzelf opnieuw. Je profielen, kalibratie en instellingen blijven bewaard.";
+    public const string UpdateLater = "Verberg deze melding tot de volgende keer dat de app start.";
+    public const string UpdateDownloadPage = "Opent de downloadpagina van de nieuwe versie op GitHub.";
     public const string OpenLog = "Opent het logbestand. Handig om mee te sturen als iets niet werkt.";
     public const string Quit = "Sluit DS4 Handler helemaal af. De virtuele Xbox-controllers verdwijnen dan.";
 

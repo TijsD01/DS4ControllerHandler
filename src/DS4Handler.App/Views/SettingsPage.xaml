@@ -84,6 +84,30 @@
             </StackPanel>
         </Border>
 
+        <!-- Updates -->
+        <Border Style="{StaticResource Card}" Margin="0,0,0,18" DataContext="{Binding Updates}">
+            <StackPanel>
+                <TextBlock Text="UPDATES" Style="{StaticResource SectionTitle}" />
+                <Grid Style="{StaticResource Row}" ToolTip="{x:Static vm:Tips.CheckForUpdates}">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,24,0">
+                        <TextBlock Text="Automatisch zoeken naar nieuwe versies" Style="{StaticResource RowTitle}" />
+                        <TextBlock Text="Is er een nieuwe versie, dan zie je bovenin wat er nieuw is en werk je met één klik bij. Je profielen en instellingen blijven bewaard." Style="{StaticResource Dim}" />
+                    </StackPanel>
+                    <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding CheckForUpdates}"
+                              VerticalAlignment="Center" ToolTip="{x:Static vm:Tips.CheckForUpdates}" />
+                </Grid>
+                <TextBlock Style="{StaticResource Dim}" Margin="0,0,0,14">
+                    <Run Text="{Binding CurrentVersionText, Mode=OneWay}" /><LineBreak />
+                    <Run Text="{Binding Status, Mode=OneWay}" />
+                </TextBlock>
+                <WrapPanel>
+                    <Button Content="Nu zoeken naar updates" Command="{Binding CheckNowCommand}"
+                            ToolTip="{x:Static vm:Tips.CheckNow}" />
+                </WrapPanel>
+            </StackPanel>
+        </Border>
+
         <!-- Over -->
         <Border Style="{StaticResource Card}">
             <StackPanel>

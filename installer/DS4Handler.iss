@@ -7,6 +7,14 @@
 ;
 ; Installs per user (no admin needed for the app itself). The ViGEmBus and HidHide setups are
 ; bundled and only started when that driver is missing; they ask for admin rights themselves.
+;
+; Updating: a newer setup with the same AppId installs over the old version in the same folder
+; (it closes a running DS4 Handler first), so there is always one version installed. Profiles,
+; calibration and settings live in %APPDATA%\DS4ControllerHandler, outside the install folder;
+; installing, updating and uninstalling never touch them.
+; The app starts the setup itself with /SILENT /CLOSEAPPLICATIONS /UPDATE=1 for one-click updates;
+; /UPDATE=1 skips the driver choices (the app warns itself when a driver is missing) and starts the
+; new version again when the setup is done.
 
 #ifndef AppVersion
   #define AppVersion "0.0.0"
@@ -66,8 +74,8 @@ english.RunApp=Start DS4 Handler now
 english.RebootHint=After installing HidHide, Windows sometimes needs a restart before it works.
 
 [Tasks]
-Name: "vigem"; Description: "{cm:InstallViGEm}"; GroupDescription: "{cm:DriversGroup}"; Check: not ViGEmInstalled
-Name: "hidhide"; Description: "{cm:InstallHidHide}"; GroupDescription: "{cm:DriversGroup}"; Check: not HidHideInstalled
+Name: "vigem"; Description: "{cm:InstallViGEm}"; GroupDescription: "{cm:DriversGroup}"; Check: (not ViGEmInstalled) and (not StartedByUpdater)
+Name: "hidhide"; Description: "{cm:InstallHidHide}"; GroupDescription: "{cm:DriversGroup}"; Check: (not HidHideInstalled) and (not StartedByUpdater)
 Name: "desktopicon"; Description: "{cm:DesktopIcon}"; Flags: unchecked
 
 [Files]
@@ -84,6 +92,8 @@ Name: "{autodesktop}\DS4 Handler"; Filename: "{app}\DS4Handler.exe"; Tasks: desk
 Filename: "{tmp}\ViGEmBus_Setup.exe"; StatusMsg: "ViGEmBus installeren..."; Flags: shellexec waituntilterminated; Tasks: vigem
 Filename: "{tmp}\HidHide_Setup.exe"; StatusMsg: "HidHide installeren..."; Flags: shellexec waituntilterminated; Tasks: hidhide
 Filename: "{app}\DS4Handler.exe"; Description: "{cm:RunApp}"; Flags: nowait postinstall skipifsilent
+; Update started from the app: start the new version again (as the normal user, not as admin).
+Filename: "{app}\DS4Handler.exe"; Flags: nowait runasoriginaluser; Check: StartedByUpdater
 
 [UninstallRun]
 Filename: "{cmd}"; Parameters: "/C taskkill /IM DS4Handler.exe /F"; Flags: runhidden; RunOnceId: "StopApp"
@@ -106,6 +116,11 @@ end;
 function HidHideInstalled: Boolean;
 begin
   Result := ServiceExists('HidHide');
+end;
+
+function StartedByUpdater: Boolean;
+begin
+  Result := ExpandConstant('{param:UPDATE|0}') = '1';
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);

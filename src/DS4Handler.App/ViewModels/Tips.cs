@@ -85,9 +85,11 @@ public static class Tips
         "Start zonder venster, alleen met een icoon in het systeemvak (rechtsonder bij de klok). Dubbelklik op dat icoon om het venster te openen.";
     public const string HidHideEnabled =
         "Gebruik HidHide om je echte controllers te verbergen voor games. Zonder verbergen zien sommige games twee controllers en reageren knoppen dubbel.\n" +
-        "DS4 Handler zet zichzelf op de uitzonderingslijst, zodat de app de controller zelf wel blijft zien.";
+        "DS4 Handler zet zichzelf op de uitzonderingslijst, zodat de app de controller zelf wel blijft zien.\n" +
+        "Let op: hierbij gaat ook de algemene verberg-schakelaar van HidHide aan. Die geldt ook voor apparaten die je eerder zelf in HidHide hebt verborgen.";
     public const string UnhideOnExit =
-        "Maak verborgen controllers weer zichtbaar als je DS4 Handler afsluit. Handig als je de controller ook zonder deze app gebruikt (bijvoorbeeld in Steam of een emulator).";
+        "Aan: als je DS4 Handler afsluit, zien games en andere programma's (zoals Steam of een emulator) je controller weer gewoon.\n" +
+        "Uit: de controller blijft ook na afsluiten verborgen. Handig als de app altijd draait, maar zonder de app werkt hij dan in games niet.";
     public const string RecheckHidHide =
         "Kijk opnieuw of HidHide beschikbaar is, bijvoorbeeld nadat je het hebt geïnstalleerd of de HidHide-configuratie hebt gesloten.";
     public const string DownloadHidHide = "Opent de downloadpagina van HidHide (gratis, van dezelfde maker als ViGEmBus).";

@@ -77,6 +77,8 @@ public sealed class ControllerSession : IDisposable
     private XboxReport _lastXbox;
     private Ds4OutputReport _lastDs4;
     private bool _hasSubmitted;
+    private int _desiredMode;                       // OutputMode the user wants; applied by a worker
+    private volatile bool _reconnectAttempted;      // one automatic retry after the driver refused input
 
     // Snapshot fields (under _sync).
     private RawControllerState _raw;
@@ -158,6 +160,7 @@ public sealed class ControllerSession : IDisposable
         _store = store;
         _vigem = vigem;
         OutputMode = outputMode;
+        _desiredMode = (int)outputMode;
 
         var calibration = new ControllerCalibration(Id, Model) { LearningEnabled = learningEnabled };
         try
@@ -344,14 +347,31 @@ public sealed class ControllerSession : IDisposable
     }
 
     /// <summary>
-    /// Unplugs the current virtual controller and plugs in the other kind. Blocking (driver calls):
-    /// call from a worker thread.
+    /// Asks for the other kind of virtual controller. Returns at once; a worker unplugs the current
+    /// target and plugs in the new one. Quick repeated clicks always end in the latest choice.
     /// </summary>
-    public void SetOutputMode(OutputMode mode)
+    public void RequestOutputMode(OutputMode mode)
     {
-        if (Volatile.Read(ref _disposed) != 0) return;
+        Volatile.Write(ref _desiredMode, (int)mode);
+        _reconnectAttempted = false;
+        QueueApplyOutputMode();
+    }
+
+    private void QueueApplyOutputMode() => ThreadPool.QueueUserWorkItem(_ =>
+    {
+        try { ApplyDesiredOutputMode(); }
+        catch (Exception ex) { Log.Error($"Uitvoer wisselen voor {Id} mislukt", ex); }
+    });
+
+    /// <summary>Brings the virtual pad in line with the latest requested mode. Blocking driver calls.</summary>
+    private void ApplyDesiredOutputMode()
+    {
+        OutputMode mode;
         lock (_padLock)
         {
+            // Re-checked under the lock: Dispose takes the same lock, so no target is made on a closed client.
+            if (Volatile.Read(ref _disposed) != 0) return;
+            mode = (OutputMode)Volatile.Read(ref _desiredMode);
             if (mode == OutputMode && VirtualState is VirtualPadState.Active) return;
             DisconnectVirtualPad();
             OutputMode = mode;
@@ -359,7 +379,7 @@ public sealed class ControllerSession : IDisposable
             Volatile.Write(ref _rumbleWanted, 0);
             ConnectVirtualPad();
         }
-        _rumbleSignal.Set(); // stop old rumble, restore our light bar
+        try { _rumbleSignal.Set(); } catch (ObjectDisposedException) { } // stop old rumble, restore our light bar
         Log.Info($"{Id}: uitvoer is nu {mode}.");
     }
 
@@ -560,6 +580,12 @@ public sealed class ControllerSession : IDisposable
                 VirtualError = ex.Message;
                 DisconnectVirtualPad();
                 VirtualState = VirtualPadState.Failed;
+                if (!_reconnectAttempted)
+                {
+                    // Try once to plug a fresh target in (for example after the driver was restarted).
+                    _reconnectAttempted = true;
+                    _ = Task.Delay(2000).ContinueWith(_ => QueueApplyOutputMode(), TaskScheduler.Default);
+                }
             }
         }
     }

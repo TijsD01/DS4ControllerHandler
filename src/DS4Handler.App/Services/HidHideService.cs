@@ -40,7 +40,6 @@ public sealed class HidHideService
     private readonly ConcurrentDictionary<string, DeviceHideState> _states = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _chainGate = new();
     private Task _chain = Task.CompletedTask;
-    private bool _whitelisted;
     private int _version;
 
     public HidHideService(SettingsStore settings) => _settings = settings;
@@ -62,7 +61,6 @@ public sealed class HidHideService
         var list = sessions.ToArray();
         return Enqueue(() =>
         {
-            _whitelisted = false;
             Problem = null;
             CheckAvailability();
             foreach (var s in list) ApplyCore(s);
@@ -159,9 +157,15 @@ public sealed class HidHideService
         try
         {
             var client = new HidHideClient();
-            if (!client.IsActive) client.SetActive(true);
-            client.HideDevice(instanceId);
-            Remember(instanceId);
+            if (!client.IsActive)
+            {
+                // HidHide's global switch: it also applies to devices hidden by the user or other tools.
+                Log.Info("HidHide-verbergen (algemene schakelaar) aangezet.");
+                client.SetActive(true);
+            }
+            // Only take ownership when we put it on the list (or did so before), so we never unhide a
+            // pad the user hid themselves.
+            if (client.HideDevice(instanceId) || Owned(instanceId)) Remember(instanceId);
             _states[session.Id] = DeviceHideState.Hidden;
         }
         catch (Exception ex)
@@ -175,7 +179,7 @@ public sealed class HidHideService
 
     private bool EnsureWhitelisted()
     {
-        if (_whitelisted) return true;
+        // Checked on every hide (cheap): the user may have edited HidHide's list in the meantime.
         var exe = Environment.ProcessPath;
         if (string.IsNullOrEmpty(exe) || HidHideClient.IsSharedHostExecutable(exe))
         {
@@ -191,7 +195,6 @@ public sealed class HidHideService
                 case WhitelistResult.Added:
                 case WhitelistResult.AlreadyPresent:
                 case WhitelistResult.SkippedInvertedMode: // inverted list = deny list: we are allowed already
-                    _whitelisted = true;
                     Problem = null;
                     return true;
                 case WhitelistResult.RefusedSharedHost:

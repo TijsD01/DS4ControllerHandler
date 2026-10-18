@@ -58,11 +58,7 @@ public sealed class AppHost : IDisposable
     public void SetOutputMode(ControllerSession session, OutputMode mode)
     {
         SettingsStore.Update(s => s.For(session.Id).Output = mode);
-        ThreadPool.QueueUserWorkItem(_ =>
-        {
-            try { session.SetOutputMode(mode); }
-            catch (Exception ex) { Log.Error($"Uitvoer wisselen voor {session.Id} mislukt", ex); }
-        });
+        session.RequestOutputMode(mode);
     }
 
     public void SetHidHideEnabled(bool enabled)

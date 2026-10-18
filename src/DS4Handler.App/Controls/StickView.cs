@@ -45,7 +45,7 @@ public sealed class StickView : FrameworkElement
     /// <summary>Deadzone radius, 0..1.</summary>
     public double Deadzone { get => (double)GetValue(DeadzoneProperty); set => SetValue(DeadzoneProperty, value); }
 
-    /// <summary>The guided re-centre is running (the plate pulses blue).</summary>
+    /// <summary>The guided re-centre is running (the plate is tinted blue).</summary>
     public bool Guided { get => (bool)GetValue(GuidedProperty); set => SetValue(GuidedProperty, value); }
 
     protected override Size MeasureOverride(Size availableSize)

@@ -27,7 +27,7 @@ public sealed class AppSettings
     public bool HidHideEnabled { get; set; } = true;
 
     /// <summary>Make hidden controllers visible again when the app closes.</summary>
-    public bool UnhideOnExit { get; set; }
+    public bool UnhideOnExit { get; set; } = true;
 
     /// <summary>Shown once: the window closes to the tray instead of quitting.</summary>
     public bool TrayHintShown { get; set; }

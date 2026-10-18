@@ -18,6 +18,8 @@ Liever zonder installatie? Download dan `DS4Handler-<versie>-portable.exe`: éé
 
 Windows SmartScreen kan "Onbekende uitgever" tonen, omdat de app niet digitaal ondertekend is. Klik dan op *Meer informatie* en *Toch uitvoeren*.
 
+**Bijwerken.** De app kijkt bij het opstarten (en daarna twee keer per dag) of er een nieuwe versie is. Is die er, dan zie je bovenin wat er nieuw is en klik je op *Nu bijwerken*: de nieuwe versie wordt over de oude heen geïnstalleerd en start vanzelf, en na het bijwerken zie je één keer wat er nieuw is. Je profielen, kalibratie en instellingen blijven bewaard, want die staan in `%APPDATA%\DS4ControllerHandler` en niet in de installatiemap; ook verwijderen laat ze staan. Zelf een nieuwere Setup starten werkt net zo. Automatisch zoeken zet je uit bij *Instellingen → Updates*. Met de portable exe opent de knop de downloadpagina.
+
 ## Hoe het leren werkt
 
 Het is een klein online model dat bij elke input-update bijleert, zonder trainingsfase.
@@ -82,6 +84,8 @@ git push origin v1.0.0
 ```
 
 De workflow `Release` bouwt dan de installer (`installer/DS4Handler.iss`, Inno Setup) en de portable exe, en zet beide op de Releases-pagina. Een tag met een streepje, zoals `v1.1.0-beta1`, wordt een pre-release.
+
+Zet vóór de release bovenaan in [CHANGELOG.md](CHANGELOG.md) een kopje `## <versie>` met in gewone woorden wat er nieuw is. Die lijst komt als *Nieuw in deze versie* in de release, de app toont hem in de update-melding en na het bijwerken. Kies een hoger versienummer dan de vorige release (na 1.0.2 bijvoorbeeld `v1.1.0`), anders ziet de app het niet als update.
 
 Maak je een release met de hand op GitHub (*Releases → Draft a new release*), dan zet dezelfde workflow de exe-bestanden er na een paar minuten bij, ook als de tag geen versienummer is. Het bestand `.iss` in de broncode-zip is alleen het recept voor de installer; de echte installer is `DS4Handler-Setup-<versie>.exe` bij de release. Via *Actions → Release → Run workflow* kun je de bestanden ook bouwen: vul een tag in om ze bij die release te zetten, of laat het leeg en ze staan als artifact bij die run.
 

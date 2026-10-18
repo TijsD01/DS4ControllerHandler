@@ -81,7 +81,9 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-De workflow `Release` bouwt dan de installer (`installer/DS4Handler.iss`, Inno Setup) en de portable exe, en zet beide op de Releases-pagina. Een tag met een streepje, zoals `v1.1.0-beta1`, wordt een pre-release. Via *Actions → Release → Run workflow* kun je de bestanden ook bouwen zonder release; ze staan dan als artifact bij die run.
+De workflow `Release` bouwt dan de installer (`installer/DS4Handler.iss`, Inno Setup) en de portable exe, en zet beide op de Releases-pagina. Een tag met een streepje, zoals `v1.1.0-beta1`, wordt een pre-release.
+
+Maak je een release met de hand op GitHub (*Releases → Draft a new release*), dan zet dezelfde workflow de exe-bestanden er na een paar minuten bij, ook als de tag geen versienummer is. Het bestand `.iss` in de broncode-zip is alleen het recept voor de installer; de echte installer is `DS4Handler-Setup-<versie>.exe` bij de release. Via *Actions → Release → Run workflow* kun je de bestanden ook bouwen: vul een tag in om ze bij die release te zetten, of laat het leeg en ze staan als artifact bij die run.
 
 ## Bekende beperkingen
 

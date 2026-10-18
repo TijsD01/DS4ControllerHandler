@@ -44,6 +44,10 @@ public static class ReportParser
                 offset = 3;
                 connection = ConnectionType.Bluetooth;
                 break;
+            case (ControllerModel.DualSense, 0x01) when knownConnection == ConnectionType.Bluetooth:
+                // The DualSense Bluetooth "simple" report (before full mode) uses a different layout
+                // (triggers after the buttons); parsing it as USB would feed garbage to trigger learning.
+                return false;
             case (ControllerModel.DualSense, 0x01) when report.Length >= 11:
                 offset = 1;
                 connection = ConnectionType.Usb;

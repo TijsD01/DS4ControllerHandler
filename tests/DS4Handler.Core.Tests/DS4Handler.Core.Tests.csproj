@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DS4Handler.Core\DS4Handler.Core.csproj" />
+    <ProjectReference Include="..\..\src\DS4Handler.HidHide\DS4Handler.HidHide.csproj" />
   </ItemGroup>
 
 </Project>

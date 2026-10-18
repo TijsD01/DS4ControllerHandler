@@ -61,10 +61,10 @@ public class StickCalibratorTests
         var rnd = new Random(seed);
         for (int release = 0; release < 30; release++)
         {
-            Rest(c, dx, dy, rnd, 150);
+            Rest(c, dx, dy, rnd, 250);
             Flick(c, dx, dy, (float)(rnd.NextDouble() * 2 * Math.PI));
         }
-        Rest(c, dx, dy, rnd, 150);
+        Rest(c, dx, dy, rnd, 250);
         return c;
     }
 
@@ -129,7 +129,7 @@ public class StickCalibratorTests
         for (int release = 0; release < 60; release++)
         {
             var s = Spot();
-            Rest(c, s.X, s.Y, rnd, 150);
+            Rest(c, s.X, s.Y, rnd, 250);
             Flick(c, s.X, s.Y, (float)(rnd.NextDouble() * 2 * Math.PI));
         }
 
@@ -163,6 +163,67 @@ public class StickCalibratorTests
 
         Assert.InRange(c.CenterX, -0.02f, 0.02f);
         Assert.InRange(c.CenterY, -0.02f, 0.02f);
+    }
+
+    [Theory]
+    [InlineData(0.15f, 1)]
+    [InlineData(0.15f, 2)]
+    [InlineData(0.20f, 1)]
+    [InlineData(0.20f, 2)]
+    [InlineData(0.25f, 1)]
+    [InlineData(0.25f, 2)]
+    public void SteadyPartialHolds_AreNotLearnedAsDrift(float hold, int jitter)
+    {
+        var c = LearnDrift(0f, 0f, seed: 11);
+        var rnd = new Random(12);
+        float startX = c.CenterX, startY = c.CenterY;
+
+        for (int i = 0; i < 20; i++)
+        {
+            // Sometimes the hold follows a full flick, so it looks just like a release that landed off-center.
+            if (i % 2 == 0) Flick(c, 0f, 0f, (float)(rnd.NextDouble() * 2 * Math.PI));
+            float a = (float)(rnd.NextDouble() * 2 * Math.PI);
+            Rest(c, MathF.Cos(a) * hold, MathF.Sin(a) * hold, rnd, 3 * 250, noise: jitter);
+            Rest(c, 0f, 0f, rnd, 30);
+        }
+
+        Assert.InRange(c.CenterX - startX, -0.02f, 0.02f);
+        Assert.InRange(c.CenterY - startY, -0.02f, 0.02f);
+        Assert.True(c.Deadzone <= 0.1f, $"deadzone grew to {c.Deadzone}");
+        var (bx, by) = Raw(hold + 0.05f, 0f);
+        Assert.True(c.Map(bx, by).X > 0.1f);
+    }
+
+    [Fact]
+    public void ShortSpikes_DoNotShrinkReach()
+    {
+        var c = LearnDrift(0f, 0f, seed: 13);
+        Circle(c);
+        // A garbage report at a raw corner, repeated for two reports.
+        for (int i = 0; i < 2; i++) c.Process(0, 255);
+        for (int i = 0; i < 2; i++) c.Process(255, 0);
+        Rest(c, 0f, 0f, new Random(14), 100);
+
+        foreach (float a in new[] { -3 * MathF.PI / 4, MathF.PI / 4 })
+        {
+            var (bx, by) = Raw(MathF.Cos(a), MathF.Sin(a));
+            Assert.True(Magnitude(c.Map(bx, by)) >= 0.97f, $"diagonal at {a} reads {Magnitude(c.Map(bx, by))}");
+        }
+    }
+
+    [Fact]
+    public void Import_HandlesNullData()
+    {
+        var c = LearnDrift(0.1f, 0f, seed: 15);
+        c.Import(null!);
+        Assert.Equal(0f, c.CenterX);
+        Assert.Empty(c.Export().OuterRadii);
+
+        c.Import(new StickCalibrationData { CenterX = 0.05f, OuterRadii = null! });
+        Assert.Equal(0.05f, c.CenterX);
+        Assert.Empty(c.Export().OuterRadii);
+        var (bx, by) = Raw(1f, 0f);
+        Assert.True(c.Map(bx, by).X > 0.95f);
     }
 
     [Fact]

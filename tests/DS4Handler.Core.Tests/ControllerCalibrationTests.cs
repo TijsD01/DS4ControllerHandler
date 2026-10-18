@@ -122,4 +122,22 @@ public class ControllerCalibrationTests
             if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
         }
     }
+
+    [Fact]
+    public void Import_treats_null_sections_as_defaults()
+    {
+        var c = Trained();
+        var profile = c.Export() with { LeftStick = null!, RightStick = null!, L2 = null!, R2 = null! };
+        var ex = Record.Exception(() => c.Import(profile));
+        Assert.Null(ex);
+        Assert.Equal(255f, c.R2.EndStop);
+        Assert.Equal(0f, c.LeftStick.CenterX);
+    }
+
+    [Fact]
+    public void Import_null_profile_throws_ArgumentNullException()
+    {
+        var c = new ControllerCalibration("x", ControllerModel.DualShock4);
+        Assert.Throws<ArgumentNullException>(() => c.Import(null!));
+    }
 }

@@ -186,4 +186,28 @@ public sealed class ProfileStoreTests : IDisposable
         var expected = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DS4ControllerHandler", "profiles");
         Assert.Equal(expected, ProfileStore.DefaultDirectory);
     }
+
+    [Fact]
+    public void Load_normalizes_null_sections_so_import_does_not_throw()
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(Path.Combine(_dir, "pad.json"),
+            "{\"ControllerId\":\"pad\",\"Model\":\"DualShock4\",\"L2\":null,\"R2\":null,\"LeftStick\":null,\"RightStick\":{\"OuterRadii\":null}}");
+        var store = new ProfileStore(_dir);
+        var loaded = store.Load("pad");
+        Assert.NotNull(loaded);
+        Assert.NotNull(loaded!.L2);
+        Assert.NotNull(loaded.LeftStick);
+        Assert.NotNull(loaded.RightStick.OuterRadii);
+        var c = new ControllerCalibration("pad", ControllerModel.DualShock4);
+        Assert.Null(Record.Exception(() => c.Import(loaded)));
+    }
+
+    [Fact]
+    public void Load_of_json_null_returns_null()
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(Path.Combine(_dir, "pad.json"), "null");
+        Assert.Null(new ProfileStore(_dir).Load("pad"));
+    }
 }

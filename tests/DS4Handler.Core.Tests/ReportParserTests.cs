@@ -227,4 +227,14 @@ public class ReportParserTests
     {
         Assert.Null(ReportParser.ModelForProductId(pid));
     }
+
+    [Fact]
+    public void DualSenseSimpleReport_WithBluetoothHint_IsRejected()
+    {
+        // Over Bluetooth a DualSense sends a reduced 0x01 report with a different layout until it is switched to full mode.
+        var report = DualSenseReport(0x01, 1, 1, 2, 3, 4, 60, 190, 0x08, 0, 0, length: 10 + 64);
+        Assert.False(ReportParser.TryParse(ControllerModel.DualSense, report, out _, out _, ConnectionType.Bluetooth));
+        Assert.True(ReportParser.TryParse(ControllerModel.DualSense, report, out _, out var conn, ConnectionType.Usb));
+        Assert.Equal(ConnectionType.Usb, conn);
+    }
 }

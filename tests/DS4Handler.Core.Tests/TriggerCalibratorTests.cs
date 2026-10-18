@@ -4,13 +4,35 @@ namespace DS4Handler.Core.Tests;
 
 public class TriggerCalibratorTests
 {
-    /// <summary>Simulates one press: ramp up, hold, ramp down, rest. Values are raw counts.</summary>
-    private static void Press(TriggerCalibrator c, Random rng, int target, int holdSamples = 250, int jitter = 1, int rest = 0)
+    /// <summary>
+    /// Simulates one press: ramp up, hold, ramp down, rest. Values are raw counts. <paramref name="stop"/>
+    /// is the physical end stop: pushing past it pins the value there (a worn trigger pressed fully).
+    /// </summary>
+    private static void Press(TriggerCalibrator c, Random rng, int target, int holdSamples = 250, int jitter = 1, int rest = 0, int stop = 255)
     {
-        for (int i = 0; i <= 20; i++) c.Process((byte)(rest + (target - rest) * i / 20));
-        for (int i = 0; i < holdSamples; i++) c.Process(Clamp(target + rng.Next(-jitter, jitter + 1)));
-        for (int i = 20; i >= 0; i--) c.Process((byte)(rest + (target - rest) * i / 20));
+        int top = Math.Min(target, stop);
+        for (int i = 0; i <= 20; i++) c.Process((byte)(rest + (top - rest) * i / 20));
+        for (int i = 0; i < holdSamples; i++) c.Process(Clamp(Math.Min(stop, target + rng.Next(-jitter, jitter + 1))));
+        for (int i = 20; i >= 0; i--) c.Process((byte)(rest + (top - rest) * i / 20));
         for (int i = 0; i < 60; i++) c.Process(Clamp(rest + rng.Next(0, 2)));
+    }
+
+    /// <summary>A worn trigger pressed all the way: it pins at <paramref name="stop"/>.</summary>
+    private static void FullPress(TriggerCalibrator c, Random rng, int stop, int holdSamples = 250, int rest = 0)
+        => Press(c, rng, 255, holdSamples, jitter: 2, rest: rest, stop: stop);
+
+    /// <summary>A human holding a partial press: physiological tremor (~10 Hz) plus slow drift plus noise.</summary>
+    private static void HumanHold(TriggerCalibrator c, Random rng, double level, int holdSamples)
+    {
+        for (int i = 0; i <= 20; i++) c.Process(Clamp((int)(level * i / 20)));
+        double phase = rng.NextDouble() * 2 * Math.PI;
+        for (int i = 0; i < holdSamples; i++)
+        {
+            double v = level + 2.5 * Math.Sin(2 * Math.PI * i / 25 + phase) + 4 * Math.Sin(2 * Math.PI * i / 500) + rng.Next(-1, 2);
+            c.Process(Clamp((int)Math.Round(v)));
+        }
+        for (int i = 20; i >= 0; i--) c.Process(Clamp((int)(level * i / 20)));
+        for (int i = 0; i < 60; i++) c.Process(0);
     }
 
     private static byte Clamp(int v) => (byte)Math.Clamp(v, 0, 255);
@@ -33,7 +55,9 @@ public class TriggerCalibratorTests
         // Without learning, full press only gives ~78%: the Rocket League "no full throttle" problem.
         Assert.InRange(c.Map(200), 0.75f, 0.80f);
 
-        for (int i = 0; i < 4; i++) Press(c, rng, target: 200);
+        for (int i = 0; i < 4; i++) FullPress(c, rng, stop: 200);
+        Assert.False(c.EndStopLearned); // not on four presses yet
+        FullPress(c, rng, stop: 200);
 
         Assert.True(c.EndStopLearned);
         Assert.InRange(c.EndStop, 195f, 201f);
@@ -66,7 +90,7 @@ public class TriggerCalibratorTests
         for (int i = 0; i < 30; i++) Press(c, rng, rng.Next(60, 230), holdSamples: 80, jitter: 3);
 
         // Random partial presses rarely agree on an end stop; if they happen to, the floor still applies.
-        Assert.True(c.EndStop >= 128f);
+        Assert.True(c.EndStop >= 160f);
         Assert.True(c.Map(100) < 0.85f);
     }
 
@@ -89,8 +113,8 @@ public class TriggerCalibratorTests
     {
         var c = new TriggerCalibrator();
         var rng = new Random(4);
-        for (int i = 0; i < 10; i++) Press(c, rng, 90);
-        Assert.Equal(128f, c.EndStop);
+        for (int i = 0; i < 10; i++) FullPress(c, rng, stop: 90);
+        Assert.Equal(160f, c.EndStop);
     }
 
     [Fact]
@@ -98,14 +122,13 @@ public class TriggerCalibratorTests
     {
         var c = new TriggerCalibrator();
         var rng = new Random(5);
-        for (int i = 0; i < 5; i++) Press(c, rng, 200);
+        for (int i = 0; i < 5; i++) FullPress(c, rng, stop: 200);
         Assert.InRange(c.EndStop, 195f, 201f);
 
-        Press(c, rng, 180);
-        Press(c, rng, 180);
+        for (int i = 0; i < 7; i++) FullPress(c, rng, stop: 180);
         Assert.InRange(c.EndStop, 195f, 201f); // not enough evidence yet
 
-        for (int i = 0; i < 16; i++) Press(c, rng, 180);
+        for (int i = 0; i < 16; i++) FullPress(c, rng, stop: 180);
         Assert.InRange(c.EndStop, 175f, 181f);
         Assert.Equal(1f, c.Map(180));
     }
@@ -115,10 +138,10 @@ public class TriggerCalibratorTests
     {
         var c = new TriggerCalibrator();
         var rng = new Random(6);
-        for (int i = 0; i < 4; i++) Press(c, rng, 190);
+        for (int i = 0; i < 5; i++) FullPress(c, rng, stop: 190);
         Assert.InRange(c.EndStop, 185f, 191f);
 
-        for (int i = 0; i < 3; i++) Press(c, rng, 240);
+        for (int i = 0; i < 3; i++) FullPress(c, rng, stop: 240);
         Assert.InRange(c.EndStop, 235f, 241f);
     }
 
@@ -128,7 +151,7 @@ public class TriggerCalibratorTests
         var c = new TriggerCalibrator();
         var rng = new Random(7);
         Assert.True(c.Map(12) > 0f);
-        for (int i = 0; i < 5; i++) Press(c, rng, 220, rest: 12);
+        for (int i = 0; i < 5; i++) FullPress(c, rng, stop: 220, rest: 12);
         for (int i = 0; i < 400; i++) c.Process((byte)(12 + rng.Next(0, 2)));
 
         Assert.InRange(c.Rest, 10f, 14f);
@@ -142,7 +165,7 @@ public class TriggerCalibratorTests
     {
         var c = new TriggerCalibrator { LearningEnabled = false };
         var rng = new Random(8);
-        for (int i = 0; i < 6; i++) Press(c, rng, 200);
+        for (int i = 0; i < 8; i++) FullPress(c, rng, stop: 200);
         Assert.False(c.EndStopLearned);
         Assert.Equal(255f, c.EndStop);
     }
@@ -152,7 +175,7 @@ public class TriggerCalibratorTests
     {
         var a = new TriggerCalibrator();
         var rng = new Random(9);
-        for (int i = 0; i < 4; i++) Press(a, rng, 205, rest: 5);
+        for (int i = 0; i < 6; i++) FullPress(a, rng, stop: 205, rest: 5);
 
         var b = new TriggerCalibrator();
         b.Import(a.Export());
@@ -171,7 +194,8 @@ public class TriggerCalibratorTests
     {
         var c = new TriggerCalibrator();
         var rng = new Random(10);
-        for (int i = 0; i < 4; i++) Press(c, rng, 200);
+        for (int i = 0; i < 5; i++) FullPress(c, rng, stop: 200);
+        Assert.True(c.EndStopLearned);
         c.Reset();
         Assert.False(c.EndStopLearned);
         Assert.Equal(255f, c.EndStop);
@@ -183,7 +207,7 @@ public class TriggerCalibratorTests
     {
         var c = new TriggerCalibrator();
         var rng = new Random(11);
-        for (int i = 0; i < 4; i++) Press(c, rng, 200, rest: 8);
+        for (int i = 0; i < 5; i++) FullPress(c, rng, stop: 200, rest: 8);
         float prev = -1;
         for (int v = 0; v <= 255; v++)
         {
@@ -191,5 +215,105 @@ public class TriggerCalibratorTests
             Assert.True(o >= prev);
             prev = o;
         }
+    }
+
+    // ------------------------------------------------------------ regressions from code review
+
+    [Fact]
+    public void Light_steady_hold_is_not_learned_as_rest()
+    {
+        var c = new TriggerCalibrator();
+        var rng = new Random(20);
+        for (int i = 0; i < 500; i++) c.Process(0);
+        float last = 0;
+        for (int i = 0; i < 5 * 250; i++) last = c.Process((byte)(35 + rng.Next(-1, 2)));
+        Assert.InRange(last, 0.12f, 0.15f);
+        Assert.True(c.Rest < 2f, $"rest crept to {c.Rest}");
+    }
+
+    [Fact]
+    public void Very_light_hold_right_above_rest_only_creeps_slowly()
+    {
+        var c = new TriggerCalibrator();
+        for (int i = 0; i < 500; i++) c.Process(0);
+        for (int i = 0; i < 250; i++) c.Process(3); // within the rise window: 1 s at ~1 count/s
+        Assert.InRange(c.Rest, 0.5f, 1.5f);
+    }
+
+    [Fact]
+    public void Steady_partial_holds_with_human_drift_are_not_learned_as_end_stop()
+    {
+        var c = new TriggerCalibrator();
+        var rng = new Random(21);
+        for (int i = 0; i < 10; i++) HumanHold(c, rng, 150, holdSamples: 4 * 250);
+        Assert.False(c.EndStopLearned);
+        Assert.InRange(c.Map(150), 0.55f, 0.62f);
+    }
+
+    [Fact]
+    public void Three_perfectly_still_partial_holds_are_not_enough()
+    {
+        var c = new TriggerCalibrator();
+        var rng = new Random(22);
+        for (int i = 0; i < 3; i++) Press(c, rng, 150, holdSamples: 500, jitter: 0);
+        Assert.False(c.EndStopLearned);
+        Assert.True(c.Map(150) < 0.65f);
+    }
+
+    [Fact]
+    public void Wobbly_partial_holds_never_lower_an_end_stop_confirmed_by_pinned_presses()
+    {
+        var c = new TriggerCalibrator();
+        var rng = new Random(23);
+        for (int i = 0; i < 5; i++) Press(c, rng, 255, jitter: 0);
+        Assert.True(c.EndStopLearned);
+        Assert.Equal(PlateauKind.Pinned, c.EndStopKind);
+        for (int i = 0; i < 30; i++) Press(c, rng, 178, holdSamples: 1000, jitter: 1);
+        Assert.True(c.EndStop >= 250f, $"end stop dropped to {c.EndStop}");
+    }
+
+    [Theory]
+    [InlineData(200)]
+    [InlineData(185)]
+    public void Worn_trigger_learns_within_ten_long_full_presses(int stop)
+    {
+        var c = new TriggerCalibrator();
+        var rng = new Random(stop);
+        int presses = 0;
+        while (c.Map(stop) < 1f && presses < 20)
+        {
+            FullPress(c, rng, stop, holdSamples: 5 * 250);
+            presses++;
+        }
+        Assert.InRange(presses, 1, 10);
+        Assert.Equal(1f, c.Map(stop - 1));
+    }
+
+    [Fact]
+    public void Import_sanitizes_corrupt_values()
+    {
+        var c = new TriggerCalibrator();
+        c.Import(new TriggerCalibrationData
+        {
+            Rest = float.NaN,
+            EndStop = float.PositiveInfinity,
+            EndStopLearned = true,
+            PressCount = -7,
+            RecentPeaks = new[] { float.NaN, 999f, -5f, 200f },
+        });
+        Assert.Equal(0f, c.Rest);
+        Assert.Equal(255f, c.EndStop);
+        Assert.False(c.EndStopLearned);
+        Assert.Equal(0, c.PressCount);
+        Assert.All(c.Export().RecentPeaks, p => Assert.InRange(p, 0f, 255f));
+        Assert.Equal(3, c.Export().RecentPeaks.Length);
+        for (int v = 0; v <= 255; v++) Assert.True(float.IsFinite(c.Map(v)));
+
+        c.Import(new TriggerCalibrationData { RecentPeaks = null!, RecentPeakKinds = null!, EndStop = float.NaN });
+        Assert.Empty(c.Export().RecentPeaks);
+        Assert.Equal(255f, c.EndStop);
+
+        c.Import(null);
+        Assert.Equal(255f, c.EndStop);
     }
 }

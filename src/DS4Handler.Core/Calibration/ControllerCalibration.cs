@@ -7,6 +7,10 @@ namespace DS4Handler.Core.Calibration;
 /// The adaptive calibration for one physical controller: both sticks and both triggers,
 /// each learning from normal play. Feed it every raw report; it returns calibrated input.
 /// </summary>
+/// <remarks>
+/// The calibrators are not thread-safe. The caller must serialize <see cref="Process"/>,
+/// <see cref="Export"/>, <see cref="Import"/> and <see cref="Reset"/> (for example with a lock).
+/// </remarks>
 public sealed class ControllerCalibration
 {
     public ControllerCalibration(
@@ -75,9 +79,11 @@ public sealed class ControllerCalibration
 
     public void Import(CalibrationProfile profile)
     {
-        LeftStick.Import(profile.LeftStick);
-        RightStick.Import(profile.RightStick);
-        L2.Import(profile.L2);
-        R2.Import(profile.R2);
+        ArgumentNullException.ThrowIfNull(profile);
+        // Sections can be null when the profile came from hand-edited or damaged JSON: treat them as defaults.
+        LeftStick.Import(profile.LeftStick ?? new());
+        RightStick.Import(profile.RightStick ?? new());
+        L2.Import(profile.L2 ?? new());
+        R2.Import(profile.R2 ?? new());
     }
 }

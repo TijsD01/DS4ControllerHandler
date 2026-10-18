@@ -1,3 +1,4 @@
+using DS4Handler.Core.Calibration;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -76,13 +77,27 @@ public sealed class ProfileStore
     {
         try
         {
-            return JsonSerializer.Deserialize<CalibrationProfile>(File.ReadAllText(path), JsonOptions);
+            var profile = JsonSerializer.Deserialize<CalibrationProfile>(File.ReadAllText(path), JsonOptions);
+            return profile is null ? null : Normalize(profile);
         }
         catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException or NotSupportedException)
         {
             return null;
         }
     }
+
+    /// <summary>Replaces sections that were null in the JSON (for example "L2": null) with defaults.</summary>
+    private static CalibrationProfile Normalize(CalibrationProfile p) => p with
+    {
+        ControllerId = p.ControllerId ?? "",
+        LeftStick = NormalizeStick(p.LeftStick),
+        RightStick = NormalizeStick(p.RightStick),
+        L2 = p.L2 ?? new TriggerCalibrationData(),
+        R2 = p.R2 ?? new TriggerCalibrationData(),
+    };
+
+    private static StickCalibrationData NormalizeStick(StickCalibrationData? d) =>
+        d is null ? new StickCalibrationData() : d.OuterRadii is null ? d with { OuterRadii = Array.Empty<float>() } : d;
 
     private string PathFor(string controllerId) => Path.Combine(_directory, SanitizeId(controllerId) + ".json");
 

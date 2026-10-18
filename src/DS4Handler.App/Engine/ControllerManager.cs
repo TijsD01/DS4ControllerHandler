@@ -31,9 +31,10 @@ public sealed class ControllerManager : IDisposable
     private readonly Dictionary<string, ControllerSession> _sessions = new(StringComparer.OrdinalIgnoreCase); // by device path
     private readonly Dictionary<string, DateTime> _blockedUntil = new(StringComparer.OrdinalIgnoreCase);     // paths that failed to open
     private readonly Dictionary<string, bool> _isVirtual = new(StringComparer.OrdinalIgnoreCase);              // path → made by ViGEmBus (checked once)
+    private readonly HashSet<ControllerSession> _starting = new();                                          // opened, profile reserved, not yet in _sessions
     private readonly HashSet<string> _duplicates = new(StringComparer.OrdinalIgnoreCase);                     // second interface of an open pad
     private readonly ProfileStore _store;
-    private readonly Func<string, (bool Learning, OutputMode Output)> _optionsFor;
+    private readonly Func<string, (bool Learning, OutputMode Output, bool JitterFilter)> _optionsFor;
     private ViGEmClient? _vigem;
     private ControllerSession[] _sessionList = Array.Empty<ControllerSession>();
     private int _scanRequested;
@@ -42,8 +43,8 @@ public sealed class ControllerManager : IDisposable
     private bool _disposed;
     private Timer? _rescanTimer;
 
-    /// <param name="optionsFor">Per controller id (from the settings): whether learning starts on, and which virtual pad to make.</param>
-    public ControllerManager(ProfileStore store, Func<string, (bool Learning, OutputMode Output)> optionsFor)
+    /// <param name="optionsFor">Per controller id (from the settings): whether learning starts on, which virtual pad to make, and whether the stick jitter filter is on.</param>
+    public ControllerManager(ProfileStore store, Func<string, (bool Learning, OutputMode Output, bool JitterFilter)> optionsFor)
     {
         _store = store;
         _optionsFor = optionsFor;
@@ -182,6 +183,7 @@ public sealed class ControllerManager : IDisposable
             if (changed) Publish();
         }
         foreach (var s in removed) DisposeSession(s);
+        if (removed.Count > 0) ReleaseBlocked();
         if (removed.Count > 0) lock (_lock) _duplicates.Clear(); // the other interface of that pad may now be used
 
         bool retryLater = false;
@@ -225,24 +227,26 @@ public sealed class ControllerManager : IDisposable
                 continue;
             }
 
+            AssignProfile(session);
             session.Ended += OnSessionEnded; // before Start, so an instant read error is not missed
             try
             {
                 var options = _optionsFor(session.Id);
-                session.Start(_store, _vigem, options.Learning, options.Output);
+                session.Start(_store, _vigem, options.Learning, options.Output, options.JitterFilter);
             }
             catch (Exception ex)
             {
                 Log.Error($"Controller {session.Id} starten mislukt", ex);
                 session.Ended -= OnSessionEnded;
                 session.Dispose();
-                lock (_lock) { _blockedUntil[path] = DateTime.UtcNow + RetryBlocked; Bump(); }
+                lock (_lock) { _starting.Remove(session); _blockedUntil[path] = DateTime.UtcNow + RetryBlocked; Bump(); }
                 retryLater = true;
                 continue;
             }
 
             lock (_lock)
             {
+                _starting.Remove(session);
                 if (_disposed)
                 {
                     DisposeSession(session);
@@ -251,6 +255,7 @@ public sealed class ControllerManager : IDisposable
                 _sessions[path] = session;
                 Publish();
             }
+            if (session.ProfileBlocked) ReleaseBlocked(); // its profile may have been freed while it started
             Log.Info($"{session.DisplayName} verbonden: {session.Id} via {session.Connection}");
             try { SessionStarted?.Invoke(session); } catch (Exception ex) { Log.Error("SessionStarted-handler faalde", ex); }
         }
@@ -280,6 +285,7 @@ public sealed class ControllerManager : IDisposable
                 DisposeSession(session);
                 if (removed)
                 {
+                    ReleaseBlocked(); // a pad waiting for this profile may now use it
                     Log.Info($"{session.Id} verbroken.");
                     // The device may still be listed (read error, Bluetooth hiccup): look again shortly.
                     ScheduleRescan(RescanAfterError);
@@ -306,6 +312,95 @@ public sealed class ControllerManager : IDisposable
     }
 
     private void Bump() => Interlocked.Increment(ref _version);
+
+    /// <summary>
+    /// Which saved profile a controller id uses (its own id, or a linked one), from the settings.
+    /// Null means "own profile".
+    /// </summary>
+    public Func<string, string?>? ProfileLinkFor { get; set; }
+
+    /// <summary>Picks the profile for a new session; never one another connected or starting controller uses.</summary>
+    private void AssignProfile(ControllerSession session)
+    {
+        string wanted = ProfileLinkFor?.Invoke(session.Id) is { Length: > 0 } link ? link : session.Id;
+        lock (_lock)
+        {
+            if (wanted != session.Id && ProfileInUseLocked(wanted, except: session))
+            {
+                Log.Warn($"Gekoppeld profiel {wanted} van {session.Id} is al in gebruik; het eigen profiel wordt gebruikt.");
+                wanted = session.Id;
+            }
+            session.ProfileId = wanted;
+            session.ProfileBlocked = ProfileInUseLocked(wanted, except: session);
+            _starting.Add(session); // reserved until it is in _sessions (or failed)
+        }
+    }
+
+    /// <summary>True when a connected or starting controller (other than <paramref name="except"/>) writes into this profile.</summary>
+    private bool ProfileInUseLocked(string profileId, ControllerSession? except)
+    {
+        foreach (var s in _sessions.Values)
+            if (Writes(s, profileId, except)) return true;
+        foreach (var s in _starting)
+            if (Writes(s, profileId, except)) return true;
+        return false;
+
+        // A blocked session never saves, so it does not hold its profile.
+        static bool Writes(ControllerSession s, string id, ControllerSession? except) =>
+            s != except && !s.ProfileBlocked && string.Equals(s.ProfileId, id, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>True when a connected controller learns into this profile.</summary>
+    public bool IsProfileInUse(string profileId)
+    {
+        lock (_lock) return ProfileInUseLocked(profileId, except: null);
+    }
+
+    /// <summary>
+    /// Links a connected controller to another saved profile (or back to its own with its own id) and
+    /// switches to it before returning. Refused (false) when another controller already uses that
+    /// profile. The reservation is made under the lock, so two requests can never pick the same file,
+    /// and the session always ends on the latest reservation. Blocking file I/O: call from a worker.
+    /// </summary>
+    public bool TryLinkProfile(ControllerSession session, string profileId)
+    {
+        lock (_lock)
+        {
+            if (!_sessions.ContainsValue(session)) return false;
+            if (ProfileInUseLocked(profileId, except: session)) return false;
+            session.ProfileId = profileId; // reserve
+            session.ProfileBlocked = false;
+        }
+        session.ApplyProfile();
+        Bump();
+        ReleaseBlocked(); // the profile it left may be free for a blocked pad now
+        return true;
+    }
+
+    /// <summary>
+    /// Gives a blocked controller its profile back once nobody else writes into it (the other pad
+    /// unlinked or disconnected). It reloads the saved profile first, then resumes saving.
+    /// </summary>
+    private void ReleaseBlocked()
+    {
+        var freed = new List<ControllerSession>();
+        lock (_lock)
+        {
+            if (_disposed) return;
+            foreach (var s in _sessions.Values)
+            {
+                if (!s.ProfileBlocked || ProfileInUseLocked(s.ProfileId, except: s)) continue;
+                s.ProfileBlocked = false; // claimed: the next blocked pad on the same profile sees it in use
+                freed.Add(s);
+            }
+        }
+        foreach (var s in freed)
+        {
+            try { s.ApplyProfile(); }
+            catch (Exception ex) { Log.Error($"Profiel van {s.Id} opnieuw laden mislukt", ex); }
+        }
+        if (freed.Count > 0) Bump();
+    }
 
     public void SaveAll()
     {

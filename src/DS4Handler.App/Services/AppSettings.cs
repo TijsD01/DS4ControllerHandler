@@ -10,11 +10,24 @@ namespace DS4Handler.App.Services;
 public sealed class ControllerPreferences
 {
     public bool LearningEnabled { get; set; } = true;
+
+    /// <summary>Smooth out stick jitter with the learned jitter filter.</summary>
+    public bool JitterFilterEnabled { get; set; } = true;
+
     public bool HideFromGames { get; set; } = true;
 
     /// <summary>Which virtual controller games get for this pad.</summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public OutputMode Output { get; set; } = OutputMode.Xbox360;
+
+    /// <summary>Friendly name chosen by the user ("Controller van Sem"); null = model name. Never changes the file key.</summary>
+    public string? Name { get; set; }
+
+    /// <summary>When this controller was last connected (UTC).</summary>
+    public DateTime? LastSeenUtc { get; set; }
+
+    /// <summary>Profile id this controller learns into instead of its own (a shared profile); null = own.</summary>
+    public string? LinkedProfileId { get; set; }
 }
 
 /// <summary>App settings, saved as JSON in %APPDATA%\DS4ControllerHandler\settings.json.</summary>

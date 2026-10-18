@@ -44,6 +44,13 @@
                             <TextBlock Text="Controllers" />
                         </StackPanel>
                     </RadioButton>
+                    <RadioButton Style="{StaticResource NavTab}" GroupName="Nav" IsChecked="{Binding ShowProfiles}"
+                                 ToolTip="{x:Static vm:Tips.NavProfiles}" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" FontSize="14" Text="&#xE77B;" Margin="0,0,8,0" />
+                            <TextBlock Text="Profielen" />
+                        </StackPanel>
+                    </RadioButton>
                     <RadioButton Style="{StaticResource NavTab}" GroupName="Nav" IsChecked="{Binding ShowSettings}"
                                  ToolTip="{x:Static vm:Tips.NavSettings}" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
@@ -153,6 +160,10 @@
                         </StackPanel>
                     </Border>
                 </Grid>
+
+                <!-- Profiles -->
+                <v:ProfilesPage DataContext="{Binding ProfilesPage}"
+                                Visibility="{Binding DataContext.ShowProfiles, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}" />
 
                 <!-- Settings -->
                 <v:SettingsPage DataContext="{Binding Settings}"

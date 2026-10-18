@@ -48,11 +48,39 @@ public sealed class ControllerCalibration
         }
     }
 
-    /// <summary>Learns from one raw report and returns the calibrated state.</summary>
+    /// <summary>
+    /// Turns the stick jitter filter on or off for both sticks at once
+    /// (see <see cref="StickCalibrator.JitterFilterEnabled"/>).
+    /// </summary>
+    public bool JitterFilterEnabled
+    {
+        get => LeftStick.JitterFilterEnabled;
+        set
+        {
+            LeftStick.JitterFilterEnabled = value;
+            RightStick.JitterFilterEnabled = value;
+        }
+    }
+
+    /// <summary>Learns from one raw report and returns the calibrated state (assumes 250 reports per second).</summary>
     public CalibratedState Process(in RawControllerState raw)
     {
         var (lx, ly) = LeftStick.Process(raw.LeftX, raw.LeftY);
         var (rx, ry) = RightStick.Process(raw.RightX, raw.RightY);
+        float l2 = L2.Process(raw.L2);
+        float r2 = R2.Process(raw.R2);
+        return new CalibratedState(lx, ly, rx, ry, l2, r2, raw.Buttons);
+    }
+
+    /// <summary>
+    /// Learns from one raw report and returns the calibrated state. <paramref name="dtSeconds"/> is
+    /// the time since the previous report; it tunes the stick jitter filter to the real report rate
+    /// (USB about 250 per second, Bluetooth up to about 1000).
+    /// </summary>
+    public CalibratedState Process(in RawControllerState raw, double dtSeconds)
+    {
+        var (lx, ly) = LeftStick.Process(raw.LeftX, raw.LeftY, dtSeconds);
+        var (rx, ry) = RightStick.Process(raw.RightX, raw.RightY, dtSeconds);
         float l2 = L2.Process(raw.L2);
         float r2 = R2.Process(raw.R2);
         return new CalibratedState(lx, ly, rx, ry, l2, r2, raw.Buttons);

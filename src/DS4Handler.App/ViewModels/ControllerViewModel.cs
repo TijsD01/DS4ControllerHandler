@@ -92,6 +92,14 @@ public sealed class StickViewModel : ObservableObject
         if (s.WeakestReach is { } reach && reach < 0.97)
             text.Append($" Haalt in sommige richtingen maar {Fmt.Pct(reach)} van de rand — wordt bijgeschaald naar 100%.");
 
+        if (s.JitterFilterStrength > 0)
+        {
+            string jitter = "±" + (s.Jitter * 100).ToString(s.Jitter < 0.1 ? "0.0" : "0", Fmt.Nl) + "%";
+            text.Append(s.JitterFilterEnabled
+                ? $" Trilling {Name.ToLower(Fmt.Nl)}: {jitter} (wordt weggefilterd)."
+                : $" Trilling {Name.ToLower(Fmt.Nl)}: {jitter} (trillingsfilter staat uit).");
+        }
+
         Summary = text.ToString();
         SummaryLevel = learning ? Level.Learning : Level.Ok;
     }
@@ -195,6 +203,7 @@ public sealed class ControllerViewModel : ObservableObject
     private long _lastRateTimestamp;
     private int _tick;
     private bool _learning;
+    private bool _jitterFilter;
     private bool _hide;
     private bool _hideAvailable;
     private string _battery = "";
@@ -222,6 +231,7 @@ public sealed class ControllerViewModel : ObservableObject
         L2 = new TriggerViewModel(session, right: false);
         R2 = new TriggerViewModel(session, right: true);
         _learning = session.LearningEnabled;
+        _jitterFilter = host.SettingsStore.Read(s => s.For(session.Id).JitterFilterEnabled);
         _hide = host.SettingsStore.Read(s => s.For(session.Id).HideFromGames);
         _output = host.SettingsStore.Read(s => s.For(session.Id).Output);
 
@@ -240,9 +250,20 @@ public sealed class ControllerViewModel : ObservableObject
     public ICommand RecenterCommand { get; }
     public ICommand CancelRecenterCommand { get; }
 
-    public string Title => Session.DisplayName;
+    private string? _title;
+    private string _profileText = "";
+    private string _profileLevel = Level.Off;
+    private string _profileTip = "";
+
+    /// <summary>Friendly name from the Profielen tab, or the model name.</summary>
+    public string Title { get => _title ?? Session.DisplayName; private set => SetField(ref _title, value); }
+
+    /// <summary>"Gebruikt profiel: …" when the controller learns into a shared profile (or is blocked); empty otherwise.</summary>
+    public string ProfileText { get => _profileText; private set => SetField(ref _profileText, value); }
+    public string ProfileLevel { get => _profileLevel; private set => SetField(ref _profileLevel, value); }
+    public string ProfileTip { get => _profileTip; private set => SetField(ref _profileTip, value); }
     public string ModelIcon => ""; // game controller glyph
-    public string IdText => Session.Mac != null ? $"MAC {Session.Mac}" : "Adres onbekend";
+    public string IdText => Session.Mac != null ? $"MAC {Session.Mac}" : "(geen MAC gevonden)";
     public string IdTip => Session.HasStableId ? Tips.ControllerId : Tips.ControllerIdUnstable;
     public bool IsBluetooth => Session.Connection == ConnectionType.Bluetooth;
     public string ConnectionText => IsBluetooth ? "Bluetooth" : "USB";
@@ -274,6 +295,18 @@ public sealed class ControllerViewModel : ObservableObject
         {
             if (!SetField(ref _learning, value)) return;
             _host.SetLearning(Session, value);
+        }
+    }
+
+    /// <summary>Stick jitter filter (both sticks) on or off.</summary>
+    public bool JitterFilterEnabled
+    {
+        get => _jitterFilter;
+        set
+        {
+            if (!SetField(ref _jitterFilter, value)) return;
+            _host.SetJitterFilter(Session, value);
+            _tick = 0; // refresh the summary soon
         }
     }
 
@@ -329,6 +362,7 @@ public sealed class ControllerViewModel : ObservableObject
         UpdateBattery(raw.BatteryPercent);
         UpdateStatus();
         UpdateHide();
+        UpdateProfile();
         if (Session.GetSummary() is { } summary)
         {
             Left.UpdateSummary(summary.Left, _snap.Left.GuidedInProgress);
@@ -405,6 +439,30 @@ public sealed class ControllerViewModel : ObservableObject
                 StatusLevel = Level.Learning;
                 StatusTip = "De virtuele controller wordt aangemaakt.";
                 break;
+        }
+    }
+
+    private void UpdateProfile()
+    {
+        var library = _host.Library;
+        Title = library.DisplayName(Session.Id);
+        if (Session.ProfileBlocked)
+        {
+            ProfileText = "Profiel in gebruik — draait zonder opslaan";
+            ProfileLevel = Level.Warn;
+            ProfileTip = Tips.ProfileBlockedOnCard;
+        }
+        else if (!string.Equals(Session.ProfileId, Session.Id, StringComparison.OrdinalIgnoreCase))
+        {
+            ProfileText = "Gebruikt profiel: " + library.DisplayName(Session.ProfileId);
+            ProfileLevel = Level.Learning;
+            ProfileTip = Tips.ProfileOnCard;
+        }
+        else
+        {
+            ProfileText = "";
+            ProfileLevel = Level.Off;
+            ProfileTip = "";
         }
     }
 

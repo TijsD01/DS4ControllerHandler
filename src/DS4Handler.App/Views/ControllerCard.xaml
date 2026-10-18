@@ -117,6 +117,9 @@
                 <StackPanel Grid.Column="1" Margin="14,0,24,0" VerticalAlignment="Center">
                     <TextBlock Text="{Binding Title}" Style="{StaticResource H1}" FontSize="19" ToolTip="{x:Static vm:Tips.ControllerName}" />
                     <TextBlock Text="{Binding IdText}" Style="{StaticResource Caption}" ToolTip="{Binding IdTip}" Cursor="Help" Margin="0,2,0,0" />
+                    <TextBlock Text="{Binding ProfileText}" FontSize="12" FontWeight="SemiBold" Margin="0,3,0,0" Cursor="Help"
+                               Foreground="{Binding ProfileLevel, Converter={StaticResource LevelBrush}}" ToolTip="{Binding ProfileTip}"
+                               Visibility="{Binding ProfileText, Converter={StaticResource TextVis}}" />
                 </StackPanel>
 
                 <WrapPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -224,6 +227,10 @@
                 <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding LearningEnabled}" Margin="0,0,28,0"
                           ToolTip="{x:Static vm:Tips.Learning}">
                     <TextBlock Text="Leren" />
+                </CheckBox>
+                <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding JitterFilterEnabled}" Margin="0,0,28,0"
+                          ToolTip="{x:Static vm:Tips.JitterFilter}">
+                    <TextBlock Text="Trillingsfilter" />
                 </CheckBox>
                 <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding HideFromGames}" IsEnabled="{Binding HideAvailable}"
                           ToolTip="{Binding HideTip}" Margin="0,0,28,0">

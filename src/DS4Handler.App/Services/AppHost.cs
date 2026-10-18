@@ -19,12 +19,16 @@ public sealed class AppHost : IDisposable
     {
         SettingsStore = new SettingsStore();
         Profiles = new ProfileStore(ProfileStore.DefaultDirectory);
-        Manager = new ControllerManager(Profiles, id => SettingsStore.Read(s => (s.For(id).LearningEnabled, s.For(id).Output)));
+        Manager = new ControllerManager(Profiles, id => SettingsStore.Read(s => (s.For(id).LearningEnabled, s.For(id).Output, s.For(id).JitterFilterEnabled)));
         HidHide = new HidHideService(SettingsStore);
         Manager.SessionStarted += session => HidHide.ApplyAsync(session);
+        Library = new ProfileLibrary(Profiles, SettingsStore, Manager);
     }
 
     public SettingsStore SettingsStore { get; }
+
+    /// <summary>The "Profielen" tab: names, linking, copy, export / import of profiles.</summary>
+    public ProfileLibrary Library { get; }
     public AppSettings Settings => SettingsStore.Settings;
     public ProfileStore Profiles { get; }
     public ControllerManager Manager { get; }
@@ -40,6 +44,12 @@ public sealed class AppHost : IDisposable
     {
         session.LearningEnabled = enabled;
         SettingsStore.Update(s => s.For(session.Id).LearningEnabled = enabled);
+    }
+
+    public void SetJitterFilter(ControllerSession session, bool enabled)
+    {
+        session.JitterFilterEnabled = enabled;
+        SettingsStore.Update(s => s.For(session.Id).JitterFilterEnabled = enabled);
     }
 
     /// <summary>Learning on/off for every connected controller (tray menu).</summary>
@@ -94,6 +104,7 @@ public sealed class AppHost : IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        Library.MarkSeen(Manager.Sessions);
         Manager.Dispose(); // saves all profiles
         if (SettingsStore.Read(s => s.UnhideOnExit))
         {

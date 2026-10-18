@@ -65,6 +65,9 @@ public sealed class ControllerSession : IDisposable
     private ControllerCalibration? _calibration;
     private ProfileStore? _store;
     private bool _profileLoaded;                     // never overwrite a saved profile we could not read
+    private readonly object _saveGate = new();       // serialises saving with switching / replacing profiles
+    private string? _appliedProfileId;               // profile the calibration belongs to (under _saveGate)
+    private bool _appliedBlocked;
     private long _savedFingerprint;
     private Timer? _saveTimer;
 
@@ -106,6 +109,30 @@ public sealed class ControllerSession : IDisposable
     /// <summary>False when no MAC could be read and the id hangs on the USB port.</summary>
     public bool HasStableId { get; private set; }
 
+    private string? _profileId;
+
+    /// <summary>
+    /// The saved profile this controller learns into: its own id (default) or another controller's
+    /// profile it is linked to. Set by the manager before <see cref="Start"/>; changed with <see cref="ApplyProfile"/>.
+    /// </summary>
+    public string ProfileId
+    {
+        get => Volatile.Read(ref _profileId) ?? Id;
+        internal set => Volatile.Write(ref _profileId, value);
+    }
+
+    /// <summary>
+    /// True when the profile is already used by another connected controller: this one then runs on
+    /// factory values and never saves, so two controllers never write the same file.
+    /// </summary>
+    public bool ProfileBlocked
+    {
+        get => Volatile.Read(ref _profileBlocked);
+        internal set => Volatile.Write(ref _profileBlocked, value);
+    }
+
+    private bool _profileBlocked;
+
     public string DevicePath { get; }
     public ControllerModel Model { get; }
 
@@ -131,6 +158,13 @@ public sealed class ControllerSession : IDisposable
         set { lock (_sync) if (_calibration != null) _calibration.LearningEnabled = value; }
     }
 
+    /// <summary>Stick jitter filter on/off for both sticks (see <see cref="StickCalibrator.JitterFilterEnabled"/>).</summary>
+    public bool JitterFilterEnabled
+    {
+        get { lock (_sync) return _calibration?.JitterFilterEnabled ?? true; }
+        set { lock (_sync) if (_calibration != null) _calibration.JitterFilterEnabled = value; }
+    }
+
     /// <summary>
     /// Opens the device and reads its identity. Blocking I/O: call from a worker thread.
     /// Throws when the device cannot be opened (for example held exclusively by another program).
@@ -154,7 +188,7 @@ public sealed class ControllerSession : IDisposable
     /// Loads the profile, switches Bluetooth pads to full reports, plugs in the virtual controller
     /// and starts the read thread. Blocking I/O: call from a worker thread, after <see cref="Open"/>.
     /// </summary>
-    public void Start(ProfileStore store, ViGEmClient? vigem, bool learningEnabled, OutputMode outputMode)
+    public void Start(ProfileStore store, ViGEmClient? vigem, bool learningEnabled, OutputMode outputMode, bool jitterFilterEnabled = true)
     {
         var stream = _stream ?? throw new InvalidOperationException("Open() first.");
         _store = store;
@@ -162,19 +196,14 @@ public sealed class ControllerSession : IDisposable
         OutputMode = outputMode;
         _desiredMode = (int)outputMode;
 
-        var calibration = new ControllerCalibration(Id, Model) { LearningEnabled = learningEnabled };
-        try
+        var calibration = new ControllerCalibration(ProfileId, Model)
         {
-            var profile = store.Load(Id);
-            if (profile != null && profile.Model == Model) calibration.Import(profile);
-            _profileLoaded = true;
-            _savedFingerprint = profile != null ? Fingerprint(calibration.Export()) : 0;
-        }
-        catch (Exception ex)
-        {
-            // Keep running with factory values but never overwrite the file we could not read.
-            Log.Warn($"Profiel van {Id} laden mislukt; er wordt niet over het bestand heen geschreven.", ex);
-        }
+            LearningEnabled = learningEnabled,
+            JitterFilterEnabled = jitterFilterEnabled,
+        };
+        (_profileLoaded, _savedFingerprint) = LoadInto(store, calibration);
+        _appliedProfileId = ProfileId;
+        _appliedBlocked = ProfileBlocked;
         lock (_sync) _calibration = calibration;
 
         if (Connection == ConnectionType.Bluetooth) RequestFullReports();
@@ -287,7 +316,7 @@ public sealed class ControllerSession : IDisposable
         lock (_sync)
         {
             var c = _calibration;
-            return c == null ? null : CalibrationSummary.From(c.Export(), c.LeftStick.Deadzone, c.RightStick.Deadzone);
+            return c == null ? null : CalibrationSummary.From(c.Export(), c.LeftStick, c.RightStick);
         }
     }
 
@@ -301,7 +330,88 @@ public sealed class ControllerSession : IDisposable
     /// <summary>Saves the profile when something changed (and only when the saved one was read first).</summary>
     public void SaveProfile() => SaveProfile(force: false);
 
+    /// <summary>
+    /// Loads the profile <see cref="ProfileId"/> into <paramref name="calibration"/>. Returns whether
+    /// saving is allowed later (false when the file could not be read, or the profile is in use elsewhere).
+    /// </summary>
+    private (bool Loaded, long Fingerprint) LoadInto(ProfileStore store, ControllerCalibration calibration)
+    {
+        if (ProfileBlocked)
+        {
+            Log.Warn($"Profiel {ProfileId} is al in gebruik door een andere controller; {Id} draait zonder opslaan.");
+            return (false, 0);
+        }
+        try
+        {
+            var profile = store.Load(ProfileId);
+            if (profile != null && profile.Model == Model) calibration.Import(profile);
+            return (true, profile != null ? Fingerprint(calibration.Export()) : 0);
+        }
+        catch (Exception ex)
+        {
+            // Keep running with factory values but never overwrite the file we could not read.
+            Log.Warn($"Profiel {ProfileId} laden mislukt; er wordt niet over het bestand heen geschreven.", ex);
+            return (false, 0);
+        }
+    }
+
+    /// <summary>
+    /// Brings the calibration in line with <see cref="ProfileId"/> and <see cref="ProfileBlocked"/> as
+    /// reserved by the manager: saves the current profile and continues with the reserved one (a
+    /// shared profile, back to its own, or its own again after it was blocked). The learning and
+    /// filter switches carry over. Calls are serialised and always apply the latest reservation; a
+    /// call that finds nothing changed does nothing. Blocking file I/O: call from a worker.
+    /// </summary>
+    internal void ApplyProfile()
+    {
+        var store = _store;
+        if (store == null || Volatile.Read(ref _disposed) != 0) return;
+        lock (_saveGate) ApplyProfileCore(store);
+    }
+
+    /// <summary>Must be called under _saveGate.</summary>
+    private void ApplyProfileCore(ProfileStore store)
+    {
+        string target = ProfileId;
+        bool blocked = ProfileBlocked;
+        if (string.Equals(target, _appliedProfileId, StringComparison.OrdinalIgnoreCase) && blocked == _appliedBlocked) return;
+
+        SaveProfileCore(force: false); // the old profile, under its own id
+        bool learning = LearningEnabled, jitter = JitterFilterEnabled;
+        var calibration = new ControllerCalibration(target, Model) { LearningEnabled = learning, JitterFilterEnabled = jitter };
+        var (loaded, fingerprint) = LoadInto(store, calibration);
+        lock (_sync) _calibration = calibration;
+        _profileLoaded = loaded;
+        Interlocked.Exchange(ref _savedFingerprint, fingerprint);
+        _appliedProfileId = target;
+        _appliedBlocked = blocked;
+        Log.Info(blocked ? $"{Id} draait zonder opslaan (profiel {target} in gebruik)." : $"{Id} gebruikt nu profiel {target}.");
+    }
+
+    /// <summary>
+    /// Replaces what was learned with a copied or imported profile and saves it. Returns false when this
+    /// controller may not save (its profile is in use elsewhere, or could not be read).
+    /// </summary>
+    public bool ReplaceCalibration(CalibrationProfile profile)
+    {
+        var store = _store;
+        if (store == null) return false;
+        lock (_saveGate)
+        {
+            ApplyProfileCore(store); // never write into a profile we are switching away from
+            if (!_profileLoaded) return false;
+            lock (_sync) _calibration?.Import(profile);
+            SaveProfileCore(force: true);
+            return true;
+        }
+    }
+
     private void SaveProfile(bool force)
+    {
+        lock (_saveGate) SaveProfileCore(force);
+    }
+
+    private void SaveProfileCore(bool force)
     {
         var store = _store;
         if (store == null || !_profileLoaded) return;
@@ -478,6 +588,11 @@ public sealed class ControllerSession : IDisposable
         var connection = Connection;
         int unparsed = 0;
         var token = _cts.Token;
+        // Report interval for the stick jitter filter: measured on arrival and smoothed, because
+        // reports can arrive in small bursts. Starts at the USB rate.
+        long previousArrival = 0;
+        double interval = 1.0 / 250;
+        double tickSeconds = 1.0 / Stopwatch.Frequency;
 
         try
         {
@@ -501,15 +616,23 @@ public sealed class ControllerSession : IDisposable
                     continue;
                 }
 
+                long arrival = Stopwatch.GetTimestamp();
+                if (previousArrival != 0)
+                {
+                    double seconds = (arrival - previousArrival) * tickSeconds;
+                    if (seconds > 0 && seconds < 0.05) interval += (seconds - interval) * 0.02;
+                }
+                previousArrival = arrival;
+
                 CalibratedState output;
                 lock (_sync)
                 {
-                    output = _calibration!.Process(raw);
+                    output = _calibration!.Process(raw, interval);
                     _raw = raw;
                     _output = output;
                     _hasInput = true;
                     _reports++;
-                    _lastReportTimestamp = Stopwatch.GetTimestamp();
+                    _lastReportTimestamp = arrival;
                 }
 
                 SubmitVirtual(output);

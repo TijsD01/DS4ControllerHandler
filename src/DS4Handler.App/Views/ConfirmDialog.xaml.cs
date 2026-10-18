@@ -27,6 +27,18 @@ public partial class ConfirmDialog : Window
         return dialog.ShowDialog() == true;
     }
 
+    /// <summary>Shows a message with a single OK button.</summary>
+    public static void Inform(Window? owner, string title, string message)
+    {
+        var dialog = new ConfirmDialog(title, message, "OK");
+        dialog.CancelButton.Visibility = Visibility.Collapsed;
+        dialog.ConfirmButton.ToolTip = "Sluit deze melding.";
+        dialog.Loaded += (_, _) => dialog.ConfirmButton.Focus();
+        if (owner is { IsVisible: true }) dialog.Owner = owner;
+        else dialog.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        dialog.ShowDialog();
+    }
+
     private void OnConfirm(object sender, RoutedEventArgs e) => DialogResult = true;
 
     private void OnCancel(object sender, RoutedEventArgs e) => DialogResult = false;

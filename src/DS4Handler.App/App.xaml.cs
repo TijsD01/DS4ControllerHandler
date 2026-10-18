@@ -60,7 +60,7 @@ public partial class App : Application
         Log.Info("Gestart.");
 
         _host = new AppHost();
-        _viewModel = new MainViewModel(_host, (title, message, confirm) => ConfirmDialog.Ask(_window, title, message, confirm));
+        _viewModel = new MainViewModel(_host, new Dialogs(() => _window));
         _window = new MainWindow(_viewModel, AppIcon.Render(64));
         _window.QuitRequested += (_, _) => Quit();
         _window.HiddenToTray += (_, _) => OnHiddenToTray();

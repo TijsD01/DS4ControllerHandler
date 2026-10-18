@@ -33,7 +33,7 @@ public sealed class ControllerManager : IDisposable
     private readonly Dictionary<string, bool> _isVirtual = new(StringComparer.OrdinalIgnoreCase);              // path → made by ViGEmBus (checked once)
     private readonly HashSet<string> _duplicates = new(StringComparer.OrdinalIgnoreCase);                     // second interface of an open pad
     private readonly ProfileStore _store;
-    private readonly Func<string, (bool Learning, OutputMode Output)> _optionsFor;
+    private readonly Func<string, (bool Learning, OutputMode Output, bool JitterFilter)> _optionsFor;
     private ViGEmClient? _vigem;
     private ControllerSession[] _sessionList = Array.Empty<ControllerSession>();
     private int _scanRequested;
@@ -42,8 +42,8 @@ public sealed class ControllerManager : IDisposable
     private bool _disposed;
     private Timer? _rescanTimer;
 
-    /// <param name="optionsFor">Per controller id (from the settings): whether learning starts on, and which virtual pad to make.</param>
-    public ControllerManager(ProfileStore store, Func<string, (bool Learning, OutputMode Output)> optionsFor)
+    /// <param name="optionsFor">Per controller id (from the settings): whether learning starts on, which virtual pad to make, and whether the stick jitter filter is on.</param>
+    public ControllerManager(ProfileStore store, Func<string, (bool Learning, OutputMode Output, bool JitterFilter)> optionsFor)
     {
         _store = store;
         _optionsFor = optionsFor;
@@ -225,11 +225,12 @@ public sealed class ControllerManager : IDisposable
                 continue;
             }
 
+            AssignProfile(session);
             session.Ended += OnSessionEnded; // before Start, so an instant read error is not missed
             try
             {
                 var options = _optionsFor(session.Id);
-                session.Start(_store, _vigem, options.Learning, options.Output);
+                session.Start(_store, _vigem, options.Learning, options.Output, options.JitterFilter);
             }
             catch (Exception ex)
             {
@@ -306,6 +307,64 @@ public sealed class ControllerManager : IDisposable
     }
 
     private void Bump() => Interlocked.Increment(ref _version);
+
+    /// <summary>
+    /// Which saved profile a controller id uses (its own id, or a linked one), from the settings.
+    /// Null means "own profile".
+    /// </summary>
+    public Func<string, string?>? ProfileLinkFor { get; set; }
+
+    /// <summary>Picks the profile for a new session; never one another connected controller already uses.</summary>
+    private void AssignProfile(ControllerSession session)
+    {
+        string wanted = ProfileLinkFor?.Invoke(session.Id) is { Length: > 0 } link ? link : session.Id;
+        lock (_lock)
+        {
+            if (wanted != session.Id && ProfileInUseLocked(wanted, except: null))
+            {
+                Log.Warn($"Gekoppeld profiel {wanted} van {session.Id} is al in gebruik; het eigen profiel wordt gebruikt.");
+                wanted = session.Id;
+            }
+            session.ProfileId = wanted;
+            session.ProfileBlocked = ProfileInUseLocked(wanted, except: null);
+        }
+    }
+
+    private bool ProfileInUseLocked(string profileId, ControllerSession? except)
+    {
+        foreach (var s in _sessions.Values)
+            if (s != except && string.Equals(s.ProfileId, profileId, StringComparison.OrdinalIgnoreCase)) return true;
+        return false;
+    }
+
+    /// <summary>True when a connected controller learns into this profile.</summary>
+    public bool IsProfileInUse(string profileId)
+    {
+        lock (_lock) return ProfileInUseLocked(profileId, except: null);
+    }
+
+    /// <summary>
+    /// Links a connected controller to another saved profile (or back to its own with its own id).
+    /// Refused (false) when another connected controller already uses that profile. Blocking file I/O
+    /// runs on a worker; the reservation is made at once, so two requests can never pick the same file.
+    /// </summary>
+    public bool TryLinkProfile(ControllerSession session, string profileId)
+    {
+        lock (_lock)
+        {
+            if (!_sessions.ContainsValue(session)) return false;
+            if (ProfileInUseLocked(profileId, except: session)) return false;
+            if (string.Equals(session.ProfileId, profileId, StringComparison.OrdinalIgnoreCase) && !session.ProfileBlocked) return true;
+            session.ProfileId = profileId; // reserve
+        }
+        ThreadPool.QueueUserWorkItem(_ =>
+        {
+            try { session.SwitchProfile(profileId); }
+            catch (Exception ex) { Log.Error($"Profiel wisselen voor {session.Id} mislukt", ex); }
+            Bump();
+        });
+        return true;
+    }
 
     public void SaveAll()
     {

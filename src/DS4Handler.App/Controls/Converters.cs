@@ -54,11 +54,15 @@ public sealed class BoolVisibilityConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
 }
 
-/// <summary>Collapsed for null or empty strings.</summary>
+/// <summary>Collapsed for null or empty strings; with ConverterParameter "invert" only visible for empty ones.</summary>
 public sealed class TextVisibilityConverter : IValueConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>
-        string.IsNullOrEmpty(value as string) ? Visibility.Collapsed : Visibility.Visible;
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        bool visible = !string.IsNullOrEmpty(value as string);
+        if (parameter as string == "invert") visible = !visible;
+        return visible ? Visibility.Visible : Visibility.Collapsed;
+    }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
 }

@@ -48,6 +48,11 @@ public static class Tips
     public const string Learning =
         "Aan: de app blijft tijdens het spelen bijleren hoe deze controller zich gedraagt (drift, versleten triggers).\n" +
         "Uit: wat al geleerd is blijft gewoon werken, maar er verandert niets meer.";
+    public const string JitterFilter =
+        "Aan: trillen van een stick wordt weggefilterd. De app meet zelf hoeveel een stick trilt als je hem stilhoudt " +
+        "(los of op een vaste stand) en filtert precies zoveel als nodig. Een goede stick merkt er niets van.\n" +
+        "Snelle bewegingen gaan er zonder merkbare vertraging doorheen; alleen stilhouden en heel langzaam richten wordt rustiger.\n" +
+        "Uit: de stick gaat ongefilterd naar de game, net als vroeger.";
     public const string HideFromGames =
         "Verbergt je echte PlayStation-controller voor games, zodat ze alleen de Xbox-controller van deze app zien. Dat voorkomt dubbele input.\n" +
         "Werkt via HidHide. Een game die al draait moet je opnieuw starten (of sluit de controller opnieuw aan).";
@@ -103,4 +108,46 @@ public static class Tips
     public const string DriverReady = "ViGEmBus is geïnstalleerd: games zien je controller als een Xbox 360-controller.";
     public const string DriverMissing = "ViGEmBus ontbreekt. Zonder deze driver kan de app geen Xbox-controller maken en krijgen games geen input.";
     public const string DriverChecking = "Bezig met controleren of de Xbox-driver (ViGEmBus) aanwezig is.";
+
+    // ----- Profielen -----
+    public const string NavProfiles =
+        "Alle controllers die deze pc kent, met hun geleerde kalibratie. Geef ze een naam, deel of kopieer een profiel, of neem het profiel van een vriend mee.";
+    public const string ProfilesIntro =
+        "Elke controller krijgt een eigen profiel, herkend aan zijn MAC-adres. Via USB en Bluetooth gebruikt hij dus hetzelfde profiel.";
+    public const string ProfileName =
+        "Een naam die je zelf kiest, bijvoorbeeld 'Controller van Sem'. Leeg laten toont het type controller. De naam verandert niets aan de kalibratie.";
+    public const string ProfileRename = "Geef dit profiel een andere naam. Druk op Enter of klik ergens anders om op te slaan.";
+    public const string ProfileMac =
+        "Het MAC-adres: het unieke adres van deze controller. Hieraan herkent de app hem, via USB en via Bluetooth.";
+    public const string ProfileNoMac =
+        "Van deze controller kon geen MAC-adres worden gelezen. Het profiel hangt daarom aan de USB-poort waarop hij zat.";
+    public const string ProfileModel = "Het type controller van dit profiel.";
+    public const string ProfileConnected = "Deze controller is nu aangesloten.";
+    public const string ProfileLastSeen = "Wanneer deze controller voor het laatst met deze pc verbonden was.";
+    public const string ProfileSummary =
+        "Kort wat er voor deze controller is geleerd: tot hoever de triggers komen en of de sticks drift hebben.";
+    public const string ProfileUsedBy =
+        "Andere aangesloten controllers die dit profiel delen: ze leren samen in dezelfde kalibratie.";
+    public const string ProfileCopy =
+        "Kopieer wat voor deze controller is geleerd naar een andere controller. Wat daar al geleerd was, wordt overschreven.";
+    public const string ProfileCopyNone =
+        "Kopiëren kan pas als er voor dit profiel iets is geleerd en er nog een ander profiel is.";
+    public const string ProfileExport =
+        "Sla dit profiel op als bestand, bijvoorbeeld om het aan een vriend te geven of als reservekopie.";
+    public const string ProfileImport =
+        "Laad een profielbestand, bijvoorbeeld dat van een vriend. Het wordt gekoppeld aan zijn controller (MAC-adres): sluit die aan en hij werkt meteen met zijn eigen kalibratie.";
+    public const string ProfileDelete =
+        "Verwijder dit profiel en zijn naam. Sluit je de controller later weer aan, dan begint hij opnieuw met leren.";
+    public const string ProfileDeleteBlocked =
+        "Een profiel dat een aangesloten controller gebruikt kan niet worden verwijderd. Koppel de controller eerst los of kies voor hem een ander profiel.";
+    public const string ProfileChoose =
+        "Kies in welk profiel deze controller leert. Standaard zijn eigen profiel; je kunt hem ook laten delen met het profiel van een andere controller van hetzelfde type.\n" +
+        "Twee aangesloten controllers kunnen niet tegelijk hetzelfde profiel gebruiken.";
+    public const string LinkOwn = "De controller leert in zijn eigen profiel (aanbevolen).";
+    public const string LinkShared = "De controller gebruikt en verbetert de kalibratie van dit andere profiel.";
+    public const string ProfileOnCard =
+        "Het profiel waarin deze controller leert. Wijzigen kan bij het tabblad Profielen.";
+    public const string ProfileBlockedOnCard =
+        "Het profiel van deze controller wordt al gebruikt door een andere aangesloten controller. Om te voorkomen dat beide hetzelfde bestand overschrijven, draait deze controller tijdelijk met fabriekswaarden en wordt er niets opgeslagen. Kies bij Profielen een ander profiel of sluit hem later opnieuw aan.";
+    public const string OpenProfileFolder = "Opent de map waarin de profielbestanden staan.";
 }

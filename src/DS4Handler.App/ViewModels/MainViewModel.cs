@@ -30,7 +30,7 @@ public sealed class MainViewModel : ObservableObject
     private int _managerVersion = -1;
     private int _hidHideVersion = -1;
     private string _noticeKey = "";
-    private bool _showSettings;
+    private string _page = "controllers";
     private string _driverChip = "Controleren…";
     private string _driverLevel = Level.Learning;
     private string _driverTip = Tips.DriverChecking;
@@ -39,39 +39,45 @@ public sealed class MainViewModel : ObservableObject
     private string _hidHideTip = "";
     private int _slowTick;
 
-    public MainViewModel(AppHost host, Func<string, string, string, bool> confirm)
+    public MainViewModel(AppHost host, IDialogs dialogs)
     {
         _host = host;
-        _confirm = confirm;
+        _confirm = dialogs.Confirm;
         Settings = new SettingsViewModel(host);
-        ShowControllersCommand = new RelayCommand(() => ShowSettings = false);
-        ShowSettingsCommand = new RelayCommand(() => ShowSettings = true);
+        ProfilesPage = new ProfilesViewModel(host, dialogs);
+        ShowControllersCommand = new RelayCommand(() => Page = PageControllers);
+        ShowSettingsCommand = new RelayCommand(() => Page = PageSettings);
     }
+
+    private const string PageControllers = "controllers", PageProfiles = "profiles", PageSettings = "settings";
 
     public ObservableCollection<ControllerViewModel> Controllers { get; } = new();
     public ObservableCollection<NoticeViewModel> Notices { get; } = new();
     public SettingsViewModel Settings { get; }
+    public ProfilesViewModel ProfilesPage { get; }
     public ICommand ShowControllersCommand { get; }
     public ICommand ShowSettingsCommand { get; }
 
     public bool HasControllers => Controllers.Count > 0;
     public bool IsEmpty => Controllers.Count == 0;
 
-    public bool ShowSettings
+    private string Page
     {
-        get => _showSettings;
+        get => _page;
         set
         {
-            if (!SetField(ref _showSettings, value)) return;
+            if (!SetField(ref _page, value)) return;
             OnPropertyChanged(nameof(ShowControllers));
+            OnPropertyChanged(nameof(ShowProfiles));
+            OnPropertyChanged(nameof(ShowSettings));
+            if (value == PageProfiles) ProfilesPage.Refresh();
         }
     }
 
-    public bool ShowControllers
-    {
-        get => !_showSettings;
-        set => ShowSettings = !value;
-    }
+    // Each tab's RadioButton binds to one of these; unchecking (false) is ignored, checking switches the page.
+    public bool ShowControllers { get => _page == PageControllers; set { if (value) Page = PageControllers; } }
+    public bool ShowProfiles { get => _page == PageProfiles; set { if (value) Page = PageProfiles; } }
+    public bool ShowSettings { get => _page == PageSettings; set { if (value) Page = PageSettings; } }
 
     public string DriverChip { get => _driverChip; private set => SetField(ref _driverChip, value); }
     public string DriverLevel { get => _driverLevel; private set => SetField(ref _driverLevel, value); }
@@ -116,12 +122,17 @@ public sealed class MainViewModel : ObservableObject
 
         var sessions = _host.Manager.Sessions;
         for (int i = Controllers.Count - 1; i >= 0; i--)
-            if (!sessions.Contains(Controllers[i].Session)) Controllers.RemoveAt(i);
+            if (!sessions.Contains(Controllers[i].Session))
+            {
+                _host.Library.MarkSeen(new[] { Controllers[i].Session }); // "Laatst gezien" on the Profielen tab
+                Controllers.RemoveAt(i);
+            }
         foreach (var s in sessions)
             if (!Controllers.Any(c => c.Session == s)) Controllers.Add(new ControllerViewModel(s, _host, _confirm));
 
         OnPropertyChanged(nameof(HasControllers));
         OnPropertyChanged(nameof(IsEmpty));
+        if (ShowProfiles) ProfilesPage.Refresh();
         OnPropertyChanged(nameof(TrayText));
         _noticeKey = ""; // blocked count may have changed
     }

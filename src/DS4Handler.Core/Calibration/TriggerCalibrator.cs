@@ -187,6 +187,7 @@ public sealed class TriggerCalibrator
     private int _windowIndex;
 
     private readonly Queue<Peak> _peaks = new();
+    private readonly Peak[] _clusterScratch;
     private bool _inPress;
     private readonly Run[] _runs;
     private readonly float[] _best = new float[5];
@@ -219,6 +220,7 @@ public sealed class TriggerCalibrator
         _o = options ?? new TriggerCalibrationOptions();
         _window = new float[Math.Max(2, _o.StableWindow)];
         _recent = new float[Math.Max(2, _o.ImpactLookback + 1)];
+        _clusterScratch = new Peak[Math.Max(1, _o.PeakHistory) + 1];
         _runs = new[]
         {
             new Run(_o.LoosePlateauSpread, _o.LoosePlateauSamples),
@@ -591,7 +593,9 @@ public sealed class TriggerCalibrator
         }
 
         // No recent press may have gone clearly further.
-        if (_peaks.Any(p => p.Value > stop + _o.ClusterTolerance * 2)) return;
+        float ceiling = stop + _o.ClusterTolerance * 2;
+        foreach (var p in _peaks)
+            if (p.Value > ceiling) return;
 
         _endStop = Math.Clamp(stop, _o.MinimumEndStop, 255f);
         _endStopKind = stopKind;
@@ -607,22 +611,43 @@ public sealed class TriggerCalibrator
     {
         stop = 0;
         kind = PlateauKind.Loose;
-        var sorted = _peaks
-            .Where(p => p.Kind >= minKind && (!needImpact || p.Impact))
-            .OrderByDescending(p => p.Value)
-            .ToArray();
-        for (int i = 0; i < sorted.Length; i++)
+        // Filter into a preallocated buffer and insertion-sort it by value, highest first (stable).
+        var sorted = _clusterScratch;
+        int n = 0;
+        foreach (var p in _peaks)
+        {
+            if (p.Kind < minKind || (needImpact && !p.Impact)) continue;
+            if (n == sorted.Length) break;
+            int pos = n++;
+            while (pos > 0 && sorted[pos - 1].Value < p.Value)
+            {
+                sorted[pos] = sorted[pos - 1];
+                pos--;
+            }
+            sorted[pos] = p;
+        }
+        for (int i = 0; i < n; i++)
         {
             float top = sorted[i].Value;
             int j = i;
-            while (j + 1 < sorted.Length && top - sorted[j + 1].Value <= _o.ClusterTolerance) j++;
+            while (j + 1 < n && top - sorted[j + 1].Value <= _o.ClusterTolerance) j++;
             int count = j - i + 1;
             if (count < minSupport) continue;
 
-            var group = sorted[i..(j + 1)];
-            stop = Math.Min(group[group.Length / 2].Value, group[^1].Value + _o.ClusterTolerance / 2f);
-            var kinds = group.Select(g => g.Kind).OrderByDescending(k => k).ToArray();
-            kind = kinds[kinds.Length / 2];
+            stop = Math.Min(sorted[i + count / 2].Value, sorted[j].Value + _o.ClusterTolerance / 2f);
+            // Median flatness of the group, highest kind first.
+            Span<int> kindCounts = stackalloc int[4];
+            for (int g = i; g <= j; g++) kindCounts[(int)sorted[g].Kind]++;
+            int target = count / 2, seen = 0;
+            for (int k = 3; k >= 0; k--)
+            {
+                seen += kindCounts[k];
+                if (seen > target)
+                {
+                    kind = (PlateauKind)k;
+                    break;
+                }
+            }
             return true;
         }
         return false;

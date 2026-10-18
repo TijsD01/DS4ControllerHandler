@@ -177,6 +177,7 @@ public sealed class StickCalibrator
     private bool _guided;
     private readonly List<(float X, float Y)> _boot = new();
     private readonly List<(float X, float Y)> _rejected = new();
+    private readonly float[] _scratch;
 
     public StickCalibrator(StickCalibrationOptions? options = null)
     {
@@ -186,6 +187,7 @@ public sealed class StickCalibrator
         _outer = new float[Math.Max(4, _o.OuterSectors)];
         _recentRadii = new float[Math.Max(1, _o.OuterHoldSamples)];
         _recentSectors = new int[_recentRadii.Length];
+        _scratch = new float[Math.Max(_o.BootstrapReleases, _o.RecenterReleases) + 2];
     }
 
     /// <summary>Learned rest position on the X axis (-1..1).</summary>
@@ -431,12 +433,12 @@ public sealed class StickCalibrator
             _boot.Add((mx, my));
             _releases++;
             _restSamples += samples;
-            _centerX = Median(_boot.Select(b => b.X));
-            _centerY = Median(_boot.Select(b => b.Y));
+            _centerX = MedianOf(_boot, 0, 0, 0);
+            _centerY = MedianOf(_boot, 1, 0, 0);
             _noise += (jitter - _noise) * Math.Max(_o.NoiseRate, 1f / _releases);
             if (_releases >= _o.BootstrapReleases)
             {
-                _spread = Median(_boot.Select(b => Dist(b.X - _centerX, b.Y - _centerY)));
+                _spread = MedianOf(_boot, 2, _centerX, _centerY);
                 _boot.Clear();
             }
             AfterCenterMoved();
@@ -471,14 +473,15 @@ public sealed class StickCalibrator
         if (_rejected.Count > _o.RecenterReleases) _rejected.RemoveAt(0);
         if (_rejected.Count < _o.RecenterReleases) return;
 
-        float cx = Median(_rejected.Select(r => r.X));
-        float cy = Median(_rejected.Select(r => r.Y));
-        if (_rejected.Any(r => Dist(r.X - cx, r.Y - cy) > _o.RecenterClusterRadius)) return;
+        float cx = MedianOf(_rejected, 0, 0, 0);
+        float cy = MedianOf(_rejected, 1, 0, 0);
+        foreach (var r in _rejected)
+            if (Dist(r.X - cx, r.Y - cy) > _o.RecenterClusterRadius) return;
         if (Dist(cx - _centerX, cy - _centerY) > _o.RecenterMaxJump || Dist(cx, cy) > _o.MaxDrift) return;
 
         _centerX = cx;
         _centerY = cy;
-        _spread = Median(_rejected.Select(r => Dist(r.X - cx, r.Y - cy)));
+        _spread = MedianOf(_rejected, 2, cx, cy);
         _noise += (jitter - _noise) * _o.NoiseRate;
         _releases++;
         _restSamples += samples;
@@ -500,12 +503,27 @@ public sealed class StickCalibrator
 
     private static float Dist(float x, float y) => MathF.Sqrt(x * x + y * y);
 
-    private static float Median(IEnumerable<float> values)
+    /// <summary>
+    /// Median of one value per point without allocating: mode 0 = X, 1 = Y, 2 = distance from (refX, refY).
+    /// </summary>
+    private float MedianOf(List<(float X, float Y)> points, int mode, float refX, float refY)
     {
-        var v = values.OrderBy(x => x).ToArray();
-        if (v.Length == 0) return 0f;
-        int m = v.Length / 2;
-        return v.Length % 2 == 1 ? v[m] : (v[m - 1] + v[m]) / 2f;
+        int n = Math.Min(points.Count, _scratch.Length);
+        if (n == 0) return 0f;
+        for (int i = 0; i < n; i++)
+        {
+            var p = points[i];
+            float v = mode == 0 ? p.X : mode == 1 ? p.Y : Dist(p.X - refX, p.Y - refY);
+            int pos = i;
+            while (pos > 0 && _scratch[pos - 1] > v)
+            {
+                _scratch[pos] = _scratch[pos - 1];
+                pos--;
+            }
+            _scratch[pos] = v;
+        }
+        int m = n / 2;
+        return n % 2 == 1 ? _scratch[m] : (_scratch[m - 1] + _scratch[m]) / 2f;
     }
 
     private void LearnOuter(float x, float y)

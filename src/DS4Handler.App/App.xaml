@@ -1,0 +1,17 @@
+<Application x:Class="DS4Handler.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:DS4Handler.App.Controls"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <c:LevelBrushConverter x:Key="LevelBrush" />
+            <c:LevelIconConverter x:Key="LevelIcon" />
+            <c:BoolVisibilityConverter x:Key="BoolVis" />
+            <c:TextVisibilityConverter x:Key="TextVis" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

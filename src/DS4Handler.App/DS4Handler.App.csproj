@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <!-- Only for the tray icon (NotifyIcon). -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>DS4Handler</AssemblyName>
+    <RootNamespace>DS4Handler.App</RootNamespace>
+    <Product>DS4 Handler</Product>
+    <Description>PlayStation-controller als Xbox-controller, met zelflerende kalibratie.</Description>
+    <SatelliteResourceLanguages>nl</SatelliteResourceLanguages>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- WFAC010 is a WinForms hint; this is a WPF app that sets its DPI awareness in the manifest. -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WinForms is only used for the tray icon; keep its names out of the global namespace so they
+         don't clash with WPF (Application, Button, MessageBox, ...). -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HidSharp" Version="2.6.4" />
+    <PackageReference Include="Nefarius.ViGEm.Client" Version="1.21.256" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DS4Handler.Core\DS4Handler.Core.csproj" />
+    <ProjectReference Include="..\DS4Handler.HidHide\DS4Handler.HidHide.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,254 @@
+<UserControl x:Class="DS4Handler.App.Views.ControllerCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:DS4Handler.App.Controls"
+             xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:ControllerViewModel}">
+
+    <UserControl.Resources>
+        <!-- One line in the Kalibratie section: status icon + plain-language text. -->
+        <DataTemplate x:Key="SummaryLine">
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="26" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Style="{StaticResource Icon}" FontSize="14" VerticalAlignment="Top" Margin="0,2,0,0"
+                           Text="{Binding SummaryLevel, Converter={StaticResource LevelIcon}}"
+                           Foreground="{Binding SummaryLevel, Converter={StaticResource LevelBrush}}" />
+                <TextBlock Grid.Column="1" Style="{StaticResource Body}" Text="{Binding Summary}" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- A trigger row in the live view. -->
+        <DataTemplate x:Key="TriggerRow" DataType="{x:Type vm:TriggerViewModel}">
+            <Grid Margin="0,0,0,14" ToolTip="{Binding BarTip}" Background="Transparent">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <DockPanel Margin="0,0,0,6">
+                    <TextBlock Text="{Binding Name}" Style="{StaticResource H2}" FontSize="14" />
+                    <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Right" Style="{StaticResource Dim}"
+                               Text="{Binding ValueText}" FontFamily="Consolas" />
+                </DockPanel>
+                <c:TriggerBar Grid.Row="1" Raw="{Binding Raw}" Output="{Binding Output}"
+                              EndStop="{Binding EndStop}" Rest="{Binding Rest}" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- Calibration line for a trigger, with the guided assistant. -->
+        <DataTemplate x:Key="TriggerCalibration" DataType="{x:Type vm:TriggerViewModel}">
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="26" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Style="{StaticResource Icon}" FontSize="14" VerticalAlignment="Top" Margin="0,2,0,0"
+                           Text="{Binding SummaryLevel, Converter={StaticResource LevelIcon}}"
+                           Foreground="{Binding SummaryLevel, Converter={StaticResource LevelBrush}}" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <TextBlock Style="{StaticResource Body}" Text="{Binding Summary}"
+                               ToolTip="{x:Static vm:Tips.TriggerSummary}" />
+                    <Border Margin="0,8,0,0" Background="{StaticResource AccentSoftBrush}" CornerRadius="8" Padding="12,8"
+                            HorizontalAlignment="Left"
+                            Visibility="{Binding GuidedActive, Converter={StaticResource BoolVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE916;" Foreground="{StaticResource AccentHoverBrush}" Margin="0,0,8,0" />
+                            <TextBlock Text="{Binding GuidedText}" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource TextBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                <Grid Grid.Column="2" VerticalAlignment="Top">
+                    <Button Content="{Binding CalibrateText}" Command="{Binding StartGuidedCommand}"
+                            ToolTip="{x:Static vm:Tips.CalibrateTrigger}"
+                            Visibility="{Binding GuidedActive, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
+                    <Button Content="Annuleren" Style="{StaticResource GhostButton}" Command="{Binding CancelGuidedCommand}"
+                            ToolTip="{x:Static vm:Tips.CancelGuided}"
+                            Visibility="{Binding GuidedActive, Converter={StaticResource BoolVis}}" />
+                </Grid>
+            </Grid>
+        </DataTemplate>
+
+        <!-- A stick in the live view. -->
+        <DataTemplate x:Key="StickCell" DataType="{x:Type vm:StickViewModel}">
+            <StackPanel HorizontalAlignment="Center">
+                <TextBlock Text="{Binding Name}" Style="{StaticResource H2}" FontSize="14" HorizontalAlignment="Center" Margin="0,0,0,8" />
+                <Grid Width="150" Height="150" ToolTip="{x:Static vm:Tips.StickView}" Background="Transparent">
+                    <c:StickView RawX="{Binding RawX}" RawY="{Binding RawY}" OutX="{Binding OutX}" OutY="{Binding OutY}"
+                                 CenterX="{Binding CenterX}" CenterY="{Binding CenterY}" Deadzone="{Binding Deadzone}"
+                                 Guided="{Binding Guided}" />
+                </Grid>
+                <TextBlock Margin="0,8,0,0" HorizontalAlignment="Center" Style="{StaticResource Caption}" Cursor="Help"
+                           ToolTip="{Binding DeadzoneTip}">
+                    <Run Text="Deadzone" />
+                    <Run Text="{Binding Deadzone, StringFormat={}{0:P0}, Mode=OneWay}" Foreground="{StaticResource WarningBrush}" />
+                </TextBlock>
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Border Style="{StaticResource Card}" Margin="0,0,0,18">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- ===== Header ===== -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Border Width="48" Height="48" CornerRadius="12" Background="{StaticResource AccentSoftBrush}"
+                        ToolTip="{x:Static vm:Tips.ControllerName}" VerticalAlignment="Center">
+                    <TextBlock Style="{StaticResource Icon}" Text="{Binding ModelIcon}" FontSize="24"
+                               Foreground="{StaticResource AccentHoverBrush}" HorizontalAlignment="Center" />
+                </Border>
+                <StackPanel Grid.Column="1" Margin="14,0,24,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource H1}" FontSize="19" ToolTip="{x:Static vm:Tips.ControllerName}" />
+                    <TextBlock Text="{Binding IdText}" Style="{StaticResource Caption}" ToolTip="{Binding IdTip}" Cursor="Help" Margin="0,2,0,0" />
+                </StackPanel>
+
+                <WrapPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Border Style="{StaticResource Pill}" ToolTip="{Binding ConnectionTip}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" FontSize="13" Text="{Binding ConnectionIcon}" Foreground="{StaticResource TextDimBrush}" Margin="0,0,6,0" />
+                            <TextBlock Text="{Binding ConnectionText}" Foreground="{StaticResource TextDimBrush}" FontSize="13" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Pill}" ToolTip="{Binding BatteryTip}"
+                            Visibility="{Binding HasBattery, Converter={StaticResource BoolVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" FontSize="13" Text="{Binding BatteryIcon}" Foreground="{StaticResource TextDimBrush}" Margin="0,0,6,0" />
+                            <TextBlock Text="{Binding BatteryText}" Foreground="{StaticResource TextDimBrush}" FontSize="13" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Pill}" ToolTip="{x:Static vm:Tips.ReportRate}"
+                            Visibility="{Binding ReportRateText, Converter={StaticResource TextVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" FontSize="13" Text="&#xE9D9;" Foreground="{StaticResource TextDimBrush}" Margin="0,0,6,0" />
+                            <TextBlock Text="{Binding ReportRateText}" Foreground="{StaticResource TextDimBrush}" FontSize="13" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Pill}" ToolTip="{Binding HideStatusTip}"
+                            Background="{Binding HideLevel, Converter={StaticResource LevelBrush}, ConverterParameter=bg}"
+                            Visibility="{Binding HideStatusText, Converter={StaticResource TextVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" FontSize="13" Text="&#xED1A;" Margin="0,0,6,0"
+                                       Foreground="{Binding HideLevel, Converter={StaticResource LevelBrush}}" />
+                            <TextBlock Text="{Binding HideStatusText}" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{Binding HideLevel, Converter={StaticResource LevelBrush}}" />
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource Pill}" Margin="0" ToolTip="{Binding StatusTip}"
+                            Background="{Binding StatusLevel, Converter={StaticResource LevelBrush}, ConverterParameter=bg}">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center"
+                                     Fill="{Binding StatusLevel, Converter={StaticResource LevelBrush}}" />
+                            <TextBlock Text="{Binding StatusText}" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{Binding StatusLevel, Converter={StaticResource LevelBrush}}" />
+                        </StackPanel>
+                    </Border>
+                </WrapPanel>
+            </Grid>
+
+            <!-- ===== Live view ===== -->
+            <Grid Grid.Row="1" Margin="0,22,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" MinWidth="220" />
+                </Grid.ColumnDefinitions>
+                <ContentPresenter Content="{Binding Left}" ContentTemplate="{StaticResource StickCell}" Margin="0,0,28,0" />
+                <ContentPresenter Grid.Column="1" Content="{Binding Right}" ContentTemplate="{StaticResource StickCell}" Margin="0,0,32,0" />
+                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                    <ContentPresenter Content="{Binding L2}" ContentTemplate="{StaticResource TriggerRow}" />
+                    <ContentPresenter Content="{Binding R2}" ContentTemplate="{StaticResource TriggerRow}" />
+                    <!-- Legend -->
+                    <WrapPanel Margin="0,4,0,0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,16,4" ToolTip="{x:Static vm:Tips.LegendRaw}" Background="Transparent">
+                            <Ellipse Width="10" Height="10" Stroke="{StaticResource TextDimBrush}" StrokeThickness="2" Margin="0,0,6,0" />
+                            <TextBlock Text="Echte stand" Style="{StaticResource Caption}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,16,4" ToolTip="{x:Static vm:Tips.LegendOutput}" Background="Transparent">
+                            <Ellipse Width="10" Height="10" Fill="{StaticResource AccentBrush}" Margin="0,0,6,0" />
+                            <TextBlock Text="Naar de game" Style="{StaticResource Caption}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4" ToolTip="{x:Static vm:Tips.LegendDeadzone}" Background="Transparent">
+                            <Rectangle Width="10" Height="10" RadiusX="2" RadiusY="2" Fill="{StaticResource WarningBrush}" Margin="0,0,6,0" />
+                            <TextBlock Text="Deadzone / eindpunt" Style="{StaticResource Caption}" />
+                        </StackPanel>
+                    </WrapPanel>
+                </StackPanel>
+            </Grid>
+
+            <!-- ===== Kalibratie ===== -->
+            <Border Grid.Row="2" Style="{StaticResource Panel}" Margin="0,22,0,0">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal" ToolTip="{x:Static vm:Tips.CalibrationSection}" Background="Transparent">
+                            <TextBlock Text="Kalibratie" Style="{StaticResource H2}" />
+                            <TextBlock Style="{StaticResource Icon}" FontSize="13" Text="&#xE946;" Foreground="{StaticResource TextMutedBrush}" Margin="8,2,0,0" Cursor="Help" />
+                        </StackPanel>
+                        <Grid HorizontalAlignment="Right">
+                            <Button Content="Sticks opnieuw centreren" Command="{Binding RecenterCommand}" ToolTip="{x:Static vm:Tips.Recenter}"
+                                    Visibility="{Binding SticksGuided, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding SticksGuided, Converter={StaticResource BoolVis}}">
+                                <Border Background="{StaticResource AccentSoftBrush}" CornerRadius="8" Padding="12,7" Margin="0,0,8,0">
+                                    <TextBlock Text="Laat beide sticks los…" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" />
+                                </Border>
+                                <Button Content="Annuleren" Style="{StaticResource GhostButton}" Command="{Binding CancelRecenterCommand}"
+                                        ToolTip="{x:Static vm:Tips.CancelGuided}" />
+                            </StackPanel>
+                        </Grid>
+                    </DockPanel>
+                    <ContentPresenter Content="{Binding Left}" ContentTemplate="{StaticResource SummaryLine}" ToolTip="{x:Static vm:Tips.StickSummary}" />
+                    <ContentPresenter Content="{Binding Right}" ContentTemplate="{StaticResource SummaryLine}" ToolTip="{x:Static vm:Tips.StickSummary}" />
+                    <ContentPresenter Content="{Binding L2}" ContentTemplate="{StaticResource TriggerCalibration}" />
+                    <ContentPresenter Content="{Binding R2}" ContentTemplate="{StaticResource TriggerCalibration}" Margin="0,0,0,-10" />
+                </StackPanel>
+            </Border>
+
+            <!-- ===== Actions ===== -->
+            <DockPanel Grid.Row="3" Margin="0,18,0,0" LastChildFill="False">
+                <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding LearningEnabled}" Margin="0,0,28,0"
+                          ToolTip="{x:Static vm:Tips.Learning}">
+                    <TextBlock Text="Leren" />
+                </CheckBox>
+                <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding HideFromGames}" IsEnabled="{Binding HideAvailable}"
+                          ToolTip="{Binding HideTip}" Margin="0,0,28,0">
+                    <TextBlock Text="Verberg voor games" />
+                </CheckBox>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Uitvoer" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="0,0,10,0"
+                               ToolTip="{x:Static vm:Tips.Output}" Cursor="Help" />
+                    <Border Style="{StaticResource SegmentHost}">
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Style="{StaticResource Segment}" Content="Xbox 360" IsChecked="{Binding OutputXbox}"
+                                         GroupName="{Binding Session.Id, StringFormat=out-{0}}" ToolTip="{x:Static vm:Tips.OutputXbox}" />
+                            <RadioButton Style="{StaticResource Segment}" Content="DualShock 4" IsChecked="{Binding OutputDs4}"
+                                         GroupName="{Binding Session.Id, StringFormat=out-{0}}" ToolTip="{x:Static vm:Tips.OutputDs4}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                <Button DockPanel.Dock="Right" Style="{StaticResource DangerButton}" Command="{Binding ResetCommand}"
+                        ToolTip="{x:Static vm:Tips.Reset}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Icon}" FontSize="13" Text="&#xE72C;" Margin="0,0,8,0" />
+                        <TextBlock Text="Kalibratie resetten" />
+                    </StackPanel>
+                </Button>
+            </DockPanel>
+        </Grid>
+    </Border>
+</UserControl>

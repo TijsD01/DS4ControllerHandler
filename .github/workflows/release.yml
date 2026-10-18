@@ -4,14 +4,24 @@ name: Release
 #   DS4Handler-Setup-<versie>.exe  installer, installs ViGEmBus/HidHide too when they are missing
 #   DS4Handler-<versie>-portable.exe  one exe, no installation (drivers must be installed separately)
 #
-# Push a tag like v1.0.0 and the files land on the GitHub Releases page.
-# "Run workflow" (manual) or a pull request that touches the packaging only builds them and keeps
-# them as a workflow artifact, without making a release.
+# The files land on the GitHub Releases page when you:
+#   - push a tag like v1.0.0, or
+#   - make a release by hand on GitHub (any tag name), or
+#   - click "Run workflow" and fill in a tag (an existing release with that tag gets the files).
+# "Run workflow" without a tag, or a pull request that touches the packaging, only builds them and
+# keeps them as a workflow artifact, without making a release.
 
 on:
   push:
     tags: ['v*']
+  release:
+    types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag van de release waar de exe-bestanden bij moeten (leeg = alleen bouwen)'
+        required: false
+        default: ''
   pull_request:
     paths:
       - '.github/workflows/release.yml'
@@ -29,6 +39,8 @@ jobs:
       DOTNET_CLI_TELEMETRY_OPTOUT: true
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -38,16 +50,23 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          if ("${{ github.ref_type }}" -eq "tag") {
-            $v = "${{ github.ref_name }}".TrimStart('v')
+          # Tag to publish to: a pushed tag, a hand-made release, or the "Run workflow" input.
+          $tag = "${{ github.event.release.tag_name || inputs.tag }}"
+          if (-not $tag -and "${{ github.ref_type }}" -eq "tag") { $tag = "${{ github.ref_name }}" }
+          if ($tag -match '^v?(\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?)$') {
+            $v = $Matches[1]
+          } elseif ($tag) {
+            # A tag that is not a version number (e.g. "release1") still gets a usable version.
+            $v = "1.0.${{ github.run_number }}"
           } else {
             $v = "0.0.0-dev.${{ github.run_number }}"
           }
           # Assembly versions only take numbers; drop any "-beta" style suffix there.
           $numeric = ($v -split '-')[0]
+          "tag=$tag" >> $env:GITHUB_OUTPUT
           "version=$v" >> $env:GITHUB_OUTPUT
           "numeric=$numeric" >> $env:GITHUB_OUTPUT
-          Write-Host "Versie: $v"
+          Write-Host "Versie: $v (tag: '$tag')"
 
       - name: Tests
         run: dotnet test tests/DS4Handler.Core.Tests -c Release
@@ -112,16 +131,17 @@ jobs:
           path: build/dist/*.exe
 
       - name: Maak GitHub-release
-        if: github.ref_type == 'tag'
+        if: steps.version.outputs.tag != ''
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
           name: DS4 Handler ${{ steps.version.outputs.version }}
           prerelease: ${{ contains(steps.version.outputs.version, '-') }}
           files: build/dist/*.exe
           body: |
             ## Downloaden
 
-            **[DS4Handler-Setup-${{ steps.version.outputs.version }}.exe](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/DS4Handler-Setup-${{ steps.version.outputs.version }}.exe)** is de makkelijkste keuze: download, dubbelklik en volg de stappen. De installer zet ook ViGEmBus en HidHide op je pc als die nog ontbreken. .NET hoef je niet apart te installeren.
+            **[DS4Handler-Setup-${{ steps.version.outputs.version }}.exe](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/DS4Handler-Setup-${{ steps.version.outputs.version }}.exe)** is de makkelijkste keuze: download, dubbelklik en volg de stappen. De installer zet ook ViGEmBus en HidHide op je pc als die nog ontbreken. .NET hoef je niet apart te installeren.
 
             Liever zonder installatie? Neem `DS4Handler-${{ steps.version.outputs.version }}-portable.exe` en installeer [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases) (en bij voorkeur [HidHide](https://github.com/nefarius/HidHide/releases)) zelf. De app waarschuwt bij het starten als een driver ontbreekt.
 

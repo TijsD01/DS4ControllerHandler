@@ -130,6 +130,41 @@ jobs:
           name: DS4Handler-${{ steps.version.outputs.version }}
           path: build/dist/*.exe
 
+      - name: Schrijf releasetekst
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+          REPO: ${{ github.repository }}
+        run: |
+          # "Nieuw in deze versie" = the top "## " section of CHANGELOG.md. The app reads this list
+          # from the release to show what's new before updating.
+          $notes = @()
+          $inside = $false
+          foreach ($line in Get-Content CHANGELOG.md -Encoding utf8) {
+            if ($line -match '^\s{0,3}##\s') { if ($inside) { break }; $inside = $true; continue }
+            if ($line -match '^\s{0,3}#\s') { if ($inside) { break }; continue }
+            if ($inside) { $notes += $line }
+          }
+          $nieuw = ($notes -join "`n").Trim()
+          if (-not $nieuw) { $nieuw = '- Verbeteringen en reparaties.' }
+          $setup = "DS4Handler-Setup-$env:VERSION.exe"
+          $body = @"
+          ## Nieuw in deze versie
+
+          $nieuw
+
+          ## Downloaden
+
+          **[$setup](https://github.com/$env:REPO/releases/download/$env:TAG/$setup)** is de makkelijkste keuze: download, dubbelklik en volg de stappen. De installer zet ook ViGEmBus en HidHide op je pc als die nog ontbreken. .NET hoef je niet apart te installeren. Heb je DS4 Handler al? Dan installeert de setup over de oude versie heen en blijven je profielen en instellingen bewaard. Vanaf deze versie meldt de app zelf als er een update is.
+
+          Liever zonder installatie? Neem ``DS4Handler-$env:VERSION-portable.exe`` en installeer [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases) (en bij voorkeur [HidHide](https://github.com/nefarius/HidHide/releases)) zelf. De app waarschuwt bij het starten als een driver ontbreekt.
+
+          Windows SmartScreen kan "Onbekende uitgever" tonen omdat de app niet ondertekend is. Klik dan op *Meer informatie* en *Toch uitvoeren*.
+          "@
+          Set-Content -Path build/release-body.md -Value $body -Encoding utf8
+          Get-Content build/release-body.md
+
       - name: Maak GitHub-release
         if: steps.version.outputs.tag != ''
         uses: softprops/action-gh-release@v2
@@ -138,12 +173,5 @@ jobs:
           name: DS4 Handler ${{ steps.version.outputs.version }}
           prerelease: ${{ contains(steps.version.outputs.version, '-') }}
           files: build/dist/*.exe
-          body: |
-            ## Downloaden
-
-            **[DS4Handler-Setup-${{ steps.version.outputs.version }}.exe](https://github.com/${{ github.repository }}/releases/download/${{ steps.version.outputs.tag }}/DS4Handler-Setup-${{ steps.version.outputs.version }}.exe)** is de makkelijkste keuze: download, dubbelklik en volg de stappen. De installer zet ook ViGEmBus en HidHide op je pc als die nog ontbreken. .NET hoef je niet apart te installeren.
-
-            Liever zonder installatie? Neem `DS4Handler-${{ steps.version.outputs.version }}-portable.exe` en installeer [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases) (en bij voorkeur [HidHide](https://github.com/nefarius/HidHide/releases)) zelf. De app waarschuwt bij het starten als een driver ontbreekt.
-
-            Windows SmartScreen kan "Onbekende uitgever" tonen omdat de app niet ondertekend is. Klik dan op *Meer informatie* en *Toch uitvoeren*.
+          body_path: build/release-body.md
           generate_release_notes: true

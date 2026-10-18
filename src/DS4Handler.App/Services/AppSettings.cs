@@ -45,6 +45,12 @@ public sealed class AppSettings
     /// <summary>Shown once: the window closes to the tray instead of quitting.</summary>
     public bool TrayHintShown { get; set; }
 
+    /// <summary>Look on GitHub for a newer version when the app starts (and once a day after that).</summary>
+    public bool CheckForUpdates { get; set; } = true;
+
+    /// <summary>Version that ran last time, to show "what's new" once after an update.</summary>
+    public string? LastRunVersion { get; set; }
+
     public Dictionary<string, ControllerPreferences> Controllers { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>HidHide device instance ids this app put on the hide list, so they can be undone.</summary>
@@ -74,6 +80,9 @@ public sealed class SettingsStore
     }
 
     public string FilePath { get; }
+
+    /// <summary>True when settings.json was already there at startup (so this is not a fresh install).</summary>
+    public bool ExistedAtStartup { get; private set; }
 
     /// <summary>The live settings. Change them under <see cref="Update"/> so saving sees a consistent copy.</summary>
     public AppSettings Settings { get; }
@@ -105,6 +114,7 @@ public sealed class SettingsStore
         {
             if (File.Exists(FilePath))
             {
+                ExistedAtStartup = true;
                 var loaded = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath), Json);
                 if (loaded != null)
                 {

@@ -91,23 +91,39 @@ public sealed record StickCalibrationOptions
     // ---- Jitter filter (see StickJitterFilter). Jitter is a per-axis standard deviation in
     // normalized raw units; one raw count is 1/127.5 = 0.0078.
 
-    /// <summary>Learned jitter at or below this (about 0.75 count, a normal +-1 count flicker) is left unfiltered.</summary>
-    public float JitterFloor { get; init; } = 0.006f;
+    /// <summary>
+    /// Learned jitter at or below this (about 1.1 count) is left unfiltered. A healthy stick that
+    /// flickers +-1 count on every report measures about 0.82 count.
+    /// </summary>
+    public float JitterFloor { get; init; } = 0.0085f;
 
-    /// <summary>Learned jitter at which the filter works at full strength (about 1.75 counts).</summary>
-    public float JitterFull { get; init; } = 0.0137f;
+    /// <summary>Learned jitter at which the filter works at full strength (about 1.6 counts).</summary>
+    public float JitterFull { get; init; } = 0.0125f;
+
+    /// <summary>
+    /// Slow (low-frequency) shaking up to this size, per axis standard deviation, is taken to be the
+    /// natural tremor of a thumb holding the stick and is not counted as jitter. Above it, only the
+    /// excess counts (subtracted in quadrature), so the wobble of a worn pot is still caught.
+    /// </summary>
+    public float TremorAllowance { get; init; } = 0.007f;
+
+    /// <summary>
+    /// The learned jitter follows the median of this many recent window measurements, so a few
+    /// unusual windows (a curved aim, a bump) cannot raise it.
+    /// </summary>
+    public int JitterMedianWindows { get; init; } = 5;
 
     /// <summary>Upper limit of the learned jitter (one window sample is clamped to this).</summary>
     public float MaxJitter { get; init; } = 0.06f;
 
-    /// <summary>A held window (no point further than this from the window's trend line) may be used to learn jitter.</summary>
+    /// <summary>A held window (no point further than this from the window's trend curve) may be used to learn jitter.</summary>
     public float JitterHoldTolerance { get; init; } = 0.08f;
 
     /// <summary>The window's trend may move at most this fast (units per second): the thumb is not moving on purpose.</summary>
     public float JitterMaxTrendSpeed { get; init; } = 0.5f;
 
-    /// <summary>Length of one jitter window in seconds (long enough to see one wobble of a worn pot at 8 Hz).</summary>
-    public float JitterWindowSeconds { get; init; } = 0.128f;
+    /// <summary>Length of one jitter window in seconds (two wobbles of a worn pot at 8 Hz). Windows overlap by half.</summary>
+    public float JitterWindowSeconds { get; init; } = 0.25f;
 
     /// <summary>
     /// The "still" test for releases (<see cref="RestTolerance"/>) widens to this many times the
@@ -122,14 +138,14 @@ public sealed record StickCalibrationOptions
     public float JitterMaxRadius { get; init; } = 0.9f;
 
     /// <summary>
-    /// Rate (per window of <see cref="RestWindow"/> samples) at which the jitter estimate rises to a
-    /// larger measurement. It falls more slowly (<see cref="JitterFallRate"/>), so a stick that
-    /// only shakes in some positions keeps being filtered.
+    /// Rate (per window) at which the jitter estimate rises towards the median of recent windows.
+    /// The median already ignores single noisy windows; falling is somewhat slower
+    /// (<see cref="JitterFallRate"/>) so a stick that shakes more in some positions keeps being filtered.
     /// </summary>
-    public float JitterRate { get; init; } = 0.12f;
+    public float JitterRate { get; init; } = 0.15f;
 
-    /// <summary>Rate (per window) at which the jitter estimate falls to a smaller measurement.</summary>
-    public float JitterFallRate { get; init; } = 0.03f;
+    /// <summary>Rate (per window) at which the jitter estimate falls towards the median of recent windows.</summary>
+    public float JitterFallRate { get; init; } = 0.05f;
 
     /// <summary>Min cutoff (Hz) of the One Euro filter at full strength; it is higher for weaker filtering.</summary>
     public float JitterMinCutoffHz { get; init; } = 2.0f;
@@ -223,9 +239,9 @@ public sealed record StickCalibrationData
 /// noticeably the learned reach is forgotten and learned again.</item>
 /// <item>Jitter: every window of about <see cref="StickCalibrationOptions.JitterWindowSeconds"/>, if
 /// the stick was still or held still (at rest or anywhere off-center, slow aiming allowed), the
-/// jitter of that window is measured both from the sample-to-sample changes (white noise) and as the
-/// spread around the window's trend line (slow wobble of a worn pot); the larger counts, averaged
-/// into <see cref="LearnedJitter"/>. The still test for releases widens with the learned jitter, so
+/// jitter of that window is measured from the sample-to-sample changes (white noise) plus the extra
+/// spread around a smooth fitted curve (slow wobble of a worn pot, minus what a thumb's natural tremor
+/// explains). The median of the last few windows is averaged into <see cref="LearnedJitter"/>. The still test for releases widens with the learned jitter, so
 /// drift is also learned on a shaky stick. It drives
 /// <see cref="StickJitterFilter"/> on the output of <see cref="Process(byte, byte, double)"/>: a
 /// clean stick is not filtered, a shaky one is smoothed while slow, and fast moves pass with
@@ -268,8 +284,12 @@ public sealed class StickCalibrator
     private float _jitter;
     private int _jitterWindows;
     private int _jitterSince;
-    private readonly float[] _jx, _jy;
+    private readonly float[] _jx, _jy, _jdt;
     private int _jIndex, _jCount;
+    private float _jTime;
+    private readonly float[] _jRecent;
+    private readonly float[] _jSorted;
+    private int _jRecentIndex, _jRecentCount;
     private readonly StickJitterFilter _filter;
     private bool _filterEnabled = true;
 
@@ -283,8 +303,11 @@ public sealed class StickCalibrator
         _recentSectors = new int[_recentRadii.Length];
         _scratch = new float[Math.Max(_o.BootstrapReleases, _o.RecenterReleases) + 2];
         _filter = new StickJitterFilter(_o);
-        _jx = new float[128];
-        _jy = new float[128];
+        _jx = new float[256];
+        _jy = new float[256];
+        _jdt = new float[256];
+        _jRecent = new float[Math.Max(1, _o.JitterMedianWindows)];
+        _jSorted = new float[_jRecent.Length];
     }
 
     /// <summary>Learned rest position on the X axis (-1..1).</summary>
@@ -413,6 +436,9 @@ public sealed class StickCalibrator
         _jitterSince = 0;
         _jIndex = 0;
         _jCount = 0;
+        _jTime = 0;
+        _jRecentIndex = 0;
+        _jRecentCount = 0;
         _filter.Reset();
     }
 
@@ -459,6 +485,12 @@ public sealed class StickCalibrator
         _jitter = Math.Clamp(Sanitize(data.LearnedJitter), 0f, _o.MaxJitter);
         // A saved estimate is trusted like one learned over a while, so it is not thrown away by the first windows.
         _jitterWindows = _jitter > 0 ? (int)MathF.Ceiling(1f / Math.Max(1e-3f, _o.JitterRate)) : 0;
+        if (_jitter > 0)
+        {
+            // Stand in the saved value for the recent windows, so a majority of new ones is needed to move it.
+            Array.Fill(_jRecent, _jitter);
+            _jRecentCount = _jRecent.Length;
+        }
     }
 
     private static float Sanitize(float v) => float.IsFinite(v) ? v : 0f;
@@ -558,19 +590,35 @@ public sealed class StickCalibrator
         int len = _jx.Length;
         _jx[_jIndex] = x;
         _jy[_jIndex] = y;
+        _jdt[_jIndex] = dt;
         _jIndex = (_jIndex + 1) % len;
         if (_jCount < len) _jCount++;
-        int n = Math.Clamp((int)MathF.Round(_o.JitterWindowSeconds / dt), 16, len);
-        if (++_jitterSince < n) return;
+        _jTime += dt;
+        _jitterSince++;
+        // Windows overlap by half: one is measured every half window.
+        if (_jTime < _o.JitterWindowSeconds / 2) return;
+        _jTime = 0;
         _jitterSince = 0;
-        if (_jCount >= n) LearnJitter(n, dt);
+
+        // The window is the last JitterWindowSeconds of reports (at least 16), timed from the
+        // reports' own intervals, so the rate and one late report do not skew it.
+        int n = 0;
+        float time = 0;
+        while (n < _jCount && (time < _o.JitterWindowSeconds || n < 16))
+        {
+            time += _jdt[(_jIndex - 1 - n + len) % len];
+            n++;
+        }
+        if (n < 16 || time < _o.JitterWindowSeconds * 0.5f) return;
+        LearnJitter(n, time / n);
     }
 
     /// <summary>
     /// Measures the jitter of the last <paramref name="n"/> samples when the stick was held there
-    /// (at rest or off-center): a straight trend line is fitted per axis (slow aiming is allowed and
-    /// does not count), then the per axis standard deviation is taken both from the spread around
-    /// that line and from the sample-to-sample changes. The larger of the two is learned.
+    /// (at rest or off-center). Per axis a smooth curve (quadratic) is fitted, so slow and curved
+    /// aiming does not count. The fast part of the jitter comes from the sample-to-sample changes;
+    /// the slow part is the extra spread around the curve, of which a thumb's natural tremor
+    /// (<see cref="StickCalibrationOptions.TremorAllowance"/>) is not counted.
     /// </summary>
     private void LearnJitter(int n, float dt)
     {
@@ -587,17 +635,24 @@ public sealed class StickCalibrator
         my /= n;
         if (Dist(mx, my) > _o.JitterMaxRadius) return;
 
+        // Orthogonal basis on centered k: 1, k, k^2 - c (c = mean of k^2).
         float kMean = (n - 1) / 2f;
-        float skk = 0, sxk = 0, syk = 0, sxx = 0, syy = 0, diff = 0;
+        float c2 = 0;
+        for (int k = 0; k < n; k++) c2 += (k - kMean) * (k - kMean);
+        c2 /= n;
+        float skk = 0, sqq = 0, sxk = 0, syk = 0, sxq = 0, syq = 0, sxx = 0, syy = 0, diff = 0;
         float prevX = 0, prevY = 0;
         for (int k = 0; k < n; k++)
         {
             int i = (start + k) % len;
             float px = _jx[i], py = _jy[i];
-            float dk = k - kMean, ex = px - mx, ey = py - my;
+            float dk = k - kMean, q = dk * dk - c2, ex = px - mx, ey = py - my;
             skk += dk * dk;
+            sqq += q * q;
             sxk += dk * ex;
             syk += dk * ey;
+            sxq += q * ex;
+            syq += q * ey;
             sxx += ex * ex;
             syy += ey * ey;
             if (k > 0)
@@ -608,28 +663,56 @@ public sealed class StickCalibrator
             prevX = px;
             prevY = py;
         }
-        float bx = sxk / skk, by = syk / skk;   // trend per sample
+        float bx = sxk / skk, by = syk / skk;                         // slope per sample
+        float qx = sqq > 0 ? sxq / sqq : 0, qy = sqq > 0 ? syq / sqq : 0; // curvature
         if (Dist(bx, by) / dt > _o.JitterMaxTrendSpeed) return;
 
         float tol2 = _o.JitterHoldTolerance * _o.JitterHoldTolerance;
         for (int k = 0; k < n; k++)
         {
             int i = (start + k) % len;
-            float dk = k - kMean;
-            float ex = _jx[i] - mx - bx * dk, ey = _jy[i] - my - by * dk;
+            float dk = k - kMean, q = dk * dk - c2;
+            float ex = _jx[i] - mx - bx * dk - qx * q, ey = _jy[i] - my - by * dk - qy * q;
             if (ex * ex + ey * ey > tol2) return; // a flick or release inside the window
         }
 
-        // Spread around the trend line (catches slow wobble), and from the changes (white noise:
-        // Var(diff) = 2 sigma^2 per axis). Both are per axis, averaged over the two axes.
-        float resid = Math.Max(0f, sxx - bx * sxk) + Math.Max(0f, syy - by * syk);
-        float sigmaTrend = MathF.Sqrt(resid / (2f * (n - 2)));
-        float sigmaDiff = MathF.Sqrt(diff / (4f * (n - 1)));
-        float sigma = Math.Min(Math.Max(sigmaTrend, sigmaDiff), _o.MaxJitter);
+        // Per axis variances, averaged over the two axes.
+        float resid = Math.Max(0f, sxx - bx * sxk - qx * sxq) + Math.Max(0f, syy - by * syk - qy * syq);
+        float varAll = resid / (2f * Math.Max(1, n - 3));
+        float varFast = diff / (4f * (n - 1));                  // Var(diff) = 2 sigma^2 for white noise
+        float varSlow = Math.Max(0f, varAll - varFast);
+        float allowance = _o.TremorAllowance * _o.TremorAllowance;
+        float sigma = MathF.Sqrt(varFast + Math.Max(0f, varSlow - allowance));
+        sigma = Math.Min(sigma, _o.MaxJitter);
+
+        // Median of the last few windows, then a symmetric running average of that.
+        _jRecent[_jRecentIndex] = sigma;
+        _jRecentIndex = (_jRecentIndex + 1) % _jRecent.Length;
+        if (_jRecentCount < _jRecent.Length) _jRecentCount++;
+        // Nothing is learned from fewer than 3 windows that agree (a median needs a majority).
+        if (_jRecentCount < Math.Min(3, _jRecent.Length)) return;
+        float median = Median(_jRecent, _jRecentCount, _jSorted);
 
         _jitterWindows = Math.Min(_jitterWindows + 1, 1_000_000);
-        float rate = Math.Max(sigma > _jitter ? _o.JitterRate : _o.JitterFallRate, 1f / _jitterWindows);
-        _jitter += (sigma - _jitter) * rate;
+        float rate = Math.Max(median > _jitter ? _o.JitterRate : _o.JitterFallRate, 1f / _jitterWindows);
+        _jitter += (median - _jitter) * rate;
+    }
+
+    private static float Median(float[] values, int count, float[] scratch)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            float v = values[i];
+            int pos = i;
+            while (pos > 0 && scratch[pos - 1] > v)
+            {
+                scratch[pos] = scratch[pos - 1];
+                pos--;
+            }
+            scratch[pos] = v;
+        }
+        int m = count / 2;
+        return count % 2 == 1 ? scratch[m] : (scratch[m - 1] + scratch[m]) / 2f;
     }
 
     /// <summary>Still test for releases: wider for a stick that is known to shake.</summary>

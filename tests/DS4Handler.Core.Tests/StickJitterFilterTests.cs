@@ -124,6 +124,115 @@ public class StickJitterFilterTests
         }
     }
 
+    /// <summary>
+    /// A healthy stick (+-1 count flicker on every report) used for minutes of precise aiming by a
+    /// real thumb: slow curved moves, small corrections, holds with 8-12 Hz physiological tremor and
+    /// slow wander, the odd release. None of that is sensor jitter, so the filter must stay off.
+    /// </summary>
+    [Theory]
+    [InlineData(250, 31)]
+    [InlineData(250, 32)]
+    [InlineData(1000, 33)]
+    public void Clean_stick_used_for_minutes_of_human_aiming_never_gets_filtered(int rate, int seed)
+    {
+        var c = new StickCalibrator();
+        var rng = new Random(seed);
+        double dt = 1.0 / rate, t = 0;
+        double x = 0, y = 0;
+        float maxStrength = 0, maxJitter = 0;
+        int n = 0;
+
+        void Feed(double px, double py, double tremor, double tremorHz)
+        {
+            t += dt;
+            // Physiological tremor: two close frequencies, slightly different per axis.
+            double tx = tremor * (Math.Sin(2 * Math.PI * tremorHz * t) + 0.5 * Math.Sin(2 * Math.PI * tremorHz * 1.31 * t + 1));
+            double ty = tremor * (0.8 * Math.Cos(2 * Math.PI * tremorHz * 0.93 * t) + 0.4 * Math.Sin(2 * Math.PI * tremorHz * 1.17 * t));
+            var r = Raw(px + tx, py + ty, rng, 1);
+            c.Process(r.X, r.Y, dt);
+            if (++n % 16 == 0)
+            {
+                maxStrength = Math.Max(maxStrength, c.JitterFilterStrength);
+                maxJitter = Math.Max(maxJitter, c.LearnedJitter);
+            }
+        }
+
+        while (t < 180)
+        {
+            double tremor = 0.004 + rng.NextDouble() * 0.004, hz = 8 + rng.NextDouble() * 4;
+            switch (rng.Next(6))
+            {
+                case 0: // release
+                    for (int i = 0; i < (int)(0.6 / dt); i++) Feed(0, 0, 0, hz);
+                    x = y = 0;
+                    break;
+                case 1: // micro-correction: 0.01-0.03 over 100-200 ms, then a short hold
+                {
+                    double a = rng.NextDouble() * 2 * Math.PI, d = 0.01 + rng.NextDouble() * 0.02;
+                    int m = (int)((0.1 + rng.NextDouble() * 0.1) / dt);
+                    double x0 = x, y0 = y;
+                    for (int i = 1; i <= m; i++)
+                    {
+                        double u = (double)i / m, sm = u * u * (3 - 2 * u);
+                        Feed(x0 + d * Math.Cos(a) * sm, y0 + d * Math.Sin(a) * sm, tremor, hz);
+                    }
+                    x = x0 + d * Math.Cos(a);
+                    y = y0 + d * Math.Sin(a);
+                    for (int i = 0; i < (int)(0.3 / dt); i++) Feed(x, y, tremor, hz);
+                    break;
+                }
+                default: // slow curved tracking, ending in a hold with wander
+                {
+                    double r1 = 0.15 + rng.NextDouble() * 0.5, a1 = rng.NextDouble() * 2 * Math.PI;
+                    double x1 = r1 * Math.Cos(a1), y1 = r1 * Math.Sin(a1);
+                    double bend = (rng.NextDouble() - 0.5) * 0.2;
+                    int m = (int)((0.4 + rng.NextDouble() * 1.5) / dt);
+                    double x0 = x, y0 = y;
+                    for (int i = 1; i <= m; i++)
+                    {
+                        double u = (double)i / m, sm = u * u * u * (10 - 15 * u + 6 * u * u);
+                        double curve = bend * Math.Sin(Math.PI * u);
+                        Feed(x0 + (x1 - x0) * sm - (y1 - y0) * curve, y0 + (y1 - y0) * sm + (x1 - x0) * curve, tremor, hz);
+                    }
+                    x = x1;
+                    y = y1;
+                    int hold = (int)((0.3 + rng.NextDouble() * 2) / dt);
+                    double wx = 0, wy = 0;
+                    for (int i = 0; i < hold; i++)
+                    {
+                        // Slow wander of a thumb holding still (a few thousandths per second).
+                        wx += (rng.NextDouble() - 0.5) * 0.0004;
+                        wy += (rng.NextDouble() - 0.5) * 0.0004;
+                        Feed(x + wx, y + wy, tremor, hz);
+                    }
+                    x += wx;
+                    y += wy;
+                    break;
+                }
+            }
+        }
+        _out.WriteLine($"{rate} Hz seed {seed}: 3 min of aiming, max learned jitter {maxJitter / (1 / 127.5f):F2} counts, max strength {maxStrength:F2}");
+        Assert.Equal(0f, maxStrength);
+    }
+
+    [Theory]
+    [InlineData(1, 0.0, 0.0)]
+    [InlineData(3, 0.012, 0.019)]
+    public void Late_reports_do_not_skew_the_jitter_estimate(int noise, float min, float max)
+    {
+        // Held still; every 50th report comes 40 ms late (a Bluetooth hiccup).
+        var c = new StickCalibrator();
+        var rng = new Random(42);
+        for (int i = 0; i < 10 * Hz; i++)
+        {
+            var r = Raw(0.4, -0.2, rng, noise);
+            c.Process(r.X, r.Y, i % 50 == 49 ? 0.04 : Dt);
+        }
+        _out.WriteLine($"+-{noise} with late reports: jitter {c.LearnedJitter / (1 / 127.5f):F2} counts, strength {c.JitterFilterStrength:F2}");
+        if (noise == 1) Assert.Equal(0f, c.JitterFilterStrength);
+        else Assert.InRange(c.LearnedJitter, min, max);
+    }
+
     [Fact]
     public void Stick_with_one_count_flicker_is_filtered_only_lightly()
     {

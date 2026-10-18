@@ -133,4 +133,59 @@ public class ProfileTransferTests
     {
         Assert.Throws<FormatException>(() => ProfileTransfer.Deserialize(json));
     }
+
+    private static string PlainProfile(string id, string model) =>
+        "{ \"ControllerId\": \"" + id + "\", \"Model\": \"" + model + "\" }";
+
+    [Theory]
+    [InlineData("ds4-a4538512abcd", "DualShock4")]
+    [InlineData("dualsense-a4538512abcd", "DualSense")]
+    [InlineData("ds4-path-0123456789abcdef", "DualShock4")]
+    [InlineData("dualsense-path-0123456789abcdef", "DualSense")]
+    public void Deserialize_AcceptsCanonicalIds(string id, string model)
+    {
+        Assert.Equal(id, ProfileTransfer.Deserialize(PlainProfile(id, model)).Profile.ControllerId);
+    }
+
+    [Fact]
+    public void Deserialize_LowercasesAndTrimsId()
+    {
+        var imported = ProfileTransfer.Deserialize(PlainProfile("  DS4-A4538512ABCD ", "DualShock4"));
+        Assert.Equal("ds4-a4538512abcd", imported.Profile.ControllerId);
+    }
+
+    [Theory]
+    [InlineData("ds4-../../evil", "DualShock4")]           // path tricks
+    [InlineData("ds4-a4:53:85:12:ab:cd", "DualShock4")]    // not canonical (colons)
+    [InlineData("ds4-a4538512abc", "DualShock4")]          // 11 digits
+    [InlineData("ds4-a4538512abcde", "DualShock4")]        // 13 digits
+    [InlineData("ds4-a4538512abzz", "DualShock4")]         // not hex
+    [InlineData("xbox-a4538512abcd", "DualShock4")]        // unknown prefix
+    [InlineData("ds4-path-0123", "DualShock4")]            // short path hash
+    [InlineData("dualsense-path-0123456789abcdef0", "DualSense")] // too long
+    [InlineData("ds4-a4538512abcd", "DualSense")]          // model does not match the id
+    [InlineData("dualsense-a4538512abcd", "DualShock4")]   // model does not match the id
+    [InlineData("CON", "DualShock4")]                      // reserved name
+    public void Deserialize_RejectsNonCanonicalIds(string id, string model)
+    {
+        Assert.Throws<FormatException>(() => ProfileTransfer.Deserialize(PlainProfile(id, model)));
+    }
+
+    [Fact]
+    public void Deserialize_CutsVeryLongNames()
+    {
+        var json = ProfileTransfer.Serialize(Sample(), new string('x', 500));
+        Assert.Equal(60, ProfileTransfer.Deserialize(json).Name!.Length);
+    }
+
+    [Theory]
+    [InlineData("ds4-a4538512abcd", true)]
+    [InlineData("ds4-path-0123456789abcdef", true)]
+    [InlineData("DS4-A4538512ABCD", false)]
+    [InlineData("ds4-a4538512abcd ", false)]
+    [InlineData(null, false)]
+    public void IsCanonical_MatchesOnlyAppIds(string? id, bool expected)
+    {
+        Assert.Equal(expected, ControllerIds.IsCanonical(id));
+    }
 }

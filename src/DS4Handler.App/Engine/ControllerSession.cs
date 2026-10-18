@@ -66,6 +66,8 @@ public sealed class ControllerSession : IDisposable
     private ProfileStore? _store;
     private bool _profileLoaded;                     // never overwrite a saved profile we could not read
     private readonly object _saveGate = new();       // serialises saving with switching / replacing profiles
+    private string? _appliedProfileId;               // profile the calibration belongs to (under _saveGate)
+    private bool _appliedBlocked;
     private long _savedFingerprint;
     private Timer? _saveTimer;
 
@@ -111,7 +113,7 @@ public sealed class ControllerSession : IDisposable
 
     /// <summary>
     /// The saved profile this controller learns into: its own id (default) or another controller's
-    /// profile it is linked to. Set by the manager before <see cref="Start"/>; changed with <see cref="SwitchProfile"/>.
+    /// profile it is linked to. Set by the manager before <see cref="Start"/>; changed with <see cref="ApplyProfile"/>.
     /// </summary>
     public string ProfileId
     {
@@ -123,7 +125,13 @@ public sealed class ControllerSession : IDisposable
     /// True when the profile is already used by another connected controller: this one then runs on
     /// factory values and never saves, so two controllers never write the same file.
     /// </summary>
-    public bool ProfileBlocked { get; internal set; }
+    public bool ProfileBlocked
+    {
+        get => Volatile.Read(ref _profileBlocked);
+        internal set => Volatile.Write(ref _profileBlocked, value);
+    }
+
+    private bool _profileBlocked;
 
     public string DevicePath { get; }
     public ControllerModel Model { get; }
@@ -194,6 +202,8 @@ public sealed class ControllerSession : IDisposable
             JitterFilterEnabled = jitterFilterEnabled,
         };
         (_profileLoaded, _savedFingerprint) = LoadInto(store, calibration);
+        _appliedProfileId = ProfileId;
+        _appliedBlocked = ProfileBlocked;
         lock (_sync) _calibration = calibration;
 
         if (Connection == ConnectionType.Bluetooth) RequestFullReports();
@@ -346,36 +356,53 @@ public sealed class ControllerSession : IDisposable
     }
 
     /// <summary>
-    /// Saves the current profile and continues with another one (linking to a shared profile or back to
-    /// its own). The learning and filter switches carry over. Blocking file I/O: call from a worker.
-    /// The caller (the manager) makes sure no other connected controller uses <paramref name="profileId"/>.
+    /// Brings the calibration in line with <see cref="ProfileId"/> and <see cref="ProfileBlocked"/> as
+    /// reserved by the manager: saves the current profile and continues with the reserved one (a
+    /// shared profile, back to its own, or its own again after it was blocked). The learning and
+    /// filter switches carry over. Calls are serialised and always apply the latest reservation; a
+    /// call that finds nothing changed does nothing. Blocking file I/O: call from a worker.
     /// </summary>
-    internal void SwitchProfile(string profileId)
+    internal void ApplyProfile()
     {
         var store = _store;
         if (store == null || Volatile.Read(ref _disposed) != 0) return;
-        lock (_saveGate)
-        {
-            SaveProfileCore(force: false);
-            bool learning = LearningEnabled, jitter = JitterFilterEnabled;
-            var calibration = new ControllerCalibration(profileId, Model) { LearningEnabled = learning, JitterFilterEnabled = jitter };
-            ProfileId = profileId;
-            ProfileBlocked = false;
-            var (loaded, fingerprint) = LoadInto(store, calibration);
-            lock (_sync) _calibration = calibration;
-            _profileLoaded = loaded;
-            Interlocked.Exchange(ref _savedFingerprint, fingerprint);
-        }
-        Log.Info($"{Id} gebruikt nu profiel {profileId}.");
+        lock (_saveGate) ApplyProfileCore(store);
     }
 
-    /// <summary>Replaces what was learned with a copied or imported profile and saves it.</summary>
-    public void ReplaceCalibration(CalibrationProfile profile)
+    /// <summary>Must be called under _saveGate.</summary>
+    private void ApplyProfileCore(ProfileStore store)
     {
+        string target = ProfileId;
+        bool blocked = ProfileBlocked;
+        if (string.Equals(target, _appliedProfileId, StringComparison.OrdinalIgnoreCase) && blocked == _appliedBlocked) return;
+
+        SaveProfileCore(force: false); // the old profile, under its own id
+        bool learning = LearningEnabled, jitter = JitterFilterEnabled;
+        var calibration = new ControllerCalibration(target, Model) { LearningEnabled = learning, JitterFilterEnabled = jitter };
+        var (loaded, fingerprint) = LoadInto(store, calibration);
+        lock (_sync) _calibration = calibration;
+        _profileLoaded = loaded;
+        Interlocked.Exchange(ref _savedFingerprint, fingerprint);
+        _appliedProfileId = target;
+        _appliedBlocked = blocked;
+        Log.Info(blocked ? $"{Id} draait zonder opslaan (profiel {target} in gebruik)." : $"{Id} gebruikt nu profiel {target}.");
+    }
+
+    /// <summary>
+    /// Replaces what was learned with a copied or imported profile and saves it. Returns false when this
+    /// controller may not save (its profile is in use elsewhere, or could not be read).
+    /// </summary>
+    public bool ReplaceCalibration(CalibrationProfile profile)
+    {
+        var store = _store;
+        if (store == null) return false;
         lock (_saveGate)
         {
+            ApplyProfileCore(store); // never write into a profile we are switching away from
+            if (!_profileLoaded) return false;
             lock (_sync) _calibration?.Import(profile);
             SaveProfileCore(force: true);
+            return true;
         }
     }
 

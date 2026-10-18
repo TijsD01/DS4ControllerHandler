@@ -109,8 +109,9 @@ public sealed class ProfileLibrary
     }
 
     /// <summary>
-    /// Links a connected controller to another profile, or back to its own (null or its own id).
-    /// Returns a Dutch reason when refused, null when done.
+    /// Links a connected controller to another profile, or back to its own (null or its own id), and
+    /// switches to it before returning (so a copy or import right after lands in the right profile).
+    /// Returns a Dutch reason when refused, null when done. Blocking file I/O: call from a worker.
     /// </summary>
     public string? Link(ControllerSession session, string? profileId)
     {
@@ -231,7 +232,8 @@ public sealed class ProfileLibrary
             {
                 if (session.Model != profile.Model)
                     profile = ProfileTransfer.CopyFor(profile, profile.ControllerId, session.Model);
-                session.ReplaceCalibration(profile);
+                if (!session.ReplaceCalibration(profile))
+                    return "De controller die dit profiel gebruikt, kan het nu niet opslaan (het profiel kon niet worden gelezen). Sluit hem opnieuw aan en probeer het nog eens.";
             }
             else
             {

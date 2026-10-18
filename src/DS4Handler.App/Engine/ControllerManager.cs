@@ -31,6 +31,7 @@ public sealed class ControllerManager : IDisposable
     private readonly Dictionary<string, ControllerSession> _sessions = new(StringComparer.OrdinalIgnoreCase); // by device path
     private readonly Dictionary<string, DateTime> _blockedUntil = new(StringComparer.OrdinalIgnoreCase);     // paths that failed to open
     private readonly Dictionary<string, bool> _isVirtual = new(StringComparer.OrdinalIgnoreCase);              // path → made by ViGEmBus (checked once)
+    private readonly HashSet<ControllerSession> _starting = new();                                          // opened, profile reserved, not yet in _sessions
     private readonly HashSet<string> _duplicates = new(StringComparer.OrdinalIgnoreCase);                     // second interface of an open pad
     private readonly ProfileStore _store;
     private readonly Func<string, (bool Learning, OutputMode Output, bool JitterFilter)> _optionsFor;
@@ -182,6 +183,7 @@ public sealed class ControllerManager : IDisposable
             if (changed) Publish();
         }
         foreach (var s in removed) DisposeSession(s);
+        if (removed.Count > 0) ReleaseBlocked();
         if (removed.Count > 0) lock (_lock) _duplicates.Clear(); // the other interface of that pad may now be used
 
         bool retryLater = false;
@@ -237,13 +239,14 @@ public sealed class ControllerManager : IDisposable
                 Log.Error($"Controller {session.Id} starten mislukt", ex);
                 session.Ended -= OnSessionEnded;
                 session.Dispose();
-                lock (_lock) { _blockedUntil[path] = DateTime.UtcNow + RetryBlocked; Bump(); }
+                lock (_lock) { _starting.Remove(session); _blockedUntil[path] = DateTime.UtcNow + RetryBlocked; Bump(); }
                 retryLater = true;
                 continue;
             }
 
             lock (_lock)
             {
+                _starting.Remove(session);
                 if (_disposed)
                 {
                     DisposeSession(session);
@@ -252,6 +255,7 @@ public sealed class ControllerManager : IDisposable
                 _sessions[path] = session;
                 Publish();
             }
+            if (session.ProfileBlocked) ReleaseBlocked(); // its profile may have been freed while it started
             Log.Info($"{session.DisplayName} verbonden: {session.Id} via {session.Connection}");
             try { SessionStarted?.Invoke(session); } catch (Exception ex) { Log.Error("SessionStarted-handler faalde", ex); }
         }
@@ -281,6 +285,7 @@ public sealed class ControllerManager : IDisposable
                 DisposeSession(session);
                 if (removed)
                 {
+                    ReleaseBlocked(); // a pad waiting for this profile may now use it
                     Log.Info($"{session.Id} verbroken.");
                     // The device may still be listed (read error, Bluetooth hiccup): look again shortly.
                     ScheduleRescan(RescanAfterError);
@@ -314,27 +319,35 @@ public sealed class ControllerManager : IDisposable
     /// </summary>
     public Func<string, string?>? ProfileLinkFor { get; set; }
 
-    /// <summary>Picks the profile for a new session; never one another connected controller already uses.</summary>
+    /// <summary>Picks the profile for a new session; never one another connected or starting controller uses.</summary>
     private void AssignProfile(ControllerSession session)
     {
         string wanted = ProfileLinkFor?.Invoke(session.Id) is { Length: > 0 } link ? link : session.Id;
         lock (_lock)
         {
-            if (wanted != session.Id && ProfileInUseLocked(wanted, except: null))
+            if (wanted != session.Id && ProfileInUseLocked(wanted, except: session))
             {
                 Log.Warn($"Gekoppeld profiel {wanted} van {session.Id} is al in gebruik; het eigen profiel wordt gebruikt.");
                 wanted = session.Id;
             }
             session.ProfileId = wanted;
-            session.ProfileBlocked = ProfileInUseLocked(wanted, except: null);
+            session.ProfileBlocked = ProfileInUseLocked(wanted, except: session);
+            _starting.Add(session); // reserved until it is in _sessions (or failed)
         }
     }
 
+    /// <summary>True when a connected or starting controller (other than <paramref name="except"/>) writes into this profile.</summary>
     private bool ProfileInUseLocked(string profileId, ControllerSession? except)
     {
         foreach (var s in _sessions.Values)
-            if (s != except && string.Equals(s.ProfileId, profileId, StringComparison.OrdinalIgnoreCase)) return true;
+            if (Writes(s, profileId, except)) return true;
+        foreach (var s in _starting)
+            if (Writes(s, profileId, except)) return true;
         return false;
+
+        // A blocked session never saves, so it does not hold its profile.
+        static bool Writes(ControllerSession s, string id, ControllerSession? except) =>
+            s != except && !s.ProfileBlocked && string.Equals(s.ProfileId, id, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>True when a connected controller learns into this profile.</summary>
@@ -344,9 +357,10 @@ public sealed class ControllerManager : IDisposable
     }
 
     /// <summary>
-    /// Links a connected controller to another saved profile (or back to its own with its own id).
-    /// Refused (false) when another connected controller already uses that profile. Blocking file I/O
-    /// runs on a worker; the reservation is made at once, so two requests can never pick the same file.
+    /// Links a connected controller to another saved profile (or back to its own with its own id) and
+    /// switches to it before returning. Refused (false) when another controller already uses that
+    /// profile. The reservation is made under the lock, so two requests can never pick the same file,
+    /// and the session always ends on the latest reservation. Blocking file I/O: call from a worker.
     /// </summary>
     public bool TryLinkProfile(ControllerSession session, string profileId)
     {
@@ -354,16 +368,38 @@ public sealed class ControllerManager : IDisposable
         {
             if (!_sessions.ContainsValue(session)) return false;
             if (ProfileInUseLocked(profileId, except: session)) return false;
-            if (string.Equals(session.ProfileId, profileId, StringComparison.OrdinalIgnoreCase) && !session.ProfileBlocked) return true;
             session.ProfileId = profileId; // reserve
+            session.ProfileBlocked = false;
         }
-        ThreadPool.QueueUserWorkItem(_ =>
-        {
-            try { session.SwitchProfile(profileId); }
-            catch (Exception ex) { Log.Error($"Profiel wisselen voor {session.Id} mislukt", ex); }
-            Bump();
-        });
+        session.ApplyProfile();
+        Bump();
+        ReleaseBlocked(); // the profile it left may be free for a blocked pad now
         return true;
+    }
+
+    /// <summary>
+    /// Gives a blocked controller its profile back once nobody else writes into it (the other pad
+    /// unlinked or disconnected). It reloads the saved profile first, then resumes saving.
+    /// </summary>
+    private void ReleaseBlocked()
+    {
+        var freed = new List<ControllerSession>();
+        lock (_lock)
+        {
+            if (_disposed) return;
+            foreach (var s in _sessions.Values)
+            {
+                if (!s.ProfileBlocked || ProfileInUseLocked(s.ProfileId, except: s)) continue;
+                s.ProfileBlocked = false; // claimed: the next blocked pad on the same profile sees it in use
+                freed.Add(s);
+            }
+        }
+        foreach (var s in freed)
+        {
+            try { s.ApplyProfile(); }
+            catch (Exception ex) { Log.Error($"Profiel van {s.Id} opnieuw laden mislukt", ex); }
+        }
+        if (freed.Count > 0) Bump();
     }
 
     public void SaveAll()

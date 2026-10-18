@@ -140,16 +140,13 @@ public sealed class LinkRowViewModel : ObservableObject
         {
             var previous = _selected;
             if (!SetField(ref _selected, value) || _syncing || value == null) return;
-            if (!_owner.Link(this, value))
+            // Linking does file I/O: it runs on a worker; a refusal puts the previous choice back.
+            _owner.LinkAsync(this, value, () =>
             {
-                // Refused: go back to the previous choice (after the ComboBox finished changing).
-                Application.Current?.Dispatcher.BeginInvoke(() =>
-                {
-                    _syncing = true;
-                    Selected = previous;
-                    _syncing = false;
-                });
-            }
+                _syncing = true;
+                Selected = previous;
+                _syncing = false;
+            });
         }
     }
 
@@ -248,17 +245,8 @@ public sealed class ProfilesViewModel : ObservableObject
         RunAsync(() => { _host.Library.Rename(row.Id, name); return null; }, refresh: true);
     }
 
-    internal bool Link(LinkRowViewModel row, ProfileChoice choice)
-    {
-        var reason = _host.Library.Link(row.Session, choice.Id);
-        if (reason != null)
-        {
-            _dialogs.Inform("Profiel kiezen", reason);
-            return false;
-        }
-        Refresh();
-        return true;
-    }
+    internal void LinkAsync(LinkRowViewModel row, ProfileChoice choice, Action revert) =>
+        RunAsync(() => _host.Library.Link(row.Session, choice.Id), refresh: true, onError: revert, errorTitle: "Profiel kiezen");
 
     internal void Copy(ProfileRowViewModel row, ProfileChoice target)
     {
@@ -289,38 +277,71 @@ public sealed class ProfilesViewModel : ObservableObject
         RunAsync(() => _host.Library.Delete(row.Id), refresh: true);
     }
 
+    /// <summary>Largest profile file accepted; real ones are a few kB.</summary>
+    private const long MaxImportBytes = 1024 * 1024;
+
     private void Import()
     {
         var path = _dialogs.OpenProfileFile();
         if (path == null) return;
 
-        ImportedProfile imported;
         try
         {
-            imported = ProfileLibrary.Peek(path);
+            if (new FileInfo(path).Length > MaxImportBytes)
+            {
+                _dialogs.Inform("Importeren mislukt", "Dit bestand is veel te groot voor een DS4 Handler-profiel.");
+                return;
+            }
         }
-        catch (Exception ex) when (ex is FormatException or IOException or UnauthorizedAccessException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Log.Warn($"Profiel importeren uit {path} mislukt", ex);
-            _dialogs.Inform("Importeren mislukt", "Dit bestand is geen geldig DS4 Handler-profiel, of het kon niet worden gelezen.");
+            _dialogs.Inform("Importeren mislukt", "Het bestand kon niet worden gelezen.");
             return;
         }
 
-        var id = imported.Profile.ControllerId;
-        string who = imported.Name ?? NameOf(id);
-        string mac = ControllerIds.MacFromId(id) ?? "geen MAC";
-        if (_host.Library.Exists(id) &&
-            !_dialogs.Confirm("Bestaand profiel overschrijven?",
-                $"Er is al een profiel voor deze controller ({mac}). Wat daar is geleerd, wordt vervangen door het geïmporteerde profiel '{who}'.",
-                "Overschrijven"))
-            return;
+        // Reading and checking happen on a worker; the questions are asked back on the UI thread.
+        Busy = true;
+        var dispatcher = Application.Current?.Dispatcher;
+        Task.Run(() =>
+        {
+            try
+            {
+                var imported = ProfileLibrary.Peek(path);
+                return (Imported: imported, Exists: _host.Library.Exists(imported.Profile.ControllerId), Error: (string?)null);
+            }
+            catch (Exception ex) when (ex is FormatException or IOException or UnauthorizedAccessException)
+            {
+                Log.Warn($"Profiel importeren uit {path} mislukt", ex);
+                return (Imported: (ImportedProfile?)null, Exists: false,
+                    Error: (string?)"Dit bestand is geen geldig DS4 Handler-profiel, of het kon niet worden gelezen.");
+            }
+        }).ContinueWith(t => dispatcher?.BeginInvoke(() =>
+        {
+            Busy = false;
+            CommandManager.InvalidateRequerySuggested();
+            var (imported, exists, error) = t.Result;
+            if (imported == null)
+            {
+                _dialogs.Inform("Importeren mislukt", error ?? "Onbekende fout.");
+                return;
+            }
 
-        RunAsync(() => _host.Library.Import(imported), refresh: true,
-            done: $"Profiel '{who}' ({mac}) geïmporteerd. Sluit die controller aan en hij gebruikt het meteen.");
+            var id = imported.Profile.ControllerId;
+            string who = imported.Name ?? NameOf(id);
+            string mac = ControllerIds.MacFromId(id) ?? "geen MAC";
+            if (exists &&
+                !_dialogs.Confirm("Bestaand profiel overschrijven?",
+                    $"Er is al een profiel voor deze controller ({mac}). Wat daar is geleerd, wordt vervangen door het geïmporteerde profiel '{who}'.",
+                    "Overschrijven"))
+                return;
+
+            RunAsync(() => _host.Library.Import(imported), refresh: true,
+                done: $"Profiel '{who}' ({mac}) geïmporteerd. Sluit die controller aan en hij gebruikt het meteen.");
+        }), TaskScheduler.Default);
     }
 
     /// <summary>Runs a profile action off the UI thread and reports its Dutch error (if any).</summary>
-    private void RunAsync(Func<string?> action, bool refresh, string? done = null)
+    private void RunAsync(Func<string?> action, bool refresh, string? done = null, Action? onError = null, string errorTitle = "Dat lukte niet")
     {
         Busy = true;
         var dispatcher = Application.Current?.Dispatcher;
@@ -331,7 +352,12 @@ public sealed class ProfilesViewModel : ObservableObject
         }).ContinueWith(t => dispatcher?.BeginInvoke(() =>
         {
             Busy = false;
-            if (t.Result is { } error) _dialogs.Inform("Dat lukte niet", error);
+            CommandManager.InvalidateRequerySuggested();
+            if (t.Result is { } error)
+            {
+                onError?.Invoke();
+                _dialogs.Inform(errorTitle, error);
+            }
             else if (done != null) _dialogs.Inform("Gelukt", done);
             if (refresh) Refresh();
         }), TaskScheduler.Default);

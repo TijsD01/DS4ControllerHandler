@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Text.Json.Serialization;
 using DS4Handler.Core.Calibration;
 using DS4Handler.Core.Input;
@@ -11,6 +12,19 @@ public static class ControllerIds
 {
     /// <summary>Marker of an id that hangs on a USB port because no MAC could be read.</summary>
     public const string PathFallbackMarker = "-path-";
+
+    /// <summary>Longest id the app makes ("dualsense-path-" + 16 hex digits).</summary>
+    public const int MaxLength = 31;
+
+    private static readonly Regex Canonical = new(
+        "^(ds4|dualsense)-([0-9a-f]{12}|path-[0-9a-f]{16})$", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    /// <summary>
+    /// True for an id exactly as the app builds it: "ds4-"/"dualsense-" plus 12 lowercase hex digits of
+    /// the MAC, or the path fallback "ds4-path-" plus 16 lowercase hex digits.
+    /// </summary>
+    public static bool IsCanonical(string? controllerId) =>
+        controllerId is { Length: <= MaxLength } && Canonical.IsMatch(controllerId);
 
     /// <summary>True for an id built from the device path (no MAC found).</summary>
     public static bool IsPathFallback(string? controllerId) =>
@@ -138,7 +152,13 @@ public static class ProfileTransfer
                 if (profile is null || string.IsNullOrWhiteSpace(profile.ControllerId))
                     throw new FormatException("The profile has no controller id.");
                 if (!Enum.IsDefined(profile.Model)) throw new FormatException("Unknown controller model.");
-                return new ImportedProfile(Normalize(profile), name);
+
+                // The id becomes a file name and a settings key: accept only ids the app itself makes.
+                var id = profile.ControllerId.Trim().ToLowerInvariant();
+                if (!ControllerIds.IsCanonical(id)) throw new FormatException("The controller id is not one DS4 Handler makes.");
+                if (ControllerIds.ModelFromId(id) != profile.Model) throw new FormatException("The controller id does not match the model.");
+                if (name is { Length: > 60 }) name = name[..60];
+                return new ImportedProfile(Normalize(profile) with { ControllerId = id }, name);
             }
             catch (JsonException ex)
             {

@@ -12,25 +12,45 @@ Wat geleerd is wordt per controller bewaard (op serienummer), dus de R2 van je v
 
 Het is een klein online model dat bij elke input-update bijleert, zonder trainingsfase.
 
-**Triggers** (`TriggerCalibrator`). Bij elke druk kijkt het model waar de trigger tot stilstand komt. Een mechanische aanslag is herhaalbaar: druk na druk eindigt op dezelfde waarde, terwijl halve drukken overal terechtkomen. Zodra minstens 3 recente drukken het eens zijn over een eindpunt (binnen 4 stappen), wordt dat het nieuwe 100%. Een eindpunt verlagen nadat het al geleerd is vraagt 5 overeenkomende drukken. Het gaat nooit onder de helft van het bereik, dus een foute gok kan lichte drukken niet als vol gas laten tellen. Ook de rustwaarde (een trigger die in rust op 12 blijft staan) wordt geleerd.
+**Triggers** (`TriggerCalibrator`). Bij elke druk kijkt het model waar de trigger tot stilstand komt en hoe hij daar aankomt. Een mechanische aanslag raak je hard en is herhaalbaar: druk na druk eindigt op precies dezelfde waarde. Een vastgehouden half gaspedaal komt rustig aan en wiebelt meer. Pas als genoeg harde, vlakke drukken het eens zijn over een eindpunt (5 heel vlakke of 8 iets rommeligere), wordt dat het nieuwe 100%. Het eindpunt komt nooit lager dan de hoogste stand die de trigger ooit heeft gehaald, en nooit onder 160 van de 255. Verder slijten wordt gevolgd in stapjes van maximaal 12. Ook de rustwaarde wordt geleerd, bijvoorbeeld een trigger die na loslaten op 12 blijft hangen, maar een licht vastgehouden trigger telt niet als rust.
 
-**Sticks** (`StickCalibrator`). Momenten waarop de stick vrijwel stil staat dicht bij het midden tellen als "losgelaten". Daaruit leert het model het echte midden, de ruis en hoe ver het rustpunt per keer verschilt. Daar wordt de deadzone op afgestemd. Per richting (16 sectoren) wordt de verste uitslag onthouden voor het bijschalen van de rand.
+**Sticks** (`StickCalibrator`). Elke keer dat je een stick na een flinke uitslag loslaat en hij een halve seconde stil staat, telt dat als één "loslating". De eerste 5 bepalen het midden (mediaan), daarna schuift elke loslating het midden een klein beetje bij. Een vastgehouden richtstand telt niet mee, omdat die te ver van het geleerde midden ligt. Landen 5 loslatingen op rij op een nieuwe plek, dan springt het midden daarheen: zo wordt drift die later ontstaat ook opgepikt. De deadzone groeit mee met de ruis en met hoe ver het rustpunt per keer verschilt. Per richting (16 sectoren) wordt de verste uitslag onthouden voor het bijschalen van de rand, en korte uitschieters tellen niet mee.
+
+**Kalibratie-assistent.** Voor een snelle correctie kun je ook "Kalibreer R2" kiezen en de trigger 3 keer helemaal indrukken, of "Sticks opnieuw centreren" en de sticks loslaten. Een met de assistent geleerd eindpunt wordt daarna nooit automatisch verlaagd.
 
 Leren kan per controller aan en uit, en "Kalibratie resetten" zet alles terug naar fabriekswaarden.
+
+## De Windows-app
+
+Het venster heeft twee tabbladen: **Controllers** en **Instellingen**. Over elke knop, schakelaar en waarde geeft een tooltip (muis erboven houden) uitleg in gewone taal.
+
+- **Een kaart per controller** met type, MAC-adres, USB/Bluetooth, batterij, updates per seconde en een statuslabel ("Actief als Xbox-controller" / "Actief als DualShock 4-controller").
+- **Live weergave.** Per stick een cirkel met de echte stand (grijs), wat de game krijgt (blauw) en de geleerde deadzone (oranje). Per trigger een balk met de echte stand en het geleerde eindpunt, en daaronder wat de game krijgt (groen = 100%).
+- **Kalibratie in gewone woorden**, bijvoorbeeld "R2 komt tot 78% — wordt opgeschaald naar 100%", inclusief of dat automatisch of met de assistent is geleerd. Knoppen *Kalibreer L2/R2* ("Druk R2 nog 3× helemaal in") en *Sticks opnieuw centreren* voor snelle handmatige correctie.
+- **Per controller:** Leren aan/uit, Verberg voor games (HidHide), Uitvoer Xbox 360 of DualShock 4, Kalibratie resetten (met bevestiging).
+- **Instellingen:** start met Windows, geminimaliseerd starten (systeemvak), HidHide gebruiken, controllers weer zichtbaar maken bij afsluiten, profielmap en logbestand openen.
+- **Systeemvak:** Tonen / Leren / Afsluiten. Het venster sluiten laat de app doordraaien.
+
+**HidHide.** Staat HidHide aan, dan zet de app `DS4Handler.exe` op de uitzonderingslijst en verbergt de aangesloten controllers, zodat games alleen de virtuele controller zien. Een game die al draaide moet je opnieuw starten (of de controller opnieuw aansluiten). Ontbreekt HidHide of is het bezet (HidHide-configuratie of DS4Windows open), dan zegt de app dat bovenin met een downloadlink. Start de app als `DS4Handler.exe`, niet via `dotnet DS4Handler.dll`: dotnet.exe wordt bewust niet op de uitzonderingslijst gezet.
+
+**Profielen.** Een controller wordt herkend aan zijn MAC-adres (ook via USB), dus USB en Bluetooth delen één profiel. Profielen worden elke 30 seconden (alleen bij wijzigingen) en bij loskoppelen/afsluiten opgeslagen. Instellingen staan in `%APPDATA%\DS4ControllerHandler\settings.json`, het log in `log.txt` in dezelfde map.
+
+**Opbouw.** `Engine/` (apparaten zoeken, hot-plug, één sessie per controller met een eigen leesdraad met hoge prioriteit, ViGEm-uitvoer, trillen) staat los van de UI (`ViewModels/`, `Views/`, `Controls/`). Het leespad alloceert niets per rapport en stuurt alleen wijzigingen naar de driver; de UI leest ongeveer 30× per seconde een momentopname, en 1× per seconde als het venster verborgen is.
 
 ## Projectstructuur
 
 | Map | Wat |
 | --- | --- |
-| `src/DS4Handler.Core` | Platformonafhankelijke kern: HID-rapporten parsen, kalibratie, profielen, Xbox-mapping |
-| `src/DS4Handler.App` | Windows-app (WinForms, systeemvak): HID-invoer via HidSharp, virtuele Xbox 360-controller via ViGEmBus |
+| `src/DS4Handler.Core` | Platformonafhankelijke kern: HID-rapporten parsen, kalibratie, profielen, Xbox 360- en DS4-mapping |
+| `src/DS4Handler.HidHide` | Koppeling met de HidHide-driver om de echte controller voor games te verbergen |
+| `src/DS4Handler.App` | Windows-app (WPF, systeemvak): HID-invoer via HidSharp, virtuele Xbox 360- of DualShock 4-controller via ViGEmBus, HidHide-koppeling. Zie [De Windows-app](#de-windows-app) |
 | `tests/DS4Handler.Core.Tests` | Unit tests met gesimuleerde controllers (versleten trigger, driftende stick) |
 
 ## Vereisten (Windows)
 
 1. [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0)
 2. [ViGEmBus-driver](https://github.com/nefarius/ViGEmBus/releases), dezelfde driver die DS4Windows gebruikt.
-3. Optioneel: [HidHide](https://github.com/nefarius/HidHide/releases). Zonder HidHide zien sommige games zowel je echte controller als de virtuele Xbox-controller, wat dubbele input geeft. Zet in HidHide de echte controller verborgen en `DS4Handler.App.exe` op de toegestane lijst.
+3. Aanbevolen: [HidHide](https://github.com/nefarius/HidHide/releases). Zonder HidHide zien sommige games zowel je echte controller als de virtuele controller, wat dubbele input geeft. De app regelt HidHide zelf (zie hieronder); beheerdersrechten zijn niet nodig, maar sluit de HidHide-configuratie zolang DS4 Handler draait.
 
 ## Bouwen en testen
 
@@ -44,5 +64,5 @@ Profielen staan in `%APPDATA%\DS4ControllerHandler\profiles`.
 
 ## Bekende beperkingen
 
-- Alleen Xbox 360-uitvoer; DS4-emulatie, touchpad als muis, gyro en macro's uit DS4Windows zitten er nog niet in.
+- Uitvoer als Xbox 360 of DualShock 4; de virtuele DualShock 4 krijgt nog geen gyro- of touchpaddata. Touchpad als muis en macro's uit DS4Windows zitten er nog niet in.
 - Getest met unit tests en gesimuleerde input; nog niet op echte hardware.

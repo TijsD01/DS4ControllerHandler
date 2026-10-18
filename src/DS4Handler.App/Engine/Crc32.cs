@@ -1,4 +1,4 @@
-namespace DS4Handler.App.Hid;
+namespace DS4Handler.App.Engine;
 
 /// <summary>Standard CRC-32 (IEEE 802.3, reflected, poly 0xEDB88320) used by Sony Bluetooth output reports.</summary>
 internal static class Crc32

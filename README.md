@@ -8,6 +8,16 @@ Een DS4Windows-achtige app voor Windows: je PlayStation-controller (DualShock 4 
 
 Wat geleerd is wordt per controller bewaard (op serienummer), dus de R2 van je vriend en jouw controller hebben elk hun eigen profiel.
 
+## Downloaden
+
+1. Ga naar **[Releases](https://github.com/TijsD01/DS4ControllerHandler/releases/latest)** en download `DS4Handler-Setup-<versie>.exe`.
+2. Dubbelklik en volg de stappen. De installer zet ook **ViGEmBus** (nodig) en **HidHide** (aanbevolen) op je pc als die nog ontbreken; die vragen zelf om beheerdersrechten. .NET hoef je niet apart te installeren.
+3. Start *DS4 Handler* via het Startmenu en sluit je controller aan.
+
+Liever zonder installatie? Download dan `DS4Handler-<versie>-portable.exe`: één bestand dat je overal kunt neerzetten. ViGEmBus en HidHide moet je dan zelf installeren; ontbreekt er een, dan zegt de app dat bovenin met een downloadknop.
+
+Windows SmartScreen kan "Onbekende uitgever" tonen, omdat de app niet digitaal ondertekend is. Klik dan op *Meer informatie* en *Toch uitvoeren*.
+
 ## Hoe het leren werkt
 
 Het is een klein online model dat bij elke input-update bijleert, zonder trainingsfase.
@@ -48,7 +58,9 @@ Het venster heeft twee tabbladen: **Controllers** en **Instellingen**. Over elke
 
 ## Vereisten (Windows)
 
-1. [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0)
+De installer uit [Downloaden](#downloaden) regelt dit allemaal. Bouw je de app zelf, dan heb je nodig:
+
+1. [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) (niet nodig voor de downloads van de Releases-pagina, daar zit .NET al in)
 2. [ViGEmBus-driver](https://github.com/nefarius/ViGEmBus/releases), dezelfde driver die DS4Windows gebruikt.
 3. Aanbevolen: [HidHide](https://github.com/nefarius/HidHide/releases). Zonder HidHide zien sommige games zowel je echte controller als de virtuele controller, wat dubbele input geeft. De app regelt HidHide zelf (zie hieronder); beheerdersrechten zijn niet nodig, maar sluit de HidHide-configuratie zolang DS4 Handler draait.
 
@@ -61,6 +73,15 @@ dotnet run --project src/DS4Handler.App   # alleen op Windows
 ```
 
 Profielen staan in `%APPDATA%\DS4ControllerHandler\profiles`.
+
+### Een nieuwe versie uitbrengen
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+De workflow `Release` bouwt dan de installer (`installer/DS4Handler.iss`, Inno Setup) en de portable exe, en zet beide op de Releases-pagina. Een tag met een streepje, zoals `v1.1.0-beta1`, wordt een pre-release. Via *Actions → Release → Run workflow* kun je de bestanden ook bouwen zonder release; ze staan dan als artifact bij die run.
 
 ## Bekende beperkingen
 

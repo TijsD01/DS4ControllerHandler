@@ -44,6 +44,9 @@ public sealed class HidHideService
 
     public HidHideService(SettingsStore settings) => _settings = settings;
 
+    private const string SettingsReadOnlyProblem =
+        "Instellingen konden niet gelezen of veilig bewaard worden, dus verbergt de app nu geen controllers (anders kunnen ze verborgen blijven). Herstart de app; meer staat in het logbestand.";
+
     public HidHideAvailability Availability { get; private set; } = HidHideAvailability.Checking;
 
     /// <summary>A problem that stops hiding even though HidHide is installed (Dutch); null when none.</summary>
@@ -136,6 +139,15 @@ public sealed class HidHideService
                 if (TryUnhide(instanceId)) Forget(instanceId);
             }
             _states[session.Id] = DeviceHideState.Off;
+            return;
+        }
+
+        if (_settings.ReadOnly)
+        {
+            // Ownership could not be saved: after a crash or taskkill the pad would stay hidden with nobody
+            // knowing it was ours. Hide nothing this session.
+            Problem = SettingsReadOnlyProblem;
+            _states[session.Id] = DeviceHideState.Failed;
             return;
         }
 

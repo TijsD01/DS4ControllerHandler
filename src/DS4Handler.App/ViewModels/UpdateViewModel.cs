@@ -193,9 +193,12 @@ public sealed class UpdateViewModel : ObservableObject
     {
         var current = UpdateService.CurrentVersion;
         var store = _host.SettingsStore;
+        // Running on defaults (unreadable or damaged settings.json): LastRunVersion is unknown, so "updated" cannot be told.
+        if (store.ReadOnly) return;
         var last = store.Read(s => s.LastRunVersion);
         // No LastRunVersion but an existing settings file: updated from a version before this feature.
-        bool updated = ReleaseVersion.TryParse(last, out var previous) ? current > previous : last == null && store.ExistedAtStartup;
+        bool updated = ReleaseVersion.TryParse(last, out var previous) ? current > previous
+            : last == null && store.ExistedAtStartup && !store.Salvaged;
         if (updated)
         {
             _justUpdated = (current, ReleaseNotes.NewestFromChangelog(Changelog.Read()));

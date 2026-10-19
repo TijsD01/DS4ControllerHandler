@@ -22,7 +22,7 @@ public partial class App : Application
     private static readonly TimeSpan SlowTick = TimeSpan.FromSeconds(1);
 
     private Mutex? _mutex;
-    private EventWaitHandle? _showEvent;
+    private WaitHandle? _showEvent;
     private RegisteredWaitHandle? _showWait;
     private WaitHandle? _quitEvent;
     private RegisteredWaitHandle? _quitWait;
@@ -55,9 +55,11 @@ public partial class App : Application
             Shutdown();
             return;
         }
-        _showEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowEventName);
-        _showWait = ThreadPool.RegisterWaitForSingleObject(_showEvent,
-            (_, _) => Dispatcher.BeginInvoke(ShowWindow), null, Timeout.Infinite, executeOnlyOnce: false);
+        // Settable by a normal second start even when this instance runs as administrator.
+        _showEvent = NamedEvents.TryCreateSignalableByUser(ShowEventName);
+        if (_showEvent != null)
+            _showWait = ThreadPool.RegisterWaitForSingleObject(_showEvent,
+                (_, _) => Dispatcher.BeginInvoke(ShowWindow), null, Timeout.Infinite, executeOnlyOnce: false);
         _quitEvent = NamedEvents.TryCreateSignalableByUser(QuitEventName);
         if (_quitEvent != null)
             _quitWait = ThreadPool.RegisterWaitForSingleObject(_quitEvent, (_, _) => Dispatcher.BeginInvoke(() =>
@@ -123,7 +125,6 @@ public partial class App : Application
         try
         {
             var store = new SettingsStore();
-            if (store.ReadOnly) Log.Warn("Verwijderen: settings.json kon niet goed gelezen worden; mogelijk worden niet alle controllers zichtbaar gemaakt.");
             var report = HidHideUninstall.Run(store, allUsers, TimeSpan.FromSeconds(15));
             return report.Complete ? 0 : 1;
         }

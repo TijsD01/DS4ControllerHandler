@@ -132,6 +132,8 @@ public sealed class SettingsStoreTests : IDisposable
         Directory.CreateDirectory(FilePath + ".bad"); // File.Copy onto a directory fails
         var store = new SettingsStore(FilePath);
         Assert.True(store.ReadOnly);
+        Assert.True(store.Salvaged);
+        Assert.False(store.ReadFailed);
         Assert.Equal(new[] { @"HID\A" }, store.Settings.HiddenInstanceIds);
 
         store.Update(s => s.StartWithWindows = true);
@@ -153,6 +155,8 @@ public sealed class SettingsStoreTests : IDisposable
             store = new SettingsStore(FilePath);
         }
         Assert.True(store.ReadOnly);
+        Assert.True(store.ReadFailed);
+        Assert.False(store.Salvaged);
         store.Update(s => s.HiddenInstanceIds.Clear());
         Assert.Equal(ValidJson(), File.ReadAllText(FilePath));
         Assert.False(File.Exists(FilePath + ".bad"));
@@ -206,6 +210,12 @@ public sealed class HidHideUninstallTests : IDisposable
     [InlineData(UninstallOutcome.Failed, 1, false)]
     public void Complete_OnlyWhenNothingOwnedCanStillBeHidden(UninstallOutcome outcome, int owned, bool complete)
         => Assert.Equal(complete, new UninstallReport(outcome, owned).Complete);
+
+    [Theory]
+    [InlineData(UninstallOutcome.Done)]
+    [InlineData(UninstallOutcome.NotInstalled)]
+    public void UnreadableSettings_AreNeverComplete(UninstallOutcome outcome)
+        => Assert.False(new UninstallReport(outcome, 0, SettingsUnreadable: true).Complete);
 
     [Fact]
     public void NoSettingsFile_IsNotCreated()

@@ -95,6 +95,12 @@ public sealed class SettingsStore
     /// <summary>True when settings.json is left alone this session because it could not be read or backed up safely.</summary>
     public bool ReadOnly => _doNotOverwrite;
 
+    /// <summary>settings.json was there but could not be read at all (in use, no access): even the hidden-controller list is unknown.</summary>
+    public bool ReadFailed { get; private set; }
+
+    /// <summary>settings.json was damaged: defaults plus what could be salvaged from it (the hidden-controller list).</summary>
+    public bool Salvaged { get; private set; }
+
     /// <summary>The live settings. Change them under <see cref="Update"/> so saving sees a consistent copy.</summary>
     public AppSettings Settings { get; }
 
@@ -137,6 +143,7 @@ public sealed class SettingsStore
         {
             // In use or no access: the file itself is probably fine, so never replace it with defaults.
             _doNotOverwrite = true;
+            ReadFailed = true;
             Log.Warn("Instellingen lezen mislukt (bestand in gebruik of geen toegang); standaardinstellingen worden gebruikt en settings.json wordt niet overschreven.", ex);
             return new AppSettings();
         }
@@ -146,6 +153,7 @@ public sealed class SettingsStore
 
         // Damaged: start from defaults, but keep what is needed to undo HidHide later.
         var salvaged = Salvage(text);
+        Salvaged = true;
         string kept = $"{salvaged.HiddenInstanceIds.Count} verborgen controller(s) uit het oude bestand overgenomen";
         try
         {

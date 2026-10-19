@@ -16,10 +16,13 @@ public enum UninstallOutcome
 }
 
 /// <summary>What <see cref="HidHideUninstall.Run"/> did.</summary>
-public sealed record UninstallReport(UninstallOutcome Outcome, int Owned, HidHideCleanupResult? Cleanup = null)
+/// <param name="SettingsUnreadable">The uninstalling account's settings.json could not be read, so the list of
+/// controllers this app hid is unknown and the cleanup may be incomplete.</param>
+public sealed record UninstallReport(UninstallOutcome Outcome, int Owned, HidHideCleanupResult? Cleanup = null, bool SettingsUnreadable = false)
 {
-    /// <summary>True when no controller this app hid is left hidden.</summary>
-    public bool Complete => Outcome == UninstallOutcome.Done || (Outcome == UninstallOutcome.NotInstalled && Owned == 0);
+    /// <summary>True when no controller this app hid is left hidden (as far as can be known).</summary>
+    public bool Complete => !SettingsUnreadable
+        && (Outcome == UninstallOutcome.Done || (Outcome == UninstallOutcome.NotInstalled && Owned == 0));
 }
 
 /// <summary>
@@ -52,6 +55,8 @@ public static class HidHideUninstall
         UninstallReport report;
         if (!work.Wait(timeout)) report = new UninstallReport(UninstallOutcome.TimedOut, owned.Count);
         else report = work.Result;
+        // A damaged file is fine (its list was salvaged); an unreadable one means we do not know what we hid.
+        if (store.ReadFailed) report = report with { SettingsUnreadable = true };
 
         if (report.Cleanup is { } done && store.ExistedAtStartup)
         {
@@ -64,6 +69,8 @@ public static class HidHideUninstall
             });
         }
         LogReport(report, activatedByApp, timeout);
+        if (report.SettingsUnreadable)
+            Log.Warn("Verwijderen: settings.json kon niet gelezen worden; mogelijk zijn niet alle door DS4 Handler verborgen controllers zichtbaar gemaakt. Controleer de lijst in HidHide Configuration Client.");
         return report;
     }
 
@@ -143,12 +150,20 @@ public static class HidHideUninstall
             foreach (var sid in list.GetSubKeyNames())
             {
                 if (!sid.StartsWith("S-1-5-21-", StringComparison.OrdinalIgnoreCase)) continue; // real accounts only
-                using var key = list.OpenSubKey(sid);
-                if (key?.GetValue("ProfileImagePath") is not string profile || string.IsNullOrWhiteSpace(profile)) continue;
-                var file = Path.Combine(Environment.ExpandEnvironmentVariables(profile),
-                    "AppData", "Roaming", Path.GetFileName(Log.DataDirectory), "settings.json");
-                if (!string.Equals(Path.GetFullPath(file), Path.GetFullPath(ownFile), StringComparison.OrdinalIgnoreCase))
-                    result.Add(file);
+                try
+                {
+                    using var key = list.OpenSubKey(sid);
+                    if (key?.GetValue("ProfileImagePath") is not string profile || string.IsNullOrWhiteSpace(profile)) continue;
+                    var file = Path.Combine(Environment.ExpandEnvironmentVariables(profile),
+                        "AppData", "Roaming", Path.GetFileName(Log.DataDirectory), "settings.json");
+                    if (!string.Equals(Path.GetFullPath(file), Path.GetFullPath(ownFile), StringComparison.OrdinalIgnoreCase))
+                        result.Add(file);
+                }
+                catch (Exception ex)
+                {
+                    // One odd profile entry must not stop the scan.
+                    Log.Warn($"Gebruikersprofiel {sid} overgeslagen", ex);
+                }
             }
         }
         catch (Exception ex)

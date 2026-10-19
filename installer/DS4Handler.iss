@@ -104,6 +104,9 @@ Filename: "{cmd}"; Parameters: "/C taskkill /IM DS4Handler.exe /F"; Flags: runhi
 ; An all-users uninstall runs as administrator, whose %APPDATA% is not the user's, and Inno cannot run
 ; uninstall entries as the original user. --all-users makes the app read the hidden-controller list from
 ; every user profile instead (it can, as administrator).
+; Keep the two RunOnceIds different (and UnhideControllers unchanged): an all-users install upgraded from
+; 1.2.0 still has the old plain --unhide entry in its uninstall log; with one shared id Inno would run only
+; one of the two, possibly the old one.
 Filename: "{app}\DS4Handler.exe"; Parameters: "--unhide"; Flags: runhidden waituntilterminated; RunOnceId: "UnhideControllers"; Check: not IsAdminInstallMode
 Filename: "{app}\DS4Handler.exe"; Parameters: "--unhide --all-users"; Flags: runhidden waituntilterminated; RunOnceId: "UnhideControllersAllUsers"; Check: IsAdminInstallMode
 

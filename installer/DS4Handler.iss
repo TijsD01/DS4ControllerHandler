@@ -11,7 +11,9 @@
 ; Updating: a newer setup with the same AppId installs over the old version in the same folder
 ; (it closes a running DS4 Handler first), so there is always one version installed. Profiles,
 ; calibration and settings live in %APPDATA%\DS4ControllerHandler, outside the install folder;
-; installing, updating and uninstalling never touch them.
+; installing and updating never touch them. Uninstalling only changes the uninstalling account's
+; settings.json (hidden-controller list, HidHideActivatedByApp) and appends to log.txt, via --unhide;
+; an all-users uninstall only reads other users' files.
 ; Uninstalling stops the app and runs DS4Handler.exe --unhide, so controllers HidHide hid stay usable.
 ; The app starts the setup itself with /SILENT /CLOSEAPPLICATIONS /UPDATE=1 for one-click updates;
 ; /UPDATE=1 skips the driver choices (the app warns itself when a driver is missing) and starts the
@@ -99,7 +101,14 @@ Filename: "{app}\DS4Handler.exe"; Flags: nowait runasoriginaluser; Check: Starte
 [UninstallRun]
 Filename: "{cmd}"; Parameters: "/C taskkill /IM DS4Handler.exe /F"; Flags: runhidden; RunOnceId: "StopApp"
 ; taskkill skips the app's own exit, so HidHide would keep the controllers hidden: undo that.
-Filename: "{app}\DS4Handler.exe"; Parameters: "--unhide"; Flags: runhidden waituntilterminated; RunOnceId: "UnhideControllers"
+; An all-users uninstall runs as administrator, whose %APPDATA% is not the user's, and Inno cannot run
+; uninstall entries as the original user. --all-users makes the app read the hidden-controller list from
+; every user profile instead (it can, as administrator).
+; Keep the two RunOnceIds different (and UnhideControllers unchanged): an all-users install upgraded from
+; 1.2.0 still has the old plain --unhide entry in its uninstall log; with one shared id Inno would run only
+; one of the two, possibly the old one.
+Filename: "{app}\DS4Handler.exe"; Parameters: "--unhide"; Flags: runhidden waituntilterminated; RunOnceId: "UnhideControllers"; Check: not IsAdminInstallMode
+Filename: "{app}\DS4Handler.exe"; Parameters: "--unhide --all-users"; Flags: runhidden waituntilterminated; RunOnceId: "UnhideControllersAllUsers"; Check: IsAdminInstallMode
 
 [Registry]
 ; Remove the "Start met Windows" entry the app may have created.

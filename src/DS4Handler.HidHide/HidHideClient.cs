@@ -110,6 +110,23 @@ public sealed class HidHideClient
         return true;
     }
 
+    /// <summary>
+    /// Undoes this app's changes on one handle (so nothing can change in between): removes
+    /// <paramref name="ownedIds"/> from the hide list, <paramref name="exePath"/> from the allow list, and turns the
+    /// global switch off when <paramref name="activatedByApp"/> and nothing stays hidden. See <see cref="HidHideCleanup.Plan"/>.
+    /// </summary>
+    public HidHideCleanupResult CleanUp(IEnumerable<string> ownedIds, string? exePath, bool activatedByApp)
+    {
+        var nt = exePath == null || IsSharedHostExecutable(exePath) ? null : DosPathToNtPath(exePath);
+        using var h = Open();
+        var plan = HidHideCleanup.Plan(ReadList(h, IOCTL_GET_BLACKLIST), ReadList(h, IOCTL_GET_WHITELIST),
+            GetFlag(h, IOCTL_GET_ACTIVE), GetFlag(h, IOCTL_GET_WLINVERSE), ownedIds, nt, activatedByApp);
+        if (plan.BlacklistChanged) Ioctl(h, IOCTL_SET_BLACKLIST, MultiString.Encode(plan.Blacklist), 0);
+        if (plan.WhitelistChanged) Ioctl(h, IOCTL_SET_WHITELIST, MultiString.Encode(plan.Whitelist), 0);
+        if (plan.Deactivate) Ioctl(h, IOCTL_SET_ACTIVE, new byte[] { 0 }, 0);
+        return plan;
+    }
+
     /// <summary>True for host executables (dotnet.exe) that must never be whitelisted: it would unhide pads for every .NET app.</summary>
     public static bool IsSharedHostExecutable(string? path)
     {

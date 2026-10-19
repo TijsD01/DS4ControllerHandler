@@ -44,6 +44,9 @@ public sealed class HidHideService
 
     public HidHideService(SettingsStore settings) => _settings = settings;
 
+    private const string SettingsReadOnlyProblem =
+        "Instellingen konden niet gelezen of veilig bewaard worden, dus verbergt de app nu geen controllers (anders kunnen ze verborgen blijven). Herstart de app; meer staat in het logbestand.";
+
     public HidHideAvailability Availability { get; private set; } = HidHideAvailability.Checking;
 
     /// <summary>A problem that stops hiding even though HidHide is installed (Dutch); null when none.</summary>
@@ -139,6 +142,15 @@ public sealed class HidHideService
             return;
         }
 
+        if (_settings.ReadOnly)
+        {
+            // Ownership could not be saved: after a crash or taskkill the pad would stay hidden with nobody
+            // knowing it was ours. Hide nothing this session.
+            Problem = SettingsReadOnlyProblem;
+            _states[session.Id] = DeviceHideState.Failed;
+            return;
+        }
+
         if (Availability != HidHideAvailability.Ready || instanceId == null)
         {
             if (instanceId == null) Log.Warn($"Geen apparaat-id voor HidHide uit {session.DevicePath}");
@@ -162,6 +174,8 @@ public sealed class HidHideService
                 // HidHide's global switch: it also applies to devices hidden by the user or other tools.
                 Log.Info("HidHide-verbergen (algemene schakelaar) aangezet.");
                 client.SetActive(true);
+                // Remembered so uninstalling can turn it off again (only then, and only if nothing else is hidden).
+                _settings.Update(s => s.HidHideActivatedByApp = true);
             }
             // Only take ownership when we put it on the list (or did so before), so we never unhide a
             // pad the user hid themselves.
@@ -227,9 +241,18 @@ public sealed class HidHideService
         var owned = _settings.Read(s => s.HiddenInstanceIds.ToArray());
         if (owned.Length == 0) return;
         if (Availability != HidHideAvailability.Ready) CheckAvailability();
-        if (Availability != HidHideAvailability.Ready) return;
+        if (Availability != HidHideAvailability.Ready)
+        {
+            Log.Warn($"HidHide is niet beschikbaar ({Availability}); {owned.Length} controller(s) blijven verborgen.");
+            return;
+        }
+        int failed = 0;
         foreach (var id in owned)
             if (TryUnhide(id)) Forget(id);
+            else failed++;
+        Log.Info(failed == 0
+            ? $"{owned.Length} controller(s) zichtbaar gemaakt."
+            : $"{owned.Length - failed} van {owned.Length} controller(s) zichtbaar gemaakt; {failed} blijven verborgen.");
         foreach (var key in _states.Keys) _states[key] = DeviceHideState.Off;
     }
 

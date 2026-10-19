@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:DS4Handler.App.Controls"
              xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
+             xmlns:v="clr-namespace:DS4Handler.App.Views"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:ControllerViewModel}">
 
@@ -255,10 +256,9 @@
                 </StackPanel>
             </TabItem>
 
-            <!-- The adjustable settings of this controller (deadzone shape, polling rate, response curves) go on
-                 this tab. Its header stays hidden until those settings exist, so the strip only shows "Live". -->
-            <TabItem Style="{StaticResource Tab}" Header="Afstellen" ToolTip="{x:Static vm:Tips.TabAdjust}" Visibility="Collapsed">
-                <StackPanel Margin="32,24,32,28" />
+            <!-- The adjustable settings of this controller (deadzone shapes, curves, polling rate). -->
+            <TabItem Style="{StaticResource Tab}" Header="Afstellen" ToolTip="{x:Static vm:Tips.TabAdjust}">
+                <v:TuningPanel Margin="32,24,32,28" DataContext="{Binding Tuning}" />
             </TabItem>
         </TabControl>
     </StackPanel>

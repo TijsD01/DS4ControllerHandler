@@ -238,6 +238,7 @@ public sealed class ControllerViewModel : ObservableObject
         _output = host.SettingsStore.Read(s => s.For(session.Id).Output);
         _sidebarMeta = $"{ModelShort} · {ConnectionText}";
 
+        Tuning = new TuningViewModel(session, host);
         ResetCommand = new RelayCommand(Reset);
         RecenterCommand = new RelayCommand(() => Session.StartGuidedCenter());
         CancelRecenterCommand = new RelayCommand(() => Session.CancelGuidedCenter());
@@ -248,6 +249,9 @@ public sealed class ControllerViewModel : ObservableObject
     public StickViewModel Right { get; }
     public TriggerViewModel L2 { get; }
     public TriggerViewModel R2 { get; }
+
+    /// <summary>The "Afstellen" tab (deadzone shapes, curves, poll rate, ...).</summary>
+    public TuningViewModel Tuning { get; }
 
     public ICommand ResetCommand { get; }
     public ICommand RecenterCommand { get; }
@@ -375,6 +379,7 @@ public sealed class ControllerViewModel : ObservableObject
         UpdateStatus();
         UpdateHide();
         UpdateProfile();
+        Tuning.Refresh(); // picks up a profile switch without applying it back
         if (Session.GetSummary() is { } summary)
         {
             Left.UpdateSummary(summary.Left, _snap.Left.GuidedInProgress);

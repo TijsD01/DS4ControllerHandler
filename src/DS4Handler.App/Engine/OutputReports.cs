@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using DS4Handler.Core.Input;
+using DS4Handler.Core.Output;
 
 namespace DS4Handler.App.Engine;
 
@@ -28,8 +29,9 @@ internal static class OutputReports
     /// <param name="large">Left / low-frequency motor (Xbox "large motor").</param>
     /// <param name="sequence">Rolling counter, only used by DualSense over Bluetooth.</param>
     /// <param name="red">Light bar colour (DS4 only; a game talking to a virtual DS4 may change it).</param>
+    /// <param name="btPollIntervalMs">DS4 over Bluetooth only: report interval the pad should send at (1..16 ms).</param>
     public static void Write(Span<byte> buffer, ControllerModel model, ConnectionType connection, byte small, byte large,
-        byte red, byte green, byte blue, byte sequence)
+        byte red, byte green, byte blue, byte sequence, int btPollIntervalMs = 1)
     {
         buffer.Clear();
         switch (model, connection)
@@ -47,7 +49,7 @@ internal static class OutputReports
             case (ControllerModel.DualShock4, ConnectionType.Bluetooth):
                 // Report 0x11, 78 bytes, CRC-32 over 0xA2 + bytes 0..73 stored at 74..77.
                 buffer[0] = 0x11;
-                buffer[1] = 0xC0;          // HID + CRC, poll interval 0
+                buffer[1] = Ds4BluetoothOutput.ControlByte(btPollIntervalMs); // HID + CRC, poll interval
                 buffer[3] = 0x07;          // rumble + light bar + flash
                 buffer[6] = small;
                 buffer[7] = large;

@@ -71,6 +71,7 @@ public sealed class ControllerSession : IDisposable
     private bool _appliedBlocked;
     private long _savedFingerprint;
     private Timer? _saveTimer;
+    private int _tuningSavePending;                  // 1 while a tuning save is queued on the thread pool
 
     // Virtual pad. Swapped under _padLock (also taken per report, uncontended) so a switch never
     // races a submit on a target that is being unplugged.
@@ -81,6 +82,7 @@ public sealed class ControllerSession : IDisposable
     private XboxReport _lastXbox;
     private Ds4OutputReport _lastDs4;
     private bool _hasSubmitted;
+    private long _lastSubmitTimestamp;              // Stopwatch ticks of the last submit, for the output rate limit
     private int _desiredMode;                       // OutputMode the user wants; applied by a worker
     private volatile bool _reconnectAttempted;      // one automatic retry after the driver refused input
 
@@ -179,13 +181,37 @@ public sealed class ControllerSession : IDisposable
     public bool CanSaveTuning => _profileLoaded && !ProfileBlocked;
 
     /// <summary>
-    /// Uses new tuning at once and saves it into the profile. Safe to call from the UI thread
-    /// (TODO(senior): saving and the Bluetooth poll-rate write must not block the caller).
+    /// Uses new tuning at once (sanitized) and saves it into the profile. Returns at once: the save runs
+    /// on the thread pool (quick repeated calls coalesce into one save of the latest values) and a new
+    /// Bluetooth poll interval is sent by the output writer. When <see cref="CanSaveTuning"/> is false
+    /// the tuning is used live but not saved.
     /// </summary>
+    /// <remarks>
+    /// Tuning applied while a profile switch is running lands on the profile being left; the UI should
+    /// re-read <see cref="Tuning"/> after a switch.
+    /// </remarks>
     public void ApplyTuning(InputTuning tuning)
     {
         ArgumentNullException.ThrowIfNull(tuning);
-        lock (_sync) if (_calibration != null) _calibration.Tuning = tuning;
+        lock (_sync)
+        {
+            if (_calibration == null) return;
+            _calibration.Tuning = tuning;
+        }
+        WakeOutputWriter(); // the poll interval is part of every Bluetooth output report
+        if (!CanSaveTuning || Volatile.Read(ref _disposed) != 0) return;
+        if (Interlocked.Exchange(ref _tuningSavePending, 1) != 0) return; // a queued save picks up these values
+        ThreadPool.QueueUserWorkItem(_ =>
+        {
+            Volatile.Write(ref _tuningSavePending, 0);
+            if (Volatile.Read(ref _disposed) != 0) return; // Dispose saves on its own
+            SaveProfile(force: true);
+        });
+    }
+
+    private void WakeOutputWriter()
+    {
+        try { _rumbleSignal.Set(); } catch (ObjectDisposedException) { }
     }
 
     /// <summary>
@@ -343,7 +369,7 @@ public sealed class ControllerSession : IDisposable
         }
     }
 
-    /// <summary>Forgets everything learned for this controller and saves the clean profile.</summary>
+    /// <summary>Forgets everything learned for this controller and saves the clean profile. The user's tuning stays.</summary>
     public void ResetCalibration()
     {
         lock (_sync) _calibration?.Reset();
@@ -408,6 +434,7 @@ public sealed class ControllerSession : IDisposable
         Interlocked.Exchange(ref _savedFingerprint, fingerprint);
         _appliedProfileId = target;
         _appliedBlocked = blocked;
+        WakeOutputWriter(); // the new profile may have another Bluetooth poll interval
         Log.Info(blocked ? $"{Id} draait zonder opslaan (profiel {target} in gebruik)." : $"{Id} gebruikt nu profiel {target}.");
     }
 
@@ -425,6 +452,7 @@ public sealed class ControllerSession : IDisposable
             if (!_profileLoaded) return false;
             lock (_sync) _calibration?.Import(profile);
             SaveProfileCore(force: true);
+            WakeOutputWriter();
             return true;
         }
     }
@@ -648,9 +676,12 @@ public sealed class ControllerSession : IDisposable
                 previousArrival = arrival;
 
                 CalibratedState output;
+                int outputRate;
                 lock (_sync)
                 {
-                    output = _calibration!.Process(raw, interval);
+                    var calibration = _calibration!;
+                    output = calibration.Process(raw, interval);
+                    outputRate = calibration.Tuning.OutputRateHz;
                     _raw = raw;
                     _output = output;
                     _hasInput = true;
@@ -658,7 +689,7 @@ public sealed class ControllerSession : IDisposable
                     _lastReportTimestamp = arrival;
                 }
 
-                SubmitVirtual(output);
+                SubmitVirtual(output, arrival, outputRate);
             }
         }
         catch (Exception ex) when (ex is IOException or ObjectDisposedException or InvalidOperationException or OperationCanceledException)
@@ -678,8 +709,13 @@ public sealed class ControllerSession : IDisposable
         }
     }
 
-    /// <summary>Hands one calibrated state to the virtual pad. Only changes go to the driver (games keep the last state).</summary>
-    private void SubmitVirtual(in CalibratedState output)
+    /// <summary>
+    /// Hands one calibrated state to the virtual pad. Only changes go to the driver (games keep the last
+    /// state). With <paramref name="outputRate"/> above 0, a change that comes sooner than 1/rate after
+    /// the previous submit waits: it is compared against the last <em>submitted</em> report, so the pad's
+    /// next report (they stream continuously) still sends it.
+    /// </summary>
+    private void SubmitVirtual(in CalibratedState output, long arrival, int outputRate)
     {
         lock (_padLock)
         {
@@ -689,6 +725,7 @@ public sealed class ControllerSession : IDisposable
                 {
                     var r = XboxMapper.Map(output);
                     if (_hasSubmitted && r == _lastXbox) return;
+                    if (TooSoon(arrival, outputRate)) return;
                     xbox.SetAxisValue(Xbox360Axis.LeftThumbX, r.LeftThumbX);
                     xbox.SetAxisValue(Xbox360Axis.LeftThumbY, r.LeftThumbY);
                     xbox.SetAxisValue(Xbox360Axis.RightThumbX, r.RightThumbX);
@@ -700,11 +737,13 @@ public sealed class ControllerSession : IDisposable
                     xbox.SubmitReport();
                     _lastXbox = r;
                     _hasSubmitted = true;
+                    _lastSubmitTimestamp = arrival;
                 }
                 else if (_ds4 is { } ds4)
                 {
                     var r = Ds4Mapper.Map(output);
                     if (_hasSubmitted && r == _lastDs4) return;
+                    if (TooSoon(arrival, outputRate)) return;
                     // The ref properties write straight into ViGEm's native report: no lookups, no allocations.
                     ds4.LeftThumbX = r.LeftX;
                     ds4.LeftThumbY = r.LeftY;
@@ -718,6 +757,7 @@ public sealed class ControllerSession : IDisposable
                     ds4.SubmitReport();
                     _lastDs4 = r;
                     _hasSubmitted = true;
+                    _lastSubmitTimestamp = arrival;
                 }
             }
             catch (Exception ex)
@@ -734,6 +774,17 @@ public sealed class ControllerSession : IDisposable
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// True when the output rate limit says to wait. Allows 1/8 of the interval early, so reports that
+    /// arrive with a little jitter at exactly the limit rate are not halved. Must be called under _padLock.
+    /// </summary>
+    private bool TooSoon(long arrival, int outputRate)
+    {
+        if (outputRate <= 0 || !_hasSubmitted) return false;
+        long minTicks = Stopwatch.Frequency / outputRate;
+        return arrival - _lastSubmitTimestamp < minTicks - (minTicks >> 3);
     }
 
     // Run on ViGEm's notification thread: only record the latest values and wake the writer.
@@ -763,9 +814,10 @@ public sealed class ControllerSession : IDisposable
                 if (token.IsCancellationRequested) break;
                 int rumble = Volatile.Read(ref _rumbleWanted);
                 int light = Volatile.Read(ref _lightbarWanted);
-                long wanted = ((long)light << 16) | (uint)rumble;
+                int poll = WantedPollInterval();
+                long wanted = ((long)poll << 40) | ((long)light << 16) | (uint)rumble;
                 if (wanted == sent) continue;
-                if (WriteOutput((byte)(rumble & 0xFF), (byte)(rumble >> 8), light)) sent = wanted;
+                if (WriteOutput((byte)(rumble & 0xFF), (byte)(rumble >> 8), light, poll)) sent = wanted;
             }
         }
         catch (ObjectDisposedException)
@@ -777,7 +829,14 @@ public sealed class ControllerSession : IDisposable
         }
     }
 
-    private bool WriteOutput(byte small, byte large, int lightbar)
+    /// <summary>The Bluetooth report interval from the tuning (DS4 over Bluetooth); 1 for everything else.</summary>
+    private int WantedPollInterval()
+    {
+        if (!SupportsBluetoothPollRate) return 1;
+        lock (_sync) return _calibration?.Tuning.BluetoothPollIntervalMs ?? 1;
+    }
+
+    private bool WriteOutput(byte small, byte large, int lightbar, int pollIntervalMs)
     {
         var stream = _stream;
         if (stream == null) return false;
@@ -786,7 +845,7 @@ public sealed class ControllerSession : IDisposable
             lock (_outputBuffer)
             {
                 OutputReports.Write(_outputBuffer, Model, Connection, small, large,
-                    (byte)(lightbar >> 16), (byte)(lightbar >> 8), (byte)lightbar, _outputSequence++);
+                    (byte)(lightbar >> 16), (byte)(lightbar >> 8), (byte)lightbar, _outputSequence++, pollIntervalMs);
                 stream.Write(_outputBuffer, 0, _outputBuffer.Length);
             }
             return true;
@@ -798,7 +857,7 @@ public sealed class ControllerSession : IDisposable
         }
     }
 
-    /// <summary>Hash of what matters in a profile, to skip saving when nothing was learned.</summary>
+    /// <summary>Hash of what matters in a profile (learned values and tuning), to skip saving when nothing changed.</summary>
     private static long Fingerprint(CalibrationProfile p)
     {
         var h = new HashCode();
@@ -806,6 +865,7 @@ public sealed class ControllerSession : IDisposable
         AddStick(ref h, p.RightStick);
         AddTrigger(ref h, p.L2);
         AddTrigger(ref h, p.R2);
+        AddTuning(ref h, p.Tuning ?? InputTuning.Default);
         return (uint)h.ToHashCode() | (1L << 40); // never 0, which means "no saved file yet"
 
         static void AddStick(ref HashCode h, StickCalibrationData d)
@@ -820,6 +880,13 @@ public sealed class ControllerSession : IDisposable
             h.Add(d.Rest); h.Add(d.EndStop); h.Add(d.EndStopLearned); h.Add(d.PressCount);
             foreach (float r in d.RecentPeaks ?? Array.Empty<float>()) h.Add(r);
         }
+
+        static void AddTuning(ref HashCode h, InputTuning t)
+        {
+            // Records hash all their fields, sections included.
+            h.Add(t.LeftStick); h.Add(t.RightStick); h.Add(t.L2); h.Add(t.R2);
+            h.Add(t.BluetoothPollIntervalMs); h.Add(t.OutputRateHz);
+        }
     }
 
     /// <summary>Stops reading, stops the motors, saves the profile and unplugs the virtual controller.</summary>
@@ -831,7 +898,7 @@ public sealed class ControllerSession : IDisposable
         _saveTimer?.Dispose();
         _rumbleSignal.Set();
         if (_rumbleThread != null && _rumbleThread != Thread.CurrentThread) _rumbleThread.Join(500);
-        if (_outputBuffer.Length > 0) WriteOutput(0, 0, LightbarDefault); // never leave the motors running
+        if (_outputBuffer.Length > 0) WriteOutput(0, 0, LightbarDefault, 1); // never leave the motors running; poll interval back to 1 ms
 
         try { _stream?.Dispose(); } catch { }
         if (_readThread != null && _readThread != Thread.CurrentThread) _readThread.Join(2000);

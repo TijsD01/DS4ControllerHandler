@@ -34,7 +34,7 @@
                             <Border Style="{StaticResource SettingRow}" Padding="16,14">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="240" />
+                                        <ColumnDefinition Width="2*" MaxWidth="240" />
                                         <ColumnDefinition Width="150" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="280" />
@@ -74,7 +74,7 @@
                             <Border Style="{StaticResource SettingRow}" Padding="16,14">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="240" />
+                                        <ColumnDefinition Width="2*" MaxWidth="240" />
                                         <ColumnDefinition Width="150" />
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />

@@ -107,9 +107,12 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <TextBlock Text="Geen controller aangesloten" FontSize="13" Foreground="{StaticResource TextMutedBrush}" Margin="20,4"
-                                   ToolTip="{x:Static vm:Tips.EmptyState}" Background="Transparent"
-                                   Visibility="{Binding IsEmpty, Converter={StaticResource BoolVis}}" />
+                        <!-- Clickable, so the empty-state page stays reachable from Profielen / Instellingen. -->
+                        <Button Style="{StaticResource SideNavItem}" Padding="12,4" Command="{Binding ShowControllersCommand}"
+                                Tag="{Binding ShowControllers, Mode=OneWay}" ToolTip="{x:Static vm:Tips.EmptyState}"
+                                Visibility="{Binding IsEmpty, Converter={StaticResource BoolVis}}">
+                            <TextBlock Text="Geen controller aangesloten" FontSize="13" />
+                        </Button>
 
                         <Rectangle Height="1" Fill="{StaticResource HairlineBrush}" Margin="20,14" />
 

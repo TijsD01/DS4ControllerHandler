@@ -96,8 +96,9 @@
                 </Grid>
                 <DockPanel Margin="0,8,0,0">
                     <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" />
-                    <TextBlock HorizontalAlignment="Right" Style="{StaticResource Mono}" FontSize="13"
-                               Foreground="{StaticResource TextDimBrush}" Text="{Binding ValueText}" />
+                    <!-- Wraps to two lines when the window is narrow instead of being cut off. -->
+                    <TextBlock HorizontalAlignment="Right" Style="{StaticResource Mono}" FontSize="13" TextWrapping="Wrap" TextAlignment="Right"
+                               Margin="8,0,0,0" Foreground="{StaticResource TextDimBrush}" Text="{Binding ValueText}" />
                 </DockPanel>
                 <TextBlock Margin="0,2,0,0" Style="{StaticResource Mono}" Cursor="Help" ToolTip="{Binding DeadzoneTip}" HorizontalAlignment="Left">
                     <Run Text="deadzone" />

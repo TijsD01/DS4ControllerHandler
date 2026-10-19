@@ -195,20 +195,25 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="12,10" Margin="0,0,10,12">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="20" ShadowDepth="6" Direction="270" Opacity="0.4" />
-                        </Border.Effect>
-                        <ContentPresenter>
-                            <ContentPresenter.Resources>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="TextWrapping" Value="Wrap" />
-                                    <Setter Property="LineHeight" Value="19" />
-                                </Style>
-                            </ContentPresenter.Resources>
-                        </ContentPresenter>
-                    </Border>
+                    <!-- The shadow sits on a separate layer: an Effect on the text's own parent would turn off ClearType. -->
+                    <Grid Margin="0,0,10,12">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="20" ShadowDepth="6" Direction="270" Opacity="0.4" />
+                            </Border.Effect>
+                        </Border>
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="12,10">
+                            <ContentPresenter>
+                                <ContentPresenter.Resources>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextWrapping" Value="Wrap" />
+                                        <Setter Property="LineHeight" Value="19" />
+                                    </Style>
+                                </ContentPresenter.Resources>
+                            </ContentPresenter>
+                        </Border>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -653,16 +658,21 @@
                                           Margin="12,0,32,0" VerticalAlignment="Center" IsHitTestVisible="False" />
                         <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True"
                                Focusable="False" PopupAnimation="Fade">
-                            <Border Background="{StaticResource TooltipBrush}" BorderBrush="{StaticResource PopupBorderBrush}" BorderThickness="1" CornerRadius="4"
-                                    Padding="4" Margin="0,4,10,12" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
-                                    MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                <Border.Effect>
-                                    <DropShadowEffect BlurRadius="20" ShadowDepth="6" Direction="270" Opacity="0.4" />
-                                </Border.Effect>
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
-                                </ScrollViewer>
-                            </Border>
+                            <!-- Shadow on its own layer so the item text keeps ClearType. -->
+                            <Grid Margin="0,4,10,12">
+                                <Border Background="{StaticResource TooltipBrush}" CornerRadius="4">
+                                    <Border.Effect>
+                                        <DropShadowEffect BlurRadius="20" ShadowDepth="6" Direction="270" Opacity="0.4" />
+                                    </Border.Effect>
+                                </Border>
+                                <Border Background="{StaticResource TooltipBrush}" BorderBrush="{StaticResource PopupBorderBrush}" BorderThickness="1" CornerRadius="4"
+                                        Padding="4" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                        MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Grid>
                         </Popup>
                     </Grid>
                 </ControlTemplate>

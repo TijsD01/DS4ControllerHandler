@@ -168,7 +168,7 @@ public sealed class ProfileLibrary
 
     /// <summary>True when a profile with this id is saved or known.</summary>
     public bool Exists(string id) =>
-        _store.Load(id) != null || _manager.IsProfileInUse(id);
+        _store.Exists(id) || _manager.IsProfileInUse(id); // a damaged file counts too: never replace it unasked
 
     /// <summary>Saves an imported profile under its own controller id. Returns a Dutch error, or null when done.</summary>
     public string? Import(ImportedProfile imported)

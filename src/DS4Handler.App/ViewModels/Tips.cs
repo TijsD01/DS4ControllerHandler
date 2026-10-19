@@ -157,4 +157,48 @@ public static class Tips
     public const string ProfileBlockedOnCard =
         "Het profiel van deze controller wordt al gebruikt door een andere aangesloten controller. Om te voorkomen dat beide hetzelfde bestand overschrijven, draait deze controller tijdelijk met fabriekswaarden en wordt er niets opgeslagen. Kies bij Profielen een ander profiel of sluit hem later opnieuw aan.";
     public const string OpenProfileFolder = "Opent de map waarin de profielbestanden staan.";
+
+    // ----- Afstellen -----
+    public const string TuneToggle =
+        "Stel zelf af hoe sticks en triggers reageren: extra deadzone, vorm, gevoeligheid en hoe snel de app meet en doorgeeft. Alles staat standaard op 'niets veranderen'.";
+    public const string TuneSection =
+        "Deze instellingen komen bovenop wat de app zelf heeft geleerd. Ze worden in het profiel van de controller bewaard.";
+    public const string TuneResetAll = "Zet alle instellingen van Afstellen voor deze controller terug naar standaard. Wat de app heeft geleerd blijft staan.";
+    public const string TuneResetSection = "Zet alleen dit onderdeel terug naar standaard.";
+    public const string TuneShape =
+        "De vorm van de extra deadzone rond het midden van de stick.";
+    public const string TuneShapeRadial =
+        "Rond: de stick moet eerst uit een cirkel om het midden voordat er iets gebeurt. Voelt in alle richtingen hetzelfde. Dit is de normale keuze.";
+    public const string TuneShapeSquare =
+        "Vierkant: de stick telt pas als je op minstens één as ver genoeg duwt; kleine schuine bewegingen rond het midden worden genegeerd. Veel Rocket League-spelers gebruiken dit voor rustig en recht sturen.";
+    public const string TuneShapeAxial =
+        "Kruis: elke richting (links-rechts en omhoog-omlaag) heeft zijn eigen deadzone, zodat een klein zijwaarts wobbeltje niet doorlekt in een rechte duw. Ook anti-deadzone en gevoeligheid werken dan per as. Diagonalen voelen wel wat hoekiger.";
+    public const string TuneInner =
+        "Extra deadzone: de stick moet eerst zo ver bewegen voordat de game iets merkt. Komt bovenop de deadzone die de app zelf heeft geleerd. Handig als je personage of camera nog licht beweegt zonder dat je iets doet. Bij Vierkant en Kruis kan hij minder groot, en hoe hoger het eindpunt, hoe lager het maximum, zodat je altijd een werkend bereik overhoudt.";
+    public const string TuneOuter =
+        "Eindpunt: de stick geeft al volle kracht voordat hij tegen de rand zit. Handig als de rand van de stick moeilijk te halen is, bijvoorbeeld door een dikke stickdop of een versleten stick.";
+    public const string TuneAnti =
+        "Anti-deadzone: zodra de stick de deadzone verlaat springt de uitvoer meteen naar minstens dit percentage. Gebruik dit als de game zelf een deadzone heeft: dan reageert je stick meteen, in plaats van dat je eerst een stuk moet duwen. Begin klein, ongeveer 10%. Bij Kruis geldt dit per as.";
+    public const string TuneTriggerAnti =
+        "Anti-deadzone: zodra je de trigger voorbij zijn deadzone indrukt, springt de uitvoer meteen naar minstens dit percentage. Handig als de game zelf pas reageert na een stukje indrukken. Begin klein, ongeveer 10%.";
+    public const string TuneCurve =
+        "Curve: hoe de stick reageert tussen midden en rand. Lineair is gewoon 1 op 1. Hoger dan 1 is rustiger rond het midden (precies richten) en heftiger aan de rand. Lager dan 1 is juist snel bij kleine bewegingen.";
+    public const string TuneSensitivity =
+        "Gevoeligheid: vermenigvuldigt de uitslag van de stick. Boven 1× haal je volle uitslag al voordat de stick de rand raakt; onder 1× haal je nooit helemaal vol. De uitkomst gaat nooit boven 100%. Bij Kruis werkt dit per as.";
+    public const string TuneSquareOutput =
+        "Vierkante uitvoer: schuin duwen geeft op beide assen 100%, in plaats van maximaal ongeveer 70% per as. Handig voor games waar je diagonaal volle snelheid wilt. Zet dit niet aan als een game zelf al een vierkant bereik gebruikt.";
+    public const string TuneInvertX = "Draait links en rechts om voor deze stick.";
+    public const string TuneInvertY = "Draait omhoog en omlaag om voor deze stick. Handig voor vliegen of de camera 'omgekeerd'.";
+    public const string TuneTriggerInner =
+        "Extra deadzone: de trigger moet eerst zo ver worden ingedrukt voordat de game iets merkt. Handig als een trigger al licht reageert terwijl je hem loslaat.";
+    public const string TuneTriggerOuter =
+        "Eindpunt: de trigger geeft al volle kracht voordat hij helemaal is ingedrukt. Handig voor sneller gas geven of schieten.";
+    public const string TunePoll =
+        "Hoe vaak per seconde de controller zijn standen doorgeeft. Hoger geeft minder vertraging, maar kost meer batterij. 250 of meer is prima voor de meeste games.\n" +
+        "Alleen te kiezen voor een DualShock 4 via Bluetooth. Via USB bepaalt de controller zelf de snelheid.";
+    public const string TunePollUnavailable =
+        "Dit kan alleen voor een DualShock 4 via Bluetooth. Via USB, en bij een DualSense, bepaalt de controller zelf hoe vaak hij meet.";
+    public const string TuneOutputRate =
+        "Hoe vaak per seconde de virtuele controller wordt bijgewerkt voor games.\n" +
+        "'Elke meting' is het snelst en voor bijna iedereen goed. Beperken is alleen nodig bij een trage pc of een game die zich verslikt in heel veel updates.";
 }

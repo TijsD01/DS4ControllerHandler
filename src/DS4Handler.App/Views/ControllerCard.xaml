@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:DS4Handler.App.Controls"
              xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
+             xmlns:v="clr-namespace:DS4Handler.App.Views"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:ControllerViewModel}">
 
@@ -91,11 +92,13 @@
                 </TextBlock>
             </StackPanel>
         </DataTemplate>
+
     </UserControl.Resources>
 
     <Border Style="{StaticResource Card}" Margin="0,0,0,18">
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -255,7 +258,21 @@
                         <TextBlock Text="Kalibratie resetten" />
                     </StackPanel>
                 </Button>
+                <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Command="{Binding ToggleTuningCommand}"
+                        ToolTip="{x:Static vm:Tips.TuneToggle}" Margin="0,0,10,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Icon}" FontSize="13" Text="&#xE713;" Margin="0,0,8,0" />
+                        <TextBlock Text="Afstellen" />
+                        <TextBlock Style="{StaticResource Icon}" FontSize="11" Text="{Binding TuningChevron}" Margin="8,2,0,0" />
+                    </StackPanel>
+                </Button>
             </DockPanel>
+
+            <!-- ===== Afstellen (collapsed by default) ===== -->
+            <Border Grid.Row="4" Style="{StaticResource Panel}" Margin="0,18,0,0"
+                    Visibility="{Binding TuningExpanded, Converter={StaticResource BoolVis}}">
+                <v:TuningPanel DataContext="{Binding Tuning}" />
+            </Border>
         </Grid>
     </Border>
 </UserControl>

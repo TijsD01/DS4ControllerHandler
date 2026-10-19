@@ -1,5 +1,6 @@
 using DS4Handler.Core.Input;
 using DS4Handler.Core.Profiles;
+using DS4Handler.Core.Tuning;
 
 namespace DS4Handler.Core.Calibration;
 
@@ -35,6 +36,18 @@ public sealed class ControllerCalibration
     public TriggerCalibrator L2 { get; }
     public TriggerCalibrator R2 { get; }
 
+    private InputTuning _tuning = InputTuning.Default;
+
+    /// <summary>
+    /// User tuning applied after calibration (see <see cref="InputTuning"/> and <see cref="InputShaper"/>).
+    /// Part of the profile; <see cref="Reset"/> keeps it. Values are sanitized on assignment; null means default.
+    /// </summary>
+    public InputTuning Tuning
+    {
+        get => _tuning;
+        set => _tuning = InputShaper.Sanitize(value);
+    }
+
     /// <summary>Turns learning on or off for all four inputs at once.</summary>
     public bool LearningEnabled
     {
@@ -69,7 +82,7 @@ public sealed class ControllerCalibration
         var (rx, ry) = RightStick.Process(raw.RightX, raw.RightY);
         float l2 = L2.Process(raw.L2);
         float r2 = R2.Process(raw.R2);
-        return new CalibratedState(lx, ly, rx, ry, l2, r2, raw.Buttons);
+        return Shape(new CalibratedState(lx, ly, rx, ry, l2, r2, raw.Buttons));
     }
 
     /// <summary>
@@ -83,9 +96,20 @@ public sealed class ControllerCalibration
         var (rx, ry) = RightStick.Process(raw.RightX, raw.RightY, dtSeconds);
         float l2 = L2.Process(raw.L2);
         float r2 = R2.Process(raw.R2);
-        return new CalibratedState(lx, ly, rx, ry, l2, r2, raw.Buttons);
+        return Shape(new CalibratedState(lx, ly, rx, ry, l2, r2, raw.Buttons));
     }
 
+    /// <summary>Applies <see cref="Tuning"/> to a calibrated state. Allocation free.</summary>
+    private CalibratedState Shape(in CalibratedState c)
+    {
+        var t = _tuning;
+        var (lx, ly) = InputShaper.ShapeStick(c.LeftX, c.LeftY, t.LeftStick);
+        var (rx, ry) = InputShaper.ShapeStick(c.RightX, c.RightY, t.RightStick);
+        return new CalibratedState(lx, ly, rx, ry,
+            InputShaper.ShapeTrigger(c.L2, t.L2), InputShaper.ShapeTrigger(c.R2, t.R2), c.Buttons);
+    }
+
+    /// <summary>Forgets what was learned. The user's <see cref="Tuning"/> stays.</summary>
     public void Reset()
     {
         LeftStick.Reset();
@@ -102,6 +126,7 @@ public sealed class ControllerCalibration
         RightStick = RightStick.Export(),
         L2 = L2.Export(),
         R2 = R2.Export(),
+        Tuning = _tuning,
         UpdatedUtc = DateTime.UtcNow,
     };
 
@@ -113,5 +138,6 @@ public sealed class ControllerCalibration
         RightStick.Import(profile.RightStick ?? new());
         L2.Import(profile.L2 ?? new());
         R2.Import(profile.R2 ?? new());
+        Tuning = profile.Tuning; // sanitized; null (older or damaged files) becomes the default
     }
 }

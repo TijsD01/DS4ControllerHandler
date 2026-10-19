@@ -10,11 +10,10 @@ namespace DS4Handler.Core.Persistence;
 /// </summary>
 public static class JsonSalvage
 {
-    private static readonly Regex QuotedString = new(@"""((?:[^""\\]|\\.)*)""", RegexOptions.CultureInvariant);
-
     /// <summary>
     /// The strings of the array property <paramref name="name"/>. A cut-off array gives the complete
-    /// strings before the cut. Empty when the property is not found.
+    /// strings before the cut; a damaged array (missing ']', anything but strings and commas) gives the strings
+    /// before the damage. Empty when the property is not found. One pass over the text.
     /// </summary>
     public static List<string> StringArray(string? json, string name)
     {
@@ -22,15 +21,23 @@ public static class JsonSalvage
         if (string.IsNullOrEmpty(json)) return result;
         var start = Regex.Match(json, "\"" + Regex.Escape(name) + @"""\s*:\s*\[", RegexOptions.CultureInvariant);
         if (!start.Success) return result;
-        int from = start.Index + start.Length;
-        int end = IndexOfArrayEnd(json, from);
-        var body = json[from..end];
-        foreach (Match m in QuotedString.Matches(body))
+        int i = start.Index + start.Length;
+        while (true)
         {
-            var value = Unescape(m.Groups[1].Value);
+            i = SkipWhitespace(json, i);
+            if (i >= json.Length || json[i] != '"') return result; // ']', end of text or damage
+            int close = IndexOfStringEnd(json, i + 1);
+            if (close < 0) return result; // cut off inside the string
+            var raw = json[(i + 1)..close];
+            i = SkipWhitespace(json, close + 1);
+            // Only a string followed by ',' or ']' (or the end of a cut-off file) is an array element;
+            // "x": means the ']' is missing and this is already the next property.
+            if (i < json.Length && json[i] != ',' && json[i] != ']') return result;
+            var value = Unescape(raw);
             if (!string.IsNullOrWhiteSpace(value) && !result.Contains(value, StringComparer.OrdinalIgnoreCase)) result.Add(value);
+            if (i >= json.Length || json[i] == ']') return result;
+            i++; // ','
         }
-        return result;
     }
 
     /// <summary>The boolean property <paramref name="name"/>; null when it is not found.</summary>
@@ -41,22 +48,21 @@ public static class JsonSalvage
         return m.Success ? m.Groups[1].Value == "true" : null;
     }
 
-    /// <summary>Index of the ']' closing the array that starts at <paramref name="from"/> (skipping strings), or the text end.</summary>
-    private static int IndexOfArrayEnd(string json, int from)
+    private static int SkipWhitespace(string json, int i)
     {
-        bool inString = false;
+        while (i < json.Length && char.IsWhiteSpace(json[i])) i++;
+        return i;
+    }
+
+    /// <summary>Index of the '"' closing the string whose text starts at <paramref name="from"/>; -1 when it never closes.</summary>
+    private static int IndexOfStringEnd(string json, int from)
+    {
         for (int i = from; i < json.Length; i++)
         {
-            char c = json[i];
-            if (inString)
-            {
-                if (c == '\\') i++;
-                else if (c == '"') inString = false;
-            }
-            else if (c == '"') inString = true;
-            else if (c == ']') return i;
+            if (json[i] == '\\') i++;
+            else if (json[i] == '"') return i;
         }
-        return json.Length;
+        return -1;
     }
 
     private static string Unescape(string raw)

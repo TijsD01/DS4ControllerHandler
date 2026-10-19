@@ -151,11 +151,12 @@ public class JsonSalvageEdgeTests
     public void Bool_Whitespace(string json, bool expected) => Assert.Equal(expected, JsonSalvage.Bool(json, "HidHideActivatedByApp"));
 
     [Fact]
-    public void NestedArray_StopsAtTheFirstClose()
+    public void NestedArray_IsNotAStringArray()
     {
-        // Not something the app writes; only checks it does not run on into the rest of the file.
+        // Not something the app writes; only checks it does not run on into the rest of the file
+        // (a non-string element ends the salvage).
         var json = "{\"HiddenInstanceIds\": [[\"A\"], \"B\"], \"X\": [\"C\"]}";
-        Assert.Equal(new[] { "A" }, JsonSalvage.StringArray(json, "HiddenInstanceIds"));
+        Assert.Empty(JsonSalvage.StringArray(json, "HiddenInstanceIds"));
     }
 
     [Fact]

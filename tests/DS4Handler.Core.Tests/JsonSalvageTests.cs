@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using DS4Handler.Core.Persistence;
 
@@ -54,5 +55,25 @@ public class JsonSalvageTests
     {
         Assert.Empty(JsonSalvage.StringArray(text, "HiddenInstanceIds"));
         Assert.Null(JsonSalvage.Bool(text, "HidHideActivatedByApp"));
+    }
+
+    [Fact]
+    public void ArrayMissingItsClosingBracket_DoesNotTurnTheRestOfTheFileIntoIds()
+    {
+        // Hand edit that deleted the ']' (or a write that lost a block in the middle): the strings after the
+        // array (property names, controller names, versions) must not come back as instance ids.
+        var json = "{\n  \"HiddenInstanceIds\": [\n    \"HID\\\\A\"\n  ,\n  \"HidHideActivatedByApp\": true,\n  \"LastRunVersion\": \"1.2.0\",\n  \"Controllers\": { \"054C-09CC-AB\": { \"Name\": \"Controller van Sem\" } }\n}";
+        Assert.Equal(new[] { @"HID\A" }, JsonSalvage.StringArray(json, "HiddenInstanceIds"));
+    }
+
+    [Fact]
+    public void UnterminatedArray_WithManyEscapedQuotes_IsLinear()
+    {
+        // A regex over the array used to restart at every '"' and scan to the end: O(n^2), 100 KB took a minute
+        // at app start. The scanner is one pass.
+        var json = "{\"HiddenInstanceIds\": [\"A\", " + string.Concat(Enumerable.Repeat("\\\"", 10_000));
+        var sw = Stopwatch.StartNew();
+        JsonSalvage.StringArray(json, "HiddenInstanceIds");
+        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(0.5), $"took {sw.Elapsed}");
     }
 }

@@ -16,12 +16,16 @@ public partial class App : Application
 {
     private const string MutexName = @"Local\DS4Handler.SingleInstance";
     private const string ShowEventName = @"Local\DS4Handler.Show";
+    /// <summary>Set by DS4Handler.exe --unhide (uninstall) to make a running instance exit cleanly first.</summary>
+    private const string QuitEventName = @"Local\DS4Handler.Quit";
     private static readonly TimeSpan FastTick = TimeSpan.FromMilliseconds(33);
     private static readonly TimeSpan SlowTick = TimeSpan.FromSeconds(1);
 
     private Mutex? _mutex;
-    private EventWaitHandle? _showEvent;
+    private WaitHandle? _showEvent;
     private RegisteredWaitHandle? _showWait;
+    private WaitHandle? _quitEvent;
+    private RegisteredWaitHandle? _quitWait;
     private AppHost? _host;
     private MainViewModel? _viewModel;
     private MainWindow? _window;
@@ -35,30 +39,34 @@ public partial class App : Application
 
         if (e.Args.Contains("--unhide", StringComparer.OrdinalIgnoreCase))
         {
-            // Started by the uninstaller after it killed the app: the normal exit never ran, so give back
-            // the controllers this app hid. Runs before the single-instance check; no window, no tray.
-            var store = new SettingsStore();
-            try { new HidHideService(store).UnhideAllAsync().Wait(TimeSpan.FromSeconds(10)); }
-            catch (Exception ex) { Log.Warn("Controllers zichtbaar maken (verwijderen) mislukt", ex); }
-            store.Save();
-            Log.Info("Controllers zichtbaar gemaakt (verwijderen).");
-            Shutdown();
+            Shutdown(RunUninstallCleanup(e.Args.Contains("--all-users", StringComparer.OrdinalIgnoreCase)));
             return;
         }
 
-        _mutex = new Mutex(true, MutexName, out bool first);
+        bool first;
+        try { _mutex = new Mutex(true, MutexName, out first); }
+        catch (UnauthorizedAccessException) { first = false; } // an elevated instance owns it: same as "already running"
         if (!first)
         {
             // Already running: bring that window to the front instead of starting twice.
             try { EventWaitHandle.OpenExisting(ShowEventName).Set(); } catch { }
-            _mutex.Dispose();
+            _mutex?.Dispose();
             _mutex = null;
             Shutdown();
             return;
         }
-        _showEvent = new EventWaitHandle(false, EventResetMode.AutoReset, ShowEventName);
-        _showWait = ThreadPool.RegisterWaitForSingleObject(_showEvent,
-            (_, _) => Dispatcher.BeginInvoke(ShowWindow), null, Timeout.Infinite, executeOnlyOnce: false);
+        // Settable by a normal second start even when this instance runs as administrator.
+        _showEvent = NamedEvents.TryCreateSignalableByUser(ShowEventName);
+        if (_showEvent != null)
+            _showWait = ThreadPool.RegisterWaitForSingleObject(_showEvent,
+                (_, _) => Dispatcher.BeginInvoke(ShowWindow), null, Timeout.Infinite, executeOnlyOnce: false);
+        _quitEvent = NamedEvents.TryCreateSignalableByUser(QuitEventName);
+        if (_quitEvent != null)
+            _quitWait = ThreadPool.RegisterWaitForSingleObject(_quitEvent, (_, _) => Dispatcher.BeginInvoke(() =>
+            {
+                Log.Info("Afsluiten op verzoek van het verwijderprogramma.");
+                Quit();
+            }), null, Timeout.Infinite, executeOnlyOnce: true);
 
         DispatcherUnhandledException += OnUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
@@ -98,6 +106,86 @@ public partial class App : Application
         bool startHidden = _host.SettingsStore.Read(s => s.StartMinimized)
                            || e.Args.Contains("--minimized", StringComparer.OrdinalIgnoreCase);
         if (!startHidden) ShowWindow();
+    }
+
+    /// <summary>
+    /// DS4Handler.exe --unhide, started by the uninstaller after taskkill: the normal exit never ran, so give back
+    /// what this app changed in HidHide. No window, no tray. Returns the exit code (0 = nothing left hidden).
+    /// </summary>
+    private int RunUninstallCleanup(bool allUsers)
+    {
+        // Never work next to a live instance (taskkill cannot stop one that runs as administrator):
+        // it would write its own hidden-controller list back or hide the pads again.
+        _mutex = TakeInstanceMutex(TimeSpan.FromSeconds(10));
+        if (_mutex == null)
+        {
+            Log.Warn("Verwijderen: DS4 Handler draait nog en sloot niet af; controllers niet zichtbaar gemaakt. Ze worden weer zichtbaar zodra die app afsluit (als dat is ingesteld).");
+            return 2;
+        }
+        try
+        {
+            var store = new SettingsStore();
+            var report = HidHideUninstall.Run(store, allUsers, TimeSpan.FromSeconds(15));
+            return report.Complete ? 0 : 1;
+        }
+        catch (Exception ex)
+        {
+            Log.Warn("Verwijderen: controllers zichtbaar maken mislukt", ex);
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Takes the single-instance mutex, asking a running instance to quit and waiting up to <paramref name="timeout"/>
+    /// for it. Null when it keeps running.
+    /// </summary>
+    private static Mutex? TakeInstanceMutex(TimeSpan timeout)
+    {
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        bool asked = false;
+        while (true)
+        {
+            try
+            {
+                var mutex = new Mutex(true, MutexName, out bool created);
+                if (created) return mutex;
+                if (!asked) asked = AskRunningInstanceToQuit();
+                try
+                {
+                    var left = timeout - clock.Elapsed;
+                    if (left > TimeSpan.Zero && mutex.WaitOne(left)) return mutex;
+                }
+                catch (AbandonedMutexException)
+                {
+                    return mutex; // the old instance died holding it; we own it now
+                }
+                mutex.Dispose();
+                return null;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Held by an instance running as administrator: we may not wait on it, so poll until it is gone.
+                if (!asked) asked = AskRunningInstanceToQuit();
+            }
+            if (clock.Elapsed >= timeout) return null;
+            Thread.Sleep(250);
+        }
+    }
+
+    private static bool AskRunningInstanceToQuit()
+    {
+        try
+        {
+            using var quit = EventWaitHandle.OpenExisting(QuitEventName);
+            quit.Set();
+            Log.Info("Verwijderen: draaiende DS4 Handler gevraagd af te sluiten.");
+        }
+        catch (Exception ex)
+        {
+            // Older version without the event, or no access: just wait for it.
+            Log.Warn("Verwijderen: draaiende DS4 Handler kon niet gevraagd worden af te sluiten", ex);
+        }
+        return true;
     }
 
     /// <summary>Tooltips are the help system of this app: show them quickly and keep them up while reading.</summary>
@@ -189,6 +277,8 @@ public partial class App : Application
         ShutdownHost();
         _showWait?.Unregister(null);
         _showEvent?.Dispose();
+        _quitWait?.Unregister(null);
+        _quitEvent?.Dispose();
         if (_mutex != null)
         {
             try { _mutex.ReleaseMutex(); } catch { }

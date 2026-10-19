@@ -77,8 +77,11 @@
                                         <ColumnDefinition Width="2*" MaxWidth="240" />
                                         <ColumnDefinition Width="150" />
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
 
                                     <!-- Name (editable) -->
                                     <Grid Margin="0,0,20,0" VerticalAlignment="Center">
@@ -99,7 +102,7 @@
                                     </StackPanel>
 
                                     <!-- Status, what was learned, used by -->
-                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,20,0">
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                         <StackPanel Orientation="Horizontal" ToolTip="{Binding StatusTip}" Background="Transparent" HorizontalAlignment="Left">
                                             <Rectangle Style="{StaticResource Dot}" Margin="0,0,8,0"
                                                        Fill="{Binding StatusLevel, Converter={StaticResource LevelBrush}}" />
@@ -114,14 +117,14 @@
                                     </StackPanel>
 
                                     <!-- Actions -->
-                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <WrapPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="-10,8,0,0">
                                         <Button Style="{StaticResource LinkButton}" Content="Hernoemen" Command="{Binding RenameCommand}" ToolTip="{x:Static vm:Tips.ProfileRename}" />
                                         <Button Style="{StaticResource LinkButton}" Content="Kopiëren naar…" Click="OnCopyClick"
                                                 IsEnabled="{Binding CanCopy}" ToolTip="{Binding CopyTip}" />
                                         <Button Style="{StaticResource LinkButton}" Content="Exporteren…" Command="{Binding ExportCommand}" ToolTip="{x:Static vm:Tips.ProfileExport}" />
                                         <Button Style="{StaticResource LinkButton}" Foreground="{StaticResource DangerBrush}" Content="Verwijderen"
                                                 Command="{Binding DeleteCommand}" IsEnabled="{Binding CanDelete}" ToolTip="{Binding DeleteTip}" />
-                                    </StackPanel>
+                                    </WrapPanel>
                                 </Grid>
                             </Border>
                         </DataTemplate>

@@ -133,11 +133,11 @@
                             <Run Text="Je PlayStation-controller werkt in games als een Xbox 360-controller. De app leert vanzelf de drift van je sticks en de slijtage van je triggers en corrigeert die." />
                         </TextBlock>
                         <WrapPanel>
-                            <Button Content="Profielmap openen" Command="{Binding OpenProfilesCommand}" Margin="0,0,8,0"
+                            <Button Content="Profielmap openen" Command="{Binding OpenProfilesCommand}" Margin="0,0,8,8"
                                     ToolTip="{x:Static vm:Tips.OpenProfiles}" />
-                            <Button Content="Logbestand openen" Command="{Binding OpenLogCommand}" Margin="0,0,8,0"
+                            <Button Content="Logbestand openen" Command="{Binding OpenLogCommand}" Margin="0,0,8,8"
                                     ToolTip="{x:Static vm:Tips.OpenLog}" />
-                            <Button Style="{StaticResource GhostButton}" Content="ViGEmBus downloaden" Command="{Binding DownloadViGEmCommand}"
+                            <Button Style="{StaticResource GhostButton}" Content="ViGEmBus downloaden" Command="{Binding DownloadViGEmCommand}" Margin="0,0,0,8"
                                     ToolTip="{x:Static vm:Tips.DownloadViGEm}" />
                         </WrapPanel>
                     </StackPanel>

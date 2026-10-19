@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Text.Json.Serialization;
 using DS4Handler.Core.Calibration;
+using DS4Handler.Core.Tuning;
 using DS4Handler.Core.Input;
 
 namespace DS4Handler.Core.Profiles;
@@ -94,7 +95,7 @@ public static class ProfileTransfer
     }
 
     /// <summary>
-    /// A deep copy of <paramref name="source"/>'s learned calibration for another controller: only the
+    /// A deep copy of <paramref name="source"/>'s learned calibration and tuning for another controller: only the
     /// id, the model and the time change. The source is left untouched.
     /// </summary>
     public static CalibrationProfile CopyFor(CalibrationProfile source, string targetId, ControllerModel targetModel)
@@ -175,5 +176,6 @@ public static class ProfileTransfer
         RightStick = p.RightStick ?? new StickCalibrationData(),
         L2 = p.L2 ?? new TriggerCalibrationData(),
         R2 = p.R2 ?? new TriggerCalibrationData(),
+        Tuning = InputShaper.Sanitize(p.Tuning), // missing or "Tuning": null → defaults
     };
 }

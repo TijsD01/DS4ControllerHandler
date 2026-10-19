@@ -1,4 +1,5 @@
 using DS4Handler.Core.Calibration;
+using DS4Handler.Core.Tuning;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -86,7 +87,7 @@ public sealed class ProfileStore
         }
     }
 
-    /// <summary>Replaces sections that were null in the JSON (for example "L2": null) with defaults.</summary>
+    /// <summary>Replaces sections that were null in the JSON (for example "L2": null) with defaults and sanitizes the tuning.</summary>
     private static CalibrationProfile Normalize(CalibrationProfile p) => p with
     {
         ControllerId = p.ControllerId ?? "",
@@ -94,6 +95,7 @@ public sealed class ProfileStore
         RightStick = NormalizeStick(p.RightStick),
         L2 = p.L2 ?? new TriggerCalibrationData(),
         R2 = p.R2 ?? new TriggerCalibrationData(),
+        Tuning = InputShaper.Sanitize(p.Tuning), // missing or "Tuning": null → defaults
     };
 
     private static StickCalibrationData NormalizeStick(StickCalibrationData? d) =>

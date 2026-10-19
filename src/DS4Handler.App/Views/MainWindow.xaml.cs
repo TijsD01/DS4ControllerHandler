@@ -14,7 +14,6 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = viewModel;
         Icon = icon;
-        Logo.Source = icon;
         SourceInitialized += (_, _) => UseDarkTitleBar();
     }
 

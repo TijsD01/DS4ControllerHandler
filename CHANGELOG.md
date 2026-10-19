@@ -5,7 +5,11 @@ De bovenste sectie komt automatisch in de release op GitHub en de app laat hem n
 
 ## 1.2.0
 
-- Nieuw: "Afstellen" op elke controllerkaart (klik op de knop, standaard dicht). Alles is per controller in te stellen en wordt in zijn profiel bewaard.
+- Nieuw ontwerp: rustiger en strakker, met dezelfde duidelijke kleuren. Je controllers staan links in een lijst; klik er een aan om hem te bekijken.
+- Per controller zie je sticks, triggers en kalibratie overzichtelijk naast en onder elkaar. Getallen springen niet meer heen en weer.
+- Meldingen (zoals een nieuwe versie) staan als smalle balk bovenin in plaats van als grote kaart.
+- Profielen en Instellingen zijn opgeruimd tot overzichtelijke lijsten. De uitleg als je met de muis ergens op staat is overal gebleven.
+- Nieuw tabblad "Afstellen" bij elke controller. Alles is per controller in te stellen en wordt in zijn profiel bewaard.
 - Sticks: extra deadzone in de vorm van een cirkel, vierkant of kruis (bij het vierkant telt de stick pas als je op minstens één as ver genoeg duwt; veel Rocket League-spelers gebruiken dit, en bij het kruis heeft elke as zijn eigen deadzone), een eindpunt, een anti-deadzone tegen de eigen deadzone van een game, een curve, gevoeligheid, vierkante uitvoer en links/rechts of omhoog/omlaag omdraaien.
 - Triggers: extra deadzone, eindpunt, anti-deadzone en curve voor L2 en R2.
 - Snelheid: hoe vaak een DualShock 4 via Bluetooth zijn standen doorgeeft (van 62 tot 1000 per seconde) en hoe vaak de virtuele controller wordt bijgewerkt voor games.

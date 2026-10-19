@@ -37,6 +37,9 @@ public sealed class MainViewModel : ObservableObject
     private string _hidHideChip = "Controleren…";
     private string _hidHideLevel = Level.Learning;
     private string _hidHideTip = "";
+    private string _driverWord = "controleren…";
+    private string _hidHideWord = "controleren…";
+    private ControllerViewModel? _selected;
     private int _slowTick;
 
     public MainViewModel(AppHost host, IDialogs dialogs)
@@ -47,6 +50,12 @@ public sealed class MainViewModel : ObservableObject
         ProfilesPage = new ProfilesViewModel(host, dialogs);
         ShowControllersCommand = new RelayCommand(() => Page = PageControllers);
         ShowSettingsCommand = new RelayCommand(() => Page = PageSettings);
+        SelectControllerCommand = new RelayCommand<ControllerViewModel>(c =>
+        {
+            if (c == null) return;
+            SelectedController = c;
+            Page = PageControllers;
+        });
     }
 
     private const string PageControllers = "controllers", PageProfiles = "profiles", PageSettings = "settings";
@@ -57,6 +66,23 @@ public sealed class MainViewModel : ObservableObject
     public ProfilesViewModel ProfilesPage { get; }
     public ICommand ShowControllersCommand { get; }
     public ICommand ShowSettingsCommand { get; }
+
+    /// <summary>Sidebar: show this controller's page (parameter: the <see cref="ControllerViewModel"/>).</summary>
+    public ICommand SelectControllerCommand { get; }
+
+    /// <summary>The controller whose page is shown on the controller page. Follows connects and disconnects.</summary>
+    public ControllerViewModel? SelectedController
+    {
+        get => _selected;
+        set
+        {
+            if (!SetField(ref _selected, value)) return;
+            UpdateShown();
+        }
+    }
+
+    /// <summary>Version number for the sidebar wordmark.</summary>
+    public string VersionText => UpdateService.CurrentVersion.ToString();
 
     public bool HasControllers => Controllers.Count > 0;
     public bool IsEmpty => Controllers.Count == 0;
@@ -70,6 +96,7 @@ public sealed class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(ShowControllers));
             OnPropertyChanged(nameof(ShowProfiles));
             OnPropertyChanged(nameof(ShowSettings));
+            UpdateShown();
             if (value == PageProfiles) ProfilesPage.Refresh();
         }
     }
@@ -85,6 +112,10 @@ public sealed class MainViewModel : ObservableObject
     public string HidHideChip { get => _hidHideChip; private set => SetField(ref _hidHideChip, value); }
     public string HidHideLevel { get => _hidHideLevel; private set => SetField(ref _hidHideLevel, value); }
     public string HidHideTip { get => _hidHideTip; private set => SetField(ref _hidHideTip, value); }
+
+    /// <summary>One- or two-word driver states for the sidebar ("werkt", "ontbreekt", ...).</summary>
+    public string DriverWord { get => _driverWord; private set => SetField(ref _driverWord, value); }
+    public string HidHideWord { get => _hidHideWord; private set => SetField(ref _hidHideWord, value); }
 
     /// <summary>Short text for the tray icon.</summary>
     public string TrayText => Controllers.Count switch
@@ -134,11 +165,20 @@ public sealed class MainViewModel : ObservableObject
         foreach (var s in sessions)
             if (!Controllers.Any(c => c.Session == s)) Controllers.Add(new ControllerViewModel(s, _host, _confirm));
 
+        // Keep a controller selected: the first one that connects, or another one when the selected one leaves.
+        if (_selected == null || !Controllers.Contains(_selected))
+            SelectedController = Controllers.FirstOrDefault();
+
         OnPropertyChanged(nameof(HasControllers));
         OnPropertyChanged(nameof(IsEmpty));
         if (ShowProfiles) ProfilesPage.Refresh();
         OnPropertyChanged(nameof(TrayText));
         _noticeKey = ""; // blocked count may have changed
+    }
+
+    private void UpdateShown()
+    {
+        foreach (var c in Controllers) c.IsShown = c == _selected && _page == PageControllers;
     }
 
     private void UpdateStatus()
@@ -150,18 +190,18 @@ public sealed class MainViewModel : ObservableObject
         switch (manager.DriverState)
         {
             case VirtualDriverState.Ready:
-                DriverChip = "Xbox-driver OK"; DriverLevel = Level.Ok; DriverTip = Tips.DriverReady; break;
+                DriverChip = "Xbox-driver OK"; DriverWord = "werkt"; DriverLevel = Level.Ok; DriverTip = Tips.DriverReady; break;
             case VirtualDriverState.Missing:
-                DriverChip = "Xbox-driver ontbreekt"; DriverLevel = Level.Bad; DriverTip = Tips.DriverMissing; break;
+                DriverChip = "Xbox-driver ontbreekt"; DriverWord = "ontbreekt"; DriverLevel = Level.Bad; DriverTip = Tips.DriverMissing; break;
             case VirtualDriverState.Failed:
-                DriverChip = "Xbox-driver fout"; DriverLevel = Level.Bad; DriverTip = "ViGEmBus kon niet worden geopend: " + manager.DriverError; break;
+                DriverChip = "Xbox-driver fout"; DriverWord = "fout"; DriverLevel = Level.Bad; DriverTip = "ViGEmBus kon niet worden geopend: " + manager.DriverError; break;
             default:
-                DriverChip = "Controleren…"; DriverLevel = Level.Learning; DriverTip = Tips.DriverChecking; break;
+                DriverChip = "Controleren…"; DriverWord = "controleren…"; DriverLevel = Level.Learning; DriverTip = Tips.DriverChecking; break;
         }
 
         if (!hidHideEnabled)
         {
-            HidHideChip = "HidHide uit"; HidHideLevel = Level.Off;
+            HidHideChip = "HidHide uit"; HidHideWord = "uit"; HidHideLevel = Level.Off;
             HidHideTip = "Verbergen voor games staat uit (zie Instellingen). Sommige games zien dan twee controllers.";
         }
         else
@@ -169,22 +209,22 @@ public sealed class MainViewModel : ObservableObject
             switch (hidHide.Availability)
             {
                 case HidHideAvailability.Ready when hidHide.Problem == null:
-                    HidHideChip = "HidHide actief"; HidHideLevel = Level.Ok;
+                    HidHideChip = "HidHide actief"; HidHideWord = "werkt"; HidHideLevel = Level.Ok;
                     HidHideTip = "HidHide verbergt je echte controllers voor games, zodat ze alleen de Xbox-controller zien.";
                     break;
                 case HidHideAvailability.Ready:
-                    HidHideChip = "HidHide: let op"; HidHideLevel = Level.Warn; HidHideTip = hidHide.Problem!; break;
+                    HidHideChip = "HidHide: let op"; HidHideWord = "let op"; HidHideLevel = Level.Warn; HidHideTip = hidHide.Problem!; break;
                 case HidHideAvailability.NotInstalled:
-                    HidHideChip = "HidHide ontbreekt"; HidHideLevel = Level.Warn;
+                    HidHideChip = "HidHide ontbreekt"; HidHideWord = "niet gevonden"; HidHideLevel = Level.Warn;
                     HidHideTip = "HidHide is niet geïnstalleerd. Zonder HidHide zien sommige games je controller dubbel."; break;
                 case HidHideAvailability.Busy:
-                    HidHideChip = "HidHide bezet"; HidHideLevel = Level.Warn;
+                    HidHideChip = "HidHide bezet"; HidHideWord = "bezet"; HidHideLevel = Level.Warn;
                     HidHideTip = "Een ander programma (HidHide Configuration Client of DS4Windows) heeft HidHide open. Sluit dat en klik op Opnieuw controleren."; break;
                 case HidHideAvailability.Error:
-                    HidHideChip = "HidHide fout"; HidHideLevel = Level.Warn;
+                    HidHideChip = "HidHide fout"; HidHideWord = "fout"; HidHideLevel = Level.Warn;
                     HidHideTip = "HidHide reageerde niet zoals verwacht. Zie het logbestand (Instellingen)."; break;
                 default:
-                    HidHideChip = "Controleren…"; HidHideLevel = Level.Learning; HidHideTip = "Bezig met controleren of HidHide aanwezig is."; break;
+                    HidHideChip = "Controleren…"; HidHideWord = "controleren…"; HidHideLevel = Level.Learning; HidHideTip = "Bezig met controleren of HidHide aanwezig is."; break;
             }
         }
 

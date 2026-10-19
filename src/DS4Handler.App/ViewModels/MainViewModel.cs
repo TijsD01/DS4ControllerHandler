@@ -12,7 +12,6 @@ public sealed class NoticeViewModel
     public required string Level { get; init; }
     public required string Title { get; init; }
     public required string Text { get; init; }
-    public string Icon => Level == ViewModels.Level.Bad ? "" : "";
     public string? PrimaryText { get; init; }
     public ICommand? PrimaryCommand { get; init; }
     public string? PrimaryTip { get; init; }

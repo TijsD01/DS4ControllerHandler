@@ -122,7 +122,7 @@
                                         <Button Style="{StaticResource LinkButton}" Content="Kopiëren naar…" Click="OnCopyClick"
                                                 IsEnabled="{Binding CanCopy}" ToolTip="{Binding CopyTip}" />
                                         <Button Style="{StaticResource LinkButton}" Content="Exporteren…" Command="{Binding ExportCommand}" ToolTip="{x:Static vm:Tips.ProfileExport}" />
-                                        <Button Style="{StaticResource LinkButton}" Foreground="{StaticResource DangerBrush}" Content="Verwijderen"
+                                        <Button Style="{StaticResource DangerLinkButton}" Content="Verwijderen"
                                                 Command="{Binding DeleteCommand}" IsEnabled="{Binding CanDelete}" ToolTip="{Binding DeleteTip}" />
                                     </WrapPanel>
                                 </Grid>

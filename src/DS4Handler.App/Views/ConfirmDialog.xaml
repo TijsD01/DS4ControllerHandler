@@ -5,7 +5,7 @@
         WindowStyle="None" ResizeMode="NoResize" AllowsTransparency="True" Background="Transparent"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         FontFamily="{StaticResource UiFont}" Language="nl-NL">
-    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource PopupBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="24" Margin="1">
+    <Border Background="{StaticResource PopupBrush}" BorderBrush="{StaticResource PopupBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="24" Margin="1">
         <StackPanel>
             <TextBlock x:Name="TitleText" Style="{StaticResource H2}" Margin="0,0,0,10" />
             <TextBlock x:Name="MessageText" Style="{StaticResource Dim}" LineHeight="20" />

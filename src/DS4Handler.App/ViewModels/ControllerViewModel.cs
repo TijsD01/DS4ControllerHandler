@@ -232,7 +232,6 @@ public sealed class ControllerViewModel : ObservableObject
     private bool _hide;
     private bool _hideAvailable;
     private string _battery = "";
-    private string _batteryIcon = "";
     private string _batteryTip = "";
     private bool _hasBattery;
     private string _status = "";
@@ -309,12 +308,10 @@ public sealed class ControllerViewModel : ObservableObject
     public string ProfileText { get => _profileText; private set => SetField(ref _profileText, value); }
     public string ProfileLevel { get => _profileLevel; private set => SetField(ref _profileLevel, value); }
     public string ProfileTip { get => _profileTip; private set => SetField(ref _profileTip, value); }
-    public string ModelIcon => ""; // game controller glyph
     public string IdText => Session.Mac != null ? $"MAC {Session.Mac}" : "(geen MAC gevonden)";
     public string IdTip => Session.HasStableId ? Tips.ControllerId : Tips.ControllerIdUnstable;
     public bool IsBluetooth => Session.Connection == ConnectionType.Bluetooth;
     public string ConnectionText => IsBluetooth ? "Bluetooth" : "USB";
-    public string ConnectionIcon => IsBluetooth ? "" : "";
     public string ConnectionTip => IsBluetooth ? Tips.Bluetooth : Tips.Usb;
 
     /// <summary>Short model name ("DS4" / "DualSense").</summary>
@@ -327,7 +324,6 @@ public sealed class ControllerViewModel : ObservableObject
     public bool IsShown { get => _isShown; internal set => SetField(ref _isShown, value); }
 
     public string BatteryText { get => _battery; private set => SetField(ref _battery, value); }
-    public string BatteryIcon { get => _batteryIcon; private set => SetField(ref _batteryIcon, value); }
     public string BatteryTip { get => _batteryTip; private set => SetField(ref _batteryTip, value); }
     public bool HasBattery { get => _hasBattery; private set => SetField(ref _hasBattery, value); }
     public string StatusText { get => _status; private set => SetField(ref _status, value); }
@@ -459,7 +455,6 @@ public sealed class ControllerViewModel : ObservableObject
         TabMeta = IsBluetooth && percent is { } b ? $"BT · {b}%" : IsBluetooth ? "BT" : "USB";
         if (percent is not { } p) return;
         BatteryText = $"{p}%";
-        BatteryIcon = p >= 95 ? "" : char.ConvertFromUtf32(0xE850 + Math.Clamp(p / 10, 0, 9));
         BatteryTip = IsBluetooth
             ? $"Batterij: {p}%. " + (p <= 20 ? "Bijna leeg: sluit de kabel aan om op te laden." : "Gaat ongeveer 4 tot 8 uur mee op een volle lading.")
             : $"Batterij: {p}%. De controller laadt op via de USB-kabel.";

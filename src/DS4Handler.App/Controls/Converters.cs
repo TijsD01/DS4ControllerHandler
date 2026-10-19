@@ -6,21 +6,48 @@ using DS4Handler.App.ViewModels;
 
 namespace DS4Handler.App.Controls;
 
-/// <summary>Maps a <see cref="Level"/> string to a brush. ConverterParameter "bg" gives the soft background.</summary>
+/// <summary>
+/// Maps a <see cref="Level"/> string to a theme brush. Without parameter: the dot colour.
+/// ConverterParameter "text": a colour that is readable as text (≥ 4.5:1 on cards).
+/// ConverterParameter "bg": a soft background for that level.
+/// </summary>
 public sealed class LevelBrushConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        bool bg = parameter as string == "bg";
-        string key = (value as string) switch
+        string mode = parameter as string ?? "";
+        string key = (value as string, mode) switch
         {
-            Level.Ok => bg ? "SuccessSoftBrush" : "SuccessBrush",
-            Level.Warn => bg ? "WarningSoftBrush" : "WarningBrush",
-            Level.Bad => bg ? "DangerSoftBrush" : "DangerBrush",
-            Level.Learning => bg ? "AccentSoftBrush" : "AccentHoverBrush",
-            _ => bg ? "Surface2Brush" : "TextDimBrush",
+            (Level.Ok, "text") => "OkTextBrush",
+            (Level.Ok, "bg") => "OkStripBrush",
+            (Level.Ok, _) => "OkBrush",
+            (Level.Warn or Level.Learning, "bg") => "WarnStripBrush",
+            (Level.Warn or Level.Learning, _) => "WarnBrush",
+            (Level.Bad, "text") => "DangerTextBrush",
+            (Level.Bad, "bg") => "BadStripBrush",
+            (Level.Bad, _) => "BadBrush",
+            (Level.Info, "bg") => "InfoStripBrush",
+            (Level.Info, _) => "LinkBrush",
+            (_, "text") => "TextDimBrush",
+            (_, "bg") => "CardBrush",
+            _ => "OffBrush",
         };
-        return Application.Current.TryFindResource(key) as Brush ?? Brushes.Gray;
+        return Application.Current?.TryFindResource(key) as Brush ?? Brushes.Gray;
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
+}
+
+/// <summary>
+/// For responsive layouts: an available width (usually a panel's ActualWidth) becomes a column count
+/// for a UniformGrid. 2 when the width is at least ConverterParameter (pixels, default 1000), else 1.
+/// </summary>
+public sealed class WidthToColumnsConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        double threshold = double.TryParse(parameter as string, NumberStyles.Float, CultureInfo.InvariantCulture, out var t) ? t : 1000;
+        return value is double width && width >= threshold ? 2 : 1;
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
@@ -76,6 +103,7 @@ public sealed class LevelWordConverter : IValueConverter
         Level.Warn => "let op",
         Level.Bad => "probleem",
         Level.Learning => "leert",
+        Level.Info => "info",
         _ => "uit",
     };
 

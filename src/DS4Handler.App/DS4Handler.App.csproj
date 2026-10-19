@@ -32,6 +32,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Bundled UI fonts (IBM Plex Sans, JetBrains Mono), used through pack URIs in Themes/Theme.xaml. -->
+    <Resource Include="Assets\Fonts\*.ttf" />
+    <!-- Their SIL Open Font License texts ship next to the exe. -->
+    <None Update="Assets\Fonts\OFL-*.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="HidSharp" Version="2.6.4" />
     <PackageReference Include="Nefarius.ViGEm.Client" Version="1.21.256" />
   </ItemGroup>

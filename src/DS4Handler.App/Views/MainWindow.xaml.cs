@@ -14,13 +14,14 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = viewModel;
         Icon = icon;
+        viewModel.Settings.QuitRequested += (_, _) => QuitRequested?.Invoke(this, EventArgs.Empty);
         SourceInitialized += (_, _) => UseDarkTitleBar();
     }
 
     /// <summary>Set by the app when it really shuts down; until then closing only hides the window.</summary>
     public bool AllowClose { get; set; }
 
-    /// <summary>The user clicked "Afsluiten".</summary>
+    /// <summary>The user clicked "Afsluiten" (on Instellingen, via <see cref="SettingsViewModel.QuitCommand"/>).</summary>
     public event EventHandler? QuitRequested;
 
     /// <summary>The window was closed to the tray.</summary>
@@ -50,8 +51,6 @@ public partial class MainWindow : Window
         Topmost = false;
         Focus();
     }
-
-    private void OnQuitClick(object sender, RoutedEventArgs e) => QuitRequested?.Invoke(this, EventArgs.Empty);
 
     private void UseDarkTitleBar()
     {

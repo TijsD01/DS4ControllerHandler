@@ -7,22 +7,29 @@ namespace DS4Handler.App.ViewModels;
 /// </summary>
 public static class Tips
 {
-    // ----- Navigation / header -----
-    public const string NavControllers =
-        "Overzicht van je aangesloten controllers: live weergave van sticks en triggers en wat de app heeft geleerd.";
+    // ----- Top bar -----
+    public const string Brand =
+        "DS4 Handler laat je PlayStation-controller in games werken als Xbox- of DualShock 4-controller en corrigeert vanzelf stickdrift en versleten triggers.";
     public const string NavSettings =
-        "Opstarten met Windows, systeemvak en HidHide (je echte controller verbergen voor games).";
-
-    public const string SidebarController =
-        "Klik om de live weergave en de kalibratie van deze controller te openen. Het blokje is groen als games hem kunnen gebruiken, oranje of rood als er iets mis is.";
+        "Opstarten met Windows, HidHide (je echte controller verbergen voor games), updates, informatie over de app en afsluiten.";
+    public const string ControllerTab =
+        "Klik om deze controller te bekijken. Het bolletje laat zien hoe hij ervoor staat: groen werkt, oranje wacht of leert nog, rood is een probleem.";
+    public const string NoControllerTab =
+        "Zodra je een controller aansluit, verschijnt hij hier als tabblad. Klik om te zien hoe je een controller aansluit.";
     public const string DriversSection =
-        "De twee gratis hulpprogramma's die DS4 Handler gebruikt. ViGEmBus maakt de controller die games zien; HidHide verbergt je echte controller, zodat games hem niet dubbel zien. Wijs een regel aan voor meer uitleg.";
+        "De twee gratis hulpprogramma's die DS4 Handler gebruikt. ViGEmBus maakt de controller die games zien; HidHide verbergt je echte controller, zodat games hem niet dubbel zien. Klik om Instellingen te openen.";
 
     // ----- Controller page -----
+    public const string ControllerTitle =
+        "De naam van het profiel van deze controller. Je wijzigt hem bij Profielen.";
     public const string TabLive =
-        "Zie wat je sticks en triggers op dit moment doen, wat de game daarvan krijgt en wat de app over deze controller heeft geleerd.";
+        "Zie live wat je sticks en triggers doen, en wat de game ervan krijgt.";
+    public const string TabCalibration =
+        "Wat de app geleerd heeft over drift en slijtage, sticks centreren en triggers meten.";
     public const string TabAdjust =
-        "Stel zelf in hoe deze controller reageert. Wijzigingen worden meteen opgeslagen in het profiel van de controller.";
+        "Stel zelf in hoe deze controller reageert: deadzones, curves, triggers en snelheid. Wijzigingen worden meteen opgeslagen in het profiel van de controller.";
+    public const string CalibrationSummary =
+        "Kort wat de app over deze controller geleerd heeft. Klik om Kalibratie te openen en alles te zien.";
 
     // ----- Controller card -----
     public const string ControllerName =
@@ -41,17 +48,18 @@ public static class Tips
     // ----- Live view -----
     public const string StickView =
         "Live weergave van de stick.\n" +
-        "• Grijs rondje: waar de stick werkelijk staat.\n" +
+        "• Grijze stip: waar de stick werkelijk staat.\n" +
         "• Blauwe stip: wat de game krijgt na correctie.\n" +
-        "• Oranje cirkel: de deadzone rond het geleerde rustpunt.";
+        "• Oranje stippelring: de deadzone rond het geleerde rustpunt.";
     public const string Deadzone =
         "Binnen deze cirkel wordt stickbeweging genegeerd, zodat drift je personage niet laat bewegen. De grootte wordt automatisch geleerd: zo klein als kan, zo groot als nodig.";
     public const string TriggerBar =
-        "Bovenste balk: hoe ver je de trigger echt indrukt. Het oranje streepje is het geleerde eindpunt (jouw 100%).\n" +
-        "Onderste balk: wat de game krijgt. Groen betekent volle kracht (100%).";
+        "Dunne grijze lijn: hoe ver je de trigger echt indrukt.\n" +
+        "Dikke blauwe balk: wat de game krijgt.\n" +
+        "Oranje streepjes: het geleerde rustpunt en eindpunt (jouw 100%).";
     public const string LegendRaw = "Grijs: de echte stand van de controller, zonder correctie.";
     public const string LegendOutput = "Blauw: wat de game krijgt, na de correctie voor drift en slijtage.";
-    public const string LegendDeadzone = "Oranje: deadzone (sticks) of geleerd eindpunt (triggers).";
+    public const string LegendDeadzone = "Oranje: het rustpunt en eindpunt die de app voor deze trigger geleerd heeft.";
 
     // ----- Calibration -----
     public const string CalibrationSection =
@@ -75,7 +83,7 @@ public static class Tips
         "Xbox 360: werkt in vrijwel elke pc-game. Kies dit als je twijfelt. Games tonen dan Xbox-knoppen (A, B, X, Y).";
     public const string OutputDs4 =
         "DualShock 4: voor games die PlayStation-controllers zelf ondersteunen (bijvoorbeeld via de PlayStation-ondersteuning van Steam); die tonen dan PlayStation-knoppen.\n" +
-        "Let op: bewegingssensor en touchpad worden (nog) niet doorgegeven. Zet 'Verberg voor games' aan, zodat games alleen de virtuele DualShock 4 zien en niet ook je echte controller.";
+        "Let op: bewegingssensor en touchpad worden (nog) niet doorgegeven. Zet 'Verborgen voor games' aan, zodat games alleen de virtuele DualShock 4 zien en niet ook je echte controller.";
     public const string Reset =
         "Vergeet alles wat voor deze controller is geleerd en begin opnieuw met fabriekswaarden. Handig na een reparatie of als de correctie niet meer klopt.";
     public const string Recenter =
@@ -164,14 +172,24 @@ public static class Tips
     public const string LinkOwn = "De controller leert in zijn eigen profiel (aanbevolen).";
     public const string LinkShared = "De controller gebruikt en verbetert de kalibratie van dit andere profiel.";
     public const string ProfileOnCard =
-        "Het profiel waarin deze controller leert. Wijzigen kan bij het tabblad Profielen.";
+        "Het profiel waarin deze controller leert. Wijzigen kan bij Profielen.";
+    public const string ProfileOwnOnCard =
+        "Dit profiel hoort bij deze controller. Wat de app leert en wat je afstelt, wordt hierin bewaard. Een ander profiel kiezen kan bij Profielen.";
     public const string ProfileBlockedOnCard =
         "Het profiel van deze controller wordt al gebruikt door een andere aangesloten controller. Om te voorkomen dat beide hetzelfde bestand overschrijven, draait deze controller tijdelijk met fabriekswaarden en wordt er niets opgeslagen. Kies bij Profielen een ander profiel of sluit hem later opnieuw aan.";
     public const string OpenProfileFolder = "Opent de map waarin de profielbestanden staan.";
 
     // ----- Afstellen -----
-    public const string TuneToggle =
-        "Stel zelf af hoe sticks en triggers reageren: extra deadzone, vorm, gevoeligheid en hoe snel de app meet en doorgeeft. Alles staat standaard op 'niets veranderen'.";
+    public const string TunePicker = "Kies wat je wilt afstellen. Je ziet steeds één onderdeel.";
+    public const string TuneSticks = "Deadzones, vorm, curve en gevoeligheid van beide sticks.";
+    public const string TuneTriggers = "Deadzone, eindpunt en curve van L2 en R2.";
+    public const string TuneSpeed = "Hoe vaak de controller meet en hoe vaak de game een update krijgt.";
+    public const string TuneSaved =
+        "Je hoeft niets op te slaan. Elke wijziging staat meteen in het profiel van deze controller.";
+    public const string CurveStick =
+        "Zo reageert de stick: naar rechts hoe ver je duwt, omhoog wat de game krijgt. Het grijze stuk is de extra deadzone, de stippellijn is 1 op 1. Verandert mee terwijl je de schuifjes beweegt.";
+    public const string CurveTrigger =
+        "Zo reageert de trigger: naar rechts hoe ver je indrukt, omhoog wat de game krijgt. Het grijze stuk is de extra deadzone, de stippellijn is 1 op 1. Verandert mee terwijl je de schuifjes beweegt.";
     public const string TuneSection =
         "Deze instellingen komen bovenop wat de app zelf heeft geleerd. Ze worden in het profiel van de controller bewaard.";
     public const string TuneResetAll = "Zet alle instellingen van Afstellen voor deze controller terug naar standaard. Wat de app heeft geleerd blijft staan.";

@@ -67,7 +67,10 @@ public sealed class MainViewModel : ObservableObject
     public ICommand ShowControllersCommand { get; }
     public ICommand ShowSettingsCommand { get; }
 
-    /// <summary>Sidebar: show this controller's page (parameter: the <see cref="ControllerViewModel"/>).</summary>
+    /// <summary>Quits the app (the "Afsluiten" button on Instellingen; same as <see cref="SettingsViewModel.QuitCommand"/>).</summary>
+    public ICommand QuitCommand => Settings.QuitCommand;
+
+    /// <summary>Top bar: show this controller's page (parameter: the <see cref="ControllerViewModel"/>).</summary>
     public ICommand SelectControllerCommand { get; }
 
     /// <summary>The controller whose page is shown on the controller page. Follows connects and disconnects.</summary>
@@ -81,7 +84,7 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    /// <summary>Version number for the sidebar wordmark.</summary>
+    /// <summary>Version number next to the wordmark in the top bar.</summary>
     public string VersionText => UpdateService.CurrentVersion.ToString();
 
     public bool HasControllers => Controllers.Count > 0;
@@ -113,9 +116,15 @@ public sealed class MainViewModel : ObservableObject
     public string HidHideLevel { get => _hidHideLevel; private set => SetField(ref _hidHideLevel, value); }
     public string HidHideTip { get => _hidHideTip; private set => SetField(ref _hidHideTip, value); }
 
-    /// <summary>One- or two-word driver states for the sidebar ("werkt", "ontbreekt", ...).</summary>
+    /// <summary>One- or two-word driver states for the driver tooltip ("werkt", "ontbreekt", ...).</summary>
     public string DriverWord { get => _driverWord; private set => SetField(ref _driverWord, value); }
     public string HidHideWord { get => _hidHideWord; private set => SetField(ref _hidHideWord, value); }
+
+    /// <summary>Compact driver status in the top bar: one dot and a short text for ViGEmBus and HidHide together.</summary>
+    public string DriversText { get => _driversText; private set => SetField(ref _driversText, value); }
+    public string DriversLevel { get => _driversLevel; private set => SetField(ref _driversLevel, value); }
+    private string _driversText = "Controleren…";
+    private string _driversLevel = Level.Learning;
 
     /// <summary>Short text for the tray icon.</summary>
     public string TrayText => Controllers.Count switch
@@ -227,6 +236,12 @@ public sealed class MainViewModel : ObservableObject
                     HidHideChip = "Controleren…"; HidHideWord = "controleren…"; HidHideLevel = Level.Learning; HidHideTip = "Bezig met controleren of HidHide aanwezig is."; break;
             }
         }
+
+        // One line for the top bar: the most important problem, otherwise "in orde".
+        if (DriverLevel is Level.Bad or Level.Warn) { DriversText = DriverChip; DriversLevel = DriverLevel; }
+        else if (HidHideLevel is Level.Bad or Level.Warn) { DriversText = HidHideChip; DriversLevel = HidHideLevel; }
+        else if (DriverLevel == Level.Learning || HidHideLevel == Level.Learning) { DriversText = "Controleren…"; DriversLevel = Level.Learning; }
+        else { DriversText = "Stuurprogramma's in orde"; DriversLevel = Level.Ok; }
 
         Settings.Refresh();
         UpdateNotices(manager, hidHide, hidHideEnabled);
@@ -357,8 +372,15 @@ public sealed class SettingsViewModel : ObservableObject
         DownloadViGEmCommand = new RelayCommand(() => AppHost.OpenUrl(AppHost.ViGEmDownloadUrl));
         OpenProfilesCommand = new RelayCommand(() => AppHost.OpenFolder(host.Profiles.Directory));
         OpenLogCommand = new RelayCommand(() => AppHost.OpenUrl(Log.FilePath));
+        QuitCommand = new RelayCommand(() => QuitRequested?.Invoke(this, EventArgs.Empty));
         Updates = new UpdateViewModel(host);
     }
+
+    /// <summary>"Afsluiten": quits the app completely (the main window forwards this to the app).</summary>
+    public ICommand QuitCommand { get; }
+
+    /// <summary>Raised by <see cref="QuitCommand"/>.</summary>
+    public event EventHandler? QuitRequested;
 
     public ICommand RecheckHidHideCommand { get; }
     public ICommand DownloadHidHideCommand { get; }

@@ -19,258 +19,262 @@
         TextOptions.TextFormattingMode="Display">
 
     <Window.Resources>
-        <!-- One driver line at the bottom of the sidebar: dot, name, status word. -->
-        <Style x:Key="DriverRow" TargetType="Grid">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Cursor" Value="Help" />
-            <Setter Property="Margin" Value="0,0,0,8" />
+        <!-- One driver line inside the driver tooltip: dot, name, status word, explanation. -->
+        <Style x:Key="DriverTipName" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="8,0,0,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
     </Window.Resources>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="248" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-        <!-- ===== Sidebar ===== -->
-        <Border Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource HairlineBrush}" BorderThickness="0,0,1,0">
-            <DockPanel>
-                <!-- Wordmark -->
-                <TextBlock DockPanel.Dock="Top" Margin="20,20,20,18" Background="Transparent"
-                           ToolTip="DS4 Handler laat je PlayStation-controller in games werken als Xbox- of DualShock 4-controller en corrigeert vanzelf stickdrift en versleten triggers.">
-                    <Run Text="DS4 Handler" FontSize="16" FontWeight="Bold" /><Run Text="  " /><Run Text="{Binding VersionText, Mode=OneWay}"
-                         FontFamily="{StaticResource MonoFont}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" />
-                </TextBlock>
+        <!-- ===== Top bar: brand | controller tabs | drivers · Profielen · Instellingen ===== -->
+        <Border Background="{StaticResource TopBarBrush}" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,0,0,1"
+                Padding="20,0" MinHeight="56">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-                <!-- Drivers + quit -->
-                <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource HairlineBrush}" BorderThickness="0,1,0,0" Padding="20,16">
-                    <StackPanel>
-                        <TextBlock Text="STUURPROGRAMMA'S" Style="{StaticResource SectionLabel}" HorizontalAlignment="Left" Margin="0,0,0,10"
-                                   Cursor="Help" ToolTip="{x:Static vm:Tips.DriversSection}" />
-                        <Grid Style="{StaticResource DriverRow}" ToolTip="{Binding DriverTip}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Rectangle Style="{StaticResource Dot}" Margin="0,0,10,0" Fill="{Binding DriverLevel, Converter={StaticResource LevelBrush}}" />
-                            <TextBlock Grid.Column="1" Text="ViGEmBus" FontSize="13" Foreground="{StaticResource TextDimBrush}" />
-                            <TextBlock Grid.Column="2" Text="{Binding DriverWord}" FontSize="13"
-                                       Foreground="{Binding DriverLevel, Converter={StaticResource LevelBrush}}" />
-                        </Grid>
-                        <Grid Style="{StaticResource DriverRow}" ToolTip="{Binding HidHideTip}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Rectangle Style="{StaticResource Dot}" Margin="0,0,10,0" Fill="{Binding HidHideLevel, Converter={StaticResource LevelBrush}}" />
-                            <TextBlock Grid.Column="1" Text="HidHide" FontSize="13" Foreground="{StaticResource TextDimBrush}" />
-                            <TextBlock Grid.Column="2" Text="{Binding HidHideWord}" FontSize="13"
-                                       Foreground="{Binding HidHideLevel, Converter={StaticResource LevelBrush}}" />
-                        </Grid>
-                        <Button Style="{StaticResource GhostButton}" Padding="0" HorizontalAlignment="Left" Margin="0,2,0,0"
-                                Click="OnQuitClick" ToolTip="{x:Static vm:Tips.Quit}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource Icon}" FontSize="13" Text="&#xE7E8;" Margin="0,0,8,0" />
-                                <TextBlock Text="Afsluiten" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Border>
+                <!-- Left part wraps onto a second row when there are many controllers or the window is narrow. -->
+                <WrapPanel VerticalAlignment="Center">
+                    <!-- Brand -->
+                    <Border BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,0,1,0" Padding="0,0,16,0" Margin="0,12,12,12"
+                            Background="Transparent" ToolTip="{x:Static vm:Tips.Brand}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Viewbox Width="26" Height="18" Margin="0,0,10,0">
+                                <Path Data="{StaticResource ControllerGeometry}" Stroke="{StaticResource AccentBrush}" StrokeThickness="4"
+                                      StrokeLineJoin="Round" Width="72" Height="48" />
+                            </Viewbox>
+                            <TextBlock Text="DS4 Handler" FontSize="15" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0" />
+                            <TextBlock Text="{Binding VersionText, Mode=OneWay}" Style="{StaticResource Mono}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
 
-                <!-- Controllers + navigation -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel>
-                        <TextBlock Text="CONTROLLERS" Style="{StaticResource SectionLabel}" HorizontalAlignment="Left" Margin="20,6,20,8"
-                                   Cursor="Help" ToolTip="{x:Static vm:Tips.NavControllers}" />
-                        <ItemsControl ItemsSource="{Binding Controllers}" Focusable="False">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="{x:Type vm:ControllerViewModel}">
-                                    <Button Style="{StaticResource SideNavItem}" Tag="{Binding IsShown}"
-                                            Command="{Binding DataContext.SelectControllerCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                            CommandParameter="{Binding}" ToolTip="{x:Static vm:Tips.SidebarController}">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <Rectangle Style="{StaticResource Dot}" VerticalAlignment="Top" Margin="0,7,12,0"
-                                                       Fill="{Binding StatusLevel, Converter={StaticResource LevelBrush}}" />
-                                            <StackPanel Grid.Column="1">
-                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                                                <TextBlock Text="{Binding SidebarMeta}" Style="{StaticResource Mono}" TextTrimming="CharacterEllipsis" />
-                                            </StackPanel>
-                                        </Grid>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <!-- Clickable, so the empty-state page stays reachable from Profielen / Instellingen. -->
-                        <Button Style="{StaticResource SideNavItem}" Padding="12,4" Command="{Binding ShowControllersCommand}"
-                                Tag="{Binding ShowControllers, Mode=OneWay}" ToolTip="{x:Static vm:Tips.EmptyState}"
-                                Visibility="{Binding IsEmpty, Converter={StaticResource BoolVis}}">
-                            <TextBlock Text="Geen controller aangesloten" FontSize="13" />
-                        </Button>
+                    <!-- One tab per connected controller -->
+                    <ItemsControl ItemsSource="{Binding Controllers}" Focusable="False">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:ControllerViewModel}">
+                                <Button Style="{StaticResource ControllerTab}" Tag="{Binding IsShown}"
+                                        Command="{Binding DataContext.SelectControllerCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}" ToolTip="{x:Static vm:Tips.ControllerTab}"
+                                        AutomationProperties.Name="{Binding Title}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Style="{StaticResource Dot}" Margin="0,0,10,0" Fill="{Binding StatusLevel, Converter={StaticResource LevelBrush}}" />
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" MaxWidth="220" TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <TextBlock Text="{Binding TabMeta}" Style="{StaticResource Mono}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
-                        <Rectangle Height="1" Fill="{StaticResource HairlineBrush}" Margin="20,14" />
+                    <!-- No controller: clickable, so the empty state stays reachable from Profielen / Instellingen. -->
+                    <Button Style="{StaticResource ControllerTab}" Command="{Binding ShowControllersCommand}"
+                            Tag="{Binding ShowControllers, Mode=OneWay}" ToolTip="{x:Static vm:Tips.NoControllerTab}"
+                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolVis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Style="{StaticResource Dot}" Margin="0,0,10,0" />
+                            <TextBlock Text="Geen controller aangesloten" Foreground="{StaticResource TextMutedBrush}" FontWeight="Normal" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </WrapPanel>
 
-                        <RadioButton Style="{StaticResource SideNav}" GroupName="Nav" IsChecked="{Binding ShowProfiles}"
-                                     ToolTip="{x:Static vm:Tips.NavProfiles}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource Icon}" Text="&#xE77B;" Margin="0,0,12,0" />
-                                <TextBlock Text="Profielen" />
-                            </StackPanel>
-                        </RadioButton>
-                        <RadioButton Style="{StaticResource SideNav}" GroupName="Nav" IsChecked="{Binding ShowSettings}"
-                                     ToolTip="{x:Static vm:Tips.NavSettings}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Style="{StaticResource Icon}" Text="&#xE9E9;" Margin="0,0,12,0" />
-                                <TextBlock Text="Instellingen" />
-                            </StackPanel>
-                        </RadioButton>
-                    </StackPanel>
-                </ScrollViewer>
-            </DockPanel>
+                <!-- Right part: drivers, Profielen, Instellingen -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                    <Button Style="{StaticResource TopBarStatus}" Command="{Binding ShowSettingsCommand}"
+                            AutomationProperties.Name="{Binding DriversText}">
+                        <Button.ToolTip>
+                            <ToolTip>
+                                <StackPanel>
+                                    <TextBlock Text="{x:Static vm:Tips.DriversSection}" Margin="0,0,0,12" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Style="{StaticResource Dot}" Fill="{Binding DriverLevel, Converter={StaticResource LevelBrush}}" />
+                                        <TextBlock Text="ViGEmBus" Style="{StaticResource DriverTipName}" />
+                                        <TextBlock Text="{Binding DriverWord}" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                   Foreground="{Binding DriverLevel, Converter={StaticResource LevelBrush}, ConverterParameter=text}" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding DriverTip}" Foreground="{StaticResource TextDimBrush}" Margin="16,2,0,12" />
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Style="{StaticResource Dot}" Fill="{Binding HidHideLevel, Converter={StaticResource LevelBrush}}" />
+                                        <TextBlock Text="HidHide" Style="{StaticResource DriverTipName}" />
+                                        <TextBlock Text="{Binding HidHideWord}" Margin="8,0,0,0" VerticalAlignment="Center"
+                                                   Foreground="{Binding HidHideLevel, Converter={StaticResource LevelBrush}, ConverterParameter=text}" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding HidHideTip}" Foreground="{StaticResource TextDimBrush}" Margin="16,2,0,0" />
+                                </StackPanel>
+                            </ToolTip>
+                        </Button.ToolTip>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Style="{StaticResource Dot}" Margin="0,0,8,0" Fill="{Binding DriversLevel, Converter={StaticResource LevelBrush}}" />
+                            <TextBlock Text="{Binding DriversText}" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <RadioButton Style="{StaticResource TopNavButton}" IsChecked="{Binding ShowProfiles}" ToolTip="{x:Static vm:Tips.NavProfiles}">
+                        <StackPanel Orientation="Horizontal">
+                            <Viewbox Width="16" Height="16" Margin="0,0,8,0">
+                                <Path Data="{StaticResource ProfileIconGeometry}" Width="24" Height="24" StrokeThickness="1.8"
+                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                            </Viewbox>
+                            <TextBlock Text="Profielen" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                    <RadioButton Style="{StaticResource TopNavButton}" IsChecked="{Binding ShowSettings}" ToolTip="{x:Static vm:Tips.NavSettings}">
+                        <StackPanel Orientation="Horizontal">
+                            <Viewbox Width="16" Height="16" Margin="0,0,8,0">
+                                <Path Data="{StaticResource SettingsIconGeometry}" Width="24" Height="24" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
+                            </Viewbox>
+                            <TextBlock Text="Instellingen" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+            </Grid>
         </Border>
 
-        <!-- ===== Main area ===== -->
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+        <!-- ===== Notices: full-width strips under the top bar ===== -->
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding Notices}" Focusable="False">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type vm:NoticeViewModel}">
+                    <Border x:Name="Strip" Padding="32,10" BorderThickness="0,0,0,1"
+                            Background="{StaticResource InfoStripBrush}" BorderBrush="{StaticResource InfoStripBorderBrush}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Ellipse x:Name="StripDot" Style="{StaticResource Dot}" VerticalAlignment="Top" Margin="0,7,12,0" Fill="{StaticResource LinkBrush}" />
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock x:Name="TitleText" Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap"
+                                           Foreground="{StaticResource InfoStripTextBrush}" />
+                                <TextBlock x:Name="BodyText" Text="{Binding Text}" FontSize="13" TextWrapping="Wrap" Margin="0,2,0,0"
+                                           Foreground="{StaticResource InfoStripTextBrush}" />
+                            </StackPanel>
+                            <WrapPanel Grid.Column="2" VerticalAlignment="Center" MaxWidth="360">
+                                <Button x:Name="Secondary" Style="{StaticResource LinkButton}" Content="{Binding SecondaryText}"
+                                        Command="{Binding SecondaryCommand}" ToolTip="{Binding SecondaryTip}" Margin="0,0,8,0"
+                                        Visibility="{Binding HasSecondary, Converter={StaticResource BoolVis}}" />
+                                <Button x:Name="Primary" Style="{StaticResource AccentButton}" Content="{Binding PrimaryText}"
+                                        Command="{Binding PrimaryCommand}" ToolTip="{Binding PrimaryTip}"
+                                        Visibility="{Binding HasPrimary, Converter={StaticResource BoolVis}}" />
+                            </WrapPanel>
+                        </Grid>
+                    </Border>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Level}" Value="warn">
+                            <Setter TargetName="Strip" Property="Background" Value="{StaticResource WarnStripBrush}" />
+                            <Setter TargetName="Strip" Property="BorderBrush" Value="{StaticResource WarnStripBorderBrush}" />
+                            <Setter TargetName="StripDot" Property="Fill" Value="{StaticResource WarnBrush}" />
+                            <Setter TargetName="TitleText" Property="Foreground" Value="{StaticResource WarnStripTextBrush}" />
+                            <Setter TargetName="BodyText" Property="Foreground" Value="{StaticResource WarnStripTextBrush}" />
+                            <Setter TargetName="Secondary" Property="Foreground" Value="{StaticResource WarnStripLinkBrush}" />
+                            <Setter TargetName="Primary" Property="Style" Value="{StaticResource ButtonBase}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Level}" Value="bad">
+                            <Setter TargetName="Strip" Property="Background" Value="{StaticResource BadStripBrush}" />
+                            <Setter TargetName="Strip" Property="BorderBrush" Value="{StaticResource BadStripBorderBrush}" />
+                            <Setter TargetName="StripDot" Property="Fill" Value="{StaticResource BadBrush}" />
+                            <Setter TargetName="TitleText" Property="Foreground" Value="{StaticResource BadStripTextBrush}" />
+                            <Setter TargetName="BodyText" Property="Foreground" Value="{StaticResource BadStripTextBrush}" />
+                            <Setter TargetName="Secondary" Property="Foreground" Value="{StaticResource BadStripLinkBrush}" />
+                            <Setter TargetName="Primary" Property="Style" Value="{StaticResource ButtonBase}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Level}" Value="ok">
+                            <Setter TargetName="Strip" Property="Background" Value="{StaticResource OkStripBrush}" />
+                            <Setter TargetName="Strip" Property="BorderBrush" Value="{StaticResource OkStripBorderBrush}" />
+                            <Setter TargetName="StripDot" Property="Fill" Value="{StaticResource OkBrush}" />
+                            <Setter TargetName="TitleText" Property="Foreground" Value="{StaticResource OkStripTextBrush}" />
+                            <Setter TargetName="BodyText" Property="Foreground" Value="{StaticResource OkStripTextBrush}" />
+                            <Setter TargetName="Secondary" Property="Foreground" Value="{StaticResource OkStripLinkBrush}" />
+                            <Setter TargetName="Primary" Property="Style" Value="{StaticResource ButtonBase}" />
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
-            <!-- Notices: thin full-width strips -->
-            <ItemsControl ItemsSource="{Binding Notices}" Focusable="False">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type vm:NoticeViewModel}">
-                        <Border x:Name="Strip" Padding="32,10" BorderThickness="0,0,0,1"
-                                Background="{StaticResource InfoStripBrush}" BorderBrush="{StaticResource InfoStripBorderBrush}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Rectangle Style="{StaticResource Dot}" VerticalAlignment="Top" Margin="0,7,16,0"
-                                           Fill="{Binding Level, Converter={StaticResource LevelBrush}}" />
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
-                                    <TextBlock x:Name="TitleText" Text="{Binding Title}" FontWeight="SemiBold" TextWrapping="Wrap"
-                                               Foreground="{StaticResource InfoStripTextBrush}" />
-                                    <TextBlock x:Name="BodyText" Text="{Binding Text}" FontSize="13" TextWrapping="Wrap" Opacity="0.85" Margin="0,2,0,0"
-                                               Foreground="{StaticResource InfoStripTextBrush}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Button x:Name="Secondary" Style="{StaticResource LinkButton}" Content="{Binding SecondaryText}"
-                                            Command="{Binding SecondaryCommand}" ToolTip="{Binding SecondaryTip}" Margin="0,0,8,0"
-                                            Visibility="{Binding HasSecondary, Converter={StaticResource BoolVis}}" />
-                                    <Button x:Name="Primary" Style="{StaticResource AccentButton}" Content="{Binding PrimaryText}"
-                                            Command="{Binding PrimaryCommand}" ToolTip="{Binding PrimaryTip}"
-                                            Visibility="{Binding HasPrimary, Converter={StaticResource BoolVis}}" />
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-                        <DataTemplate.Triggers>
-                            <DataTrigger Binding="{Binding Level}" Value="warn">
-                                <Setter TargetName="Strip" Property="Background" Value="{StaticResource WarnStripBrush}" />
-                                <Setter TargetName="Strip" Property="BorderBrush" Value="{StaticResource WarnStripBorderBrush}" />
-                                <Setter TargetName="TitleText" Property="Foreground" Value="{StaticResource WarnStripTextBrush}" />
-                                <Setter TargetName="BodyText" Property="Foreground" Value="{StaticResource WarnStripTextBrush}" />
-                                <Setter TargetName="Secondary" Property="Foreground" Value="{StaticResource WarnStripLinkBrush}" />
-                                <Setter TargetName="Primary" Property="Style" Value="{StaticResource ButtonBase}" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Level}" Value="bad">
-                                <Setter TargetName="Strip" Property="Background" Value="{StaticResource BadStripBrush}" />
-                                <Setter TargetName="Strip" Property="BorderBrush" Value="{StaticResource BadStripBorderBrush}" />
-                                <Setter TargetName="TitleText" Property="Foreground" Value="{StaticResource BadStripTextBrush}" />
-                                <Setter TargetName="BodyText" Property="Foreground" Value="{StaticResource BadStripTextBrush}" />
-                                <Setter TargetName="Secondary" Property="Foreground" Value="{StaticResource BadStripLinkBrush}" />
-                                <Setter TargetName="Primary" Property="Style" Value="{StaticResource ButtonBase}" />
-                            </DataTrigger>
-                            <DataTrigger Binding="{Binding Level}" Value="ok">
-                                <Setter TargetName="Strip" Property="Background" Value="{StaticResource OkStripBrush}" />
-                                <Setter TargetName="Strip" Property="BorderBrush" Value="{StaticResource OkStripBorderBrush}" />
-                                <Setter TargetName="TitleText" Property="Foreground" Value="{StaticResource OkStripTextBrush}" />
-                                <Setter TargetName="BodyText" Property="Foreground" Value="{StaticResource OkStripTextBrush}" />
-                                <Setter TargetName="Secondary" Property="Foreground" Value="{StaticResource OkStripLinkBrush}" />
-                                <Setter TargetName="Primary" Property="Style" Value="{StaticResource ButtonBase}" />
-                            </DataTrigger>
-                        </DataTemplate.Triggers>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+        <!-- ===== Pages ===== -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+            <Grid>
+                <!-- Controller page (the controller selected in the top bar) -->
+                <Grid Visibility="{Binding ShowControllers, Converter={StaticResource BoolVis}}">
+                    <ContentControl Content="{Binding SelectedController}" Focusable="False"
+                                    Visibility="{Binding HasControllers, Converter={StaticResource BoolVis}}">
+                        <ContentControl.ContentTemplate>
+                            <DataTemplate DataType="{x:Type vm:ControllerViewModel}">
+                                <v:ControllerPage />
+                            </DataTemplate>
+                        </ContentControl.ContentTemplate>
+                    </ContentControl>
 
-            <!-- Pages -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <Grid>
-                    <!-- Controller page (the controller selected in the sidebar) -->
-                    <Grid Visibility="{Binding ShowControllers, Converter={StaticResource BoolVis}}">
-                        <ContentControl Content="{Binding SelectedController}" Focusable="False"
-                                        Visibility="{Binding HasControllers, Converter={StaticResource BoolVis}}">
-                            <ContentControl.ContentTemplate>
-                                <DataTemplate DataType="{x:Type vm:ControllerViewModel}">
-                                    <v:ControllerPage />
-                                </DataTemplate>
-                            </ContentControl.ContentTemplate>
-                        </ContentControl>
-
-                        <!-- Empty state -->
-                        <StackPanel Width="520" HorizontalAlignment="Center" Margin="32,72,32,32" Background="Transparent"
-                                    ToolTip="{x:Static vm:Tips.EmptyState}"
-                                    Visibility="{Binding IsEmpty, Converter={StaticResource BoolVis}}">
-                            <!-- Outline controller -->
-                            <Canvas Width="72" Height="48" HorizontalAlignment="Left">
-                                <Path Stroke="{StaticResource AccentBrush}" StrokeThickness="1.5" StrokeLineJoin="Round"
-                                      Data="M20,6 H52 C61,6 66,14 68,26 C69.6,35.6 66.6,42 61.4,42 C57.4,42 55,38 52,34 H20 C17,38 14.6,42 10.6,42 C5.4,42 2.4,35.6 4,26 C6,14 11,6 20,6 Z" />
-                                <Path Stroke="{StaticResource AccentBrush}" StrokeThickness="1.5" Data="M18,18 V28 M13,23 H23" />
+                    <!-- Empty state -->
+                    <StackPanel MaxWidth="560" HorizontalAlignment="Center" Margin="32,88,32,40" Background="Transparent"
+                                ToolTip="{x:Static vm:Tips.EmptyState}"
+                                Visibility="{Binding IsEmpty, Converter={StaticResource BoolVis}}">
+                        <Viewbox Width="96" Height="64" HorizontalAlignment="Left">
+                            <Canvas Width="72" Height="48">
+                                <Path Data="{StaticResource ControllerGeometry}" Stroke="{StaticResource AccentBrush}" StrokeThickness="1.5" StrokeLineJoin="Round" />
+                                <Path Data="M18,18 V28 M13,23 H23" Stroke="{StaticResource AccentBrush}" StrokeThickness="1.5" />
                                 <Ellipse Canvas.Left="50.2" Canvas.Top="17.2" Width="3.6" Height="3.6" Stroke="{StaticResource AccentBrush}" StrokeThickness="1.5" />
                                 <Ellipse Canvas.Left="55.2" Canvas.Top="22.2" Width="3.6" Height="3.6" Stroke="{StaticResource AccentBrush}" StrokeThickness="1.5" />
                             </Canvas>
-                            <TextBlock Text="Nog geen controller gevonden" Style="{StaticResource H1}" Margin="0,20,0,6" />
-                            <TextBlock Style="{StaticResource Body}" Foreground="{StaticResource TextDimBrush}" Margin="0,0,0,24"
-                                       Text="Sluit een DualShock 4 of DualSense aan. Hij verschijnt dan vanzelf links in de lijst." />
-                            <Border BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,1,0,0" Padding="0,14">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="40" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="01" Style="{StaticResource Mono}" FontSize="14" Foreground="{StaticResource AccentBrush}" />
-                                    <StackPanel Grid.Column="1">
-                                        <TextBlock Text="USB" FontWeight="SemiBold" />
-                                        <TextBlock Style="{StaticResource Body}" Foreground="{StaticResource TextDimBrush}"
-                                                   Text="Steek de kabel in. Meer hoef je niet te doen." />
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                            <Border BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,1,0,1" Padding="0,14">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="40" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="02" Style="{StaticResource Mono}" FontSize="14" Foreground="{StaticResource AccentBrush}" />
-                                    <StackPanel Grid.Column="1">
-                                        <TextBlock Text="Bluetooth" FontWeight="SemiBold" />
-                                        <TextBlock Style="{StaticResource Body}" Foreground="{StaticResource TextDimBrush}"
-                                                   Text="Houd PS en Share (of Create) ingedrukt tot het lampje snel knippert. Koppel hem daarna in Windows bij Instellingen › Bluetooth." />
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- Profiles -->
-                    <v:ProfilesPage DataContext="{Binding ProfilesPage}" Margin="32,24,32,28"
-                                    Visibility="{Binding DataContext.ShowProfiles, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}" />
-
-                    <!-- Settings -->
-                    <v:SettingsPage DataContext="{Binding Settings}" Margin="32,24,32,28"
-                                    Visibility="{Binding DataContext.ShowSettings, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}" />
+                        </Viewbox>
+                        <TextBlock Text="Nog geen controller gevonden" Style="{StaticResource H1}" FontSize="26" Margin="0,22,0,6" />
+                        <TextBlock Style="{StaticResource Dim}" FontSize="14" Margin="0,0,0,28"
+                                   Text="Sluit een DualShock 4 of DualSense aan. Hij verschijnt dan vanzelf bovenin als tabblad." />
+                        <Border BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,1,0,0" Padding="0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="44" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="01" Style="{StaticResource Mono}" FontSize="14" Foreground="{StaticResource LinkBrush}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="USB" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Style="{StaticResource Dim}" FontSize="14" Text="Steek de kabel in. Meer hoef je niet te doen." />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <Border BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,1,0,1" Padding="0,16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="44" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="02" Style="{StaticResource Mono}" FontSize="14" Foreground="{StaticResource LinkBrush}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Bluetooth" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Style="{StaticResource Dim}" FontSize="14"
+                                               Text="Houd PS en Share (of Create) ingedrukt tot het lampje snel knippert. Koppel hem daarna in Windows bij Instellingen › Bluetooth." />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
                 </Grid>
-            </ScrollViewer>
-        </Grid>
+
+                <!-- Profielen -->
+                <v:ProfilesPage DataContext="{Binding ProfilesPage}" MaxWidth="{StaticResource PageMaxWidth}" Margin="{StaticResource PageMargin}"
+                                Visibility="{Binding DataContext.ShowProfiles, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}" />
+
+                <!-- Instellingen (also holds "Afsluiten": SettingsViewModel.QuitCommand) -->
+                <v:SettingsPage DataContext="{Binding Settings}" MaxWidth="{StaticResource PageMaxWidth}" Margin="{StaticResource PageMargin}"
+                                Visibility="{Binding DataContext.ShowSettings, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}" />
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </Window>

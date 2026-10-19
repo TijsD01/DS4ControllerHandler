@@ -8,33 +8,42 @@
              d:DataContext="{d:DesignInstance Type=vm:TuningViewModel}">
 
     <UserControl.Resources>
-        <!-- One slider row of the Afstellen section: label, slider, value text. -->
+        <!-- One slider row: label | slider | value in mono. -->
         <DataTemplate x:Key="TuneSliderRow" DataType="{x:Type vm:TuningSlider}">
-            <Grid Margin="0,0,0,6" ToolTip="{Binding Tip}" Background="Transparent">
+            <Grid Margin="0,0,0,8" ToolTip="{Binding Tip}" Background="Transparent">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="112" />
                     <ColumnDefinition Width="*" MinWidth="80" />
-                    <ColumnDefinition Width="96" />
+                    <ColumnDefinition Width="88" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="{Binding Label}" Style="{StaticResource Dim}" VerticalAlignment="Center" />
-                <Slider Grid.Column="1" Style="{StaticResource Slider}" Margin="6,0" VerticalAlignment="Center"
+                <TextBlock Text="{Binding Label}" Style="{StaticResource Body}" VerticalAlignment="Center" />
+                <Slider Grid.Column="1" Style="{StaticResource Slider}" Margin="8,0,12,0" VerticalAlignment="Center"
                         Value="{Binding Position, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBlock Grid.Column="2" Text="{Binding Text}" Style="{StaticResource Dim}" FontFamily="Consolas"
-                           HorizontalAlignment="Right" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="2" Text="{Binding Text}" Style="{StaticResource Mono}" FontSize="13"
+                           Foreground="{StaticResource TextBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" />
             </Grid>
         </DataTemplate>
 
-        <!-- Afstellen: one stick. -->
+        <!-- Column title with its own "Standaard" link. -->
+        <DataTemplate x:Key="ColumnHead">
+            <DockPanel Margin="0,0,0,12">
+                <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="Standaard"
+                        Command="{Binding ResetCommand}" ToolTip="{x:Static vm:Tips.TuneResetSection}" />
+                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </DockPanel>
+        </DataTemplate>
+
+        <!-- One stick. -->
         <DataTemplate x:Key="TuneStick" DataType="{x:Type vm:StickTuningSection}">
             <StackPanel>
-                <DockPanel Margin="0,0,0,10">
-                    <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Standaard" Padding="10,4"
-                            Command="{Binding ResetCommand}" ToolTip="{x:Static vm:Tips.TuneResetSection}" />
-                    <TextBlock Text="{Binding Title}" Style="{StaticResource H2}" FontSize="14" VerticalAlignment="Center" />
-                </DockPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,10" ToolTip="{x:Static vm:Tips.TuneShape}" Background="Transparent">
-                    <TextBlock Text="Vorm" Style="{StaticResource Dim}" VerticalAlignment="Center" Width="112" />
-                    <Border Style="{StaticResource SegmentHost}">
+                <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ColumnHead}" />
+                <Grid Margin="0,0,0,10" ToolTip="{x:Static vm:Tips.TuneShape}" Background="Transparent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="112" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Vorm" Style="{StaticResource Body}" VerticalAlignment="Center" />
+                    <Border Grid.Column="1" Style="{StaticResource SegmentHost}" HorizontalAlignment="Left" Margin="8,0,0,0">
                         <StackPanel Orientation="Horizontal">
                             <RadioButton Style="{StaticResource Segment}" Content="Rond" IsChecked="{Binding ShapeRadial}"
                                          GroupName="{Binding Group}" ToolTip="{x:Static vm:Tips.TuneShapeRadial}" />
@@ -44,7 +53,7 @@
                                          GroupName="{Binding Group}" ToolTip="{x:Static vm:Tips.TuneShapeAxial}" />
                         </StackPanel>
                     </Border>
-                </StackPanel>
+                </Grid>
                 <ItemsControl ItemsSource="{Binding Sliders}" ItemTemplate="{StaticResource TuneSliderRow}" Focusable="False" />
                 <WrapPanel Margin="0,6,0,0">
                     <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding SquareOutput}" Margin="0,0,20,6"
@@ -63,60 +72,90 @@
             </StackPanel>
         </DataTemplate>
 
-        <!-- Afstellen: one trigger. -->
+        <!-- One trigger. -->
         <DataTemplate x:Key="TuneTrigger" DataType="{x:Type vm:TriggerTuningSection}">
             <StackPanel>
-                <DockPanel Margin="0,0,0,10">
-                    <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Standaard" Padding="10,4"
-                            Command="{Binding ResetCommand}" ToolTip="{x:Static vm:Tips.TuneResetSection}" />
-                    <TextBlock Text="{Binding Title}" Style="{StaticResource H2}" FontSize="14" VerticalAlignment="Center" />
-                </DockPanel>
+                <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource ColumnHead}" />
                 <ItemsControl ItemsSource="{Binding Sliders}" ItemTemplate="{StaticResource TuneSliderRow}" Focusable="False" />
             </StackPanel>
         </DataTemplate>
     </UserControl.Resources>
 
     <StackPanel>
-        <DockPanel Margin="0,0,0,12">
-            <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Alles op standaard"
+        <!-- Header: what happens with changes, and reset everything. -->
+        <DockPanel Margin="0,0,0,16">
+            <Button DockPanel.Dock="Right" Content="Alles op standaard"
                     Command="{Binding ResetAllCommand}" ToolTip="{x:Static vm:Tips.TuneResetAll}" />
-            <StackPanel Orientation="Horizontal" ToolTip="{x:Static vm:Tips.TuneSection}" Background="Transparent">
-                <TextBlock Text="Afstellen" Style="{StaticResource H2}" />
-                <TextBlock Style="{StaticResource Icon}" FontSize="13" Text="&#xE946;" Foreground="{StaticResource TextMutedBrush}" Margin="8,2,0,0" Cursor="Help" />
-            </StackPanel>
+            <TextBlock Text="Wijzigingen worden meteen opgeslagen in het profiel van deze controller." Style="{StaticResource Dim}"
+                       VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,16,0"
+                       ToolTip="{x:Static vm:Tips.TuneSection}" Cursor="Help" />
         </DockPanel>
         <TextBlock Text="{Binding SaveNote}" Style="{StaticResource Body}" Foreground="{StaticResource WarningBrush}"
                    TextWrapping="Wrap" Margin="0,0,0,12"
                    Visibility="{Binding SaveNote, Converter={StaticResource TextVis}}" />
-        <UniformGrid Columns="2">
-            <ContentPresenter Content="{Binding Left}" ContentTemplate="{StaticResource TuneStick}" Margin="0,0,14,18" />
-            <ContentPresenter Content="{Binding Right}" ContentTemplate="{StaticResource TuneStick}" Margin="14,0,0,18" />
-            <ContentPresenter Content="{Binding L2}" ContentTemplate="{StaticResource TuneTrigger}" Margin="0,0,14,18" />
-            <ContentPresenter Content="{Binding R2}" ContentTemplate="{StaticResource TuneTrigger}" Margin="14,0,0,18" />
-        </UniformGrid>
-        <DockPanel Margin="0,0,0,10">
-            <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Standaard" Padding="10,4"
-                    Command="{Binding ResetSpeedCommand}" ToolTip="{x:Static vm:Tips.TuneResetSection}" />
-            <TextBlock Text="Snelheid" Style="{StaticResource H2}" FontSize="14" VerticalAlignment="Center" />
-        </DockPanel>
-        <WrapPanel>
-            <StackPanel Margin="0,0,24,8" MinWidth="220">
-                <TextBlock Text="Meten via Bluetooth (DualShock 4)" Style="{StaticResource Dim}" Margin="0,0,0,4"
-                           ToolTip="{x:Static vm:Tips.TunePoll}" Cursor="Help" />
-                <ComboBox Style="{StaticResource Combo}" ItemsSource="{x:Static vm:TuningViewModel.PollChoices}"
-                          SelectedItem="{Binding SelectedPoll, Mode=TwoWay}" DisplayMemberPath="Label"
-                          IsEnabled="{Binding SupportsPoll}" ToolTip="{x:Static vm:Tips.TunePoll}" />
-                <TextBlock Text="{Binding PollNote}" Style="{StaticResource Caption}" TextWrapping="Wrap" MaxWidth="320" Margin="0,4,0,0"
-                           ToolTip="{x:Static vm:Tips.TunePollUnavailable}"
-                           Visibility="{Binding PollNote, Converter={StaticResource TextVis}}" />
+
+        <!-- Sticks -->
+        <Border Style="{StaticResource Card}" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="STICKS" Style="{StaticResource SectionTitle}" Margin="0,0,0,14" ToolTip="{x:Static vm:Tips.TuneSection}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="1" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ContentPresenter Content="{Binding Left}" ContentTemplate="{StaticResource TuneStick}" Margin="0,0,20,0" />
+                    <Rectangle Grid.Column="1" Fill="{StaticResource DividerBrush}" />
+                    <ContentPresenter Grid.Column="2" Content="{Binding Right}" ContentTemplate="{StaticResource TuneStick}" Margin="20,0,0,0" />
+                </Grid>
             </StackPanel>
-            <StackPanel Margin="0,0,0,8" MinWidth="220">
-                <TextBlock Text="Naar de game sturen" Style="{StaticResource Dim}" Margin="0,0,0,4"
-                           ToolTip="{x:Static vm:Tips.TuneOutputRate}" Cursor="Help" />
-                <ComboBox Style="{StaticResource Combo}" ItemsSource="{x:Static vm:TuningViewModel.OutputChoices}"
-                          SelectedItem="{Binding SelectedOutputRate, Mode=TwoWay}" DisplayMemberPath="Label"
-                          ToolTip="{x:Static vm:Tips.TuneOutputRate}" />
+        </Border>
+
+        <!-- Triggers -->
+        <Border Style="{StaticResource Card}" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="TRIGGERS" Style="{StaticResource SectionTitle}" Margin="0,0,0,14" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="1" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ContentPresenter Content="{Binding L2}" ContentTemplate="{StaticResource TuneTrigger}" Margin="0,0,20,0" />
+                    <Rectangle Grid.Column="1" Fill="{StaticResource DividerBrush}" />
+                    <ContentPresenter Grid.Column="2" Content="{Binding R2}" ContentTemplate="{StaticResource TuneTrigger}" Margin="20,0,0,0" />
+                </Grid>
             </StackPanel>
-        </WrapPanel>
+        </Border>
+
+        <!-- Snelheid -->
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <DockPanel Margin="0,0,0,14">
+                    <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="Standaard"
+                            Command="{Binding ResetSpeedCommand}" ToolTip="{x:Static vm:Tips.TuneResetSection}" />
+                    <TextBlock Text="SNELHEID" Style="{StaticResource SectionLabel}" />
+                </DockPanel>
+                <WrapPanel>
+                    <StackPanel Margin="0,0,32,8" Width="280">
+                        <TextBlock Text="Meten via Bluetooth (DualShock 4)" Style="{StaticResource Body}" Margin="0,0,0,6"
+                                   ToolTip="{x:Static vm:Tips.TunePoll}" Cursor="Help" />
+                        <ComboBox Style="{StaticResource Combo}" ItemsSource="{x:Static vm:TuningViewModel.PollChoices}"
+                                  SelectedItem="{Binding SelectedPoll, Mode=TwoWay}" DisplayMemberPath="Label"
+                                  IsEnabled="{Binding SupportsPoll}" ToolTip="{x:Static vm:Tips.TunePoll}" />
+                        <TextBlock Text="{Binding PollNote}" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                   ToolTip="{x:Static vm:Tips.TunePollUnavailable}"
+                                   Visibility="{Binding PollNote, Converter={StaticResource TextVis}}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,0,8" Width="280">
+                        <TextBlock Text="Naar de game sturen" Style="{StaticResource Body}" Margin="0,0,0,6"
+                                   ToolTip="{x:Static vm:Tips.TuneOutputRate}" Cursor="Help" />
+                        <ComboBox Style="{StaticResource Combo}" ItemsSource="{x:Static vm:TuningViewModel.OutputChoices}"
+                                  SelectedItem="{Binding SelectedOutputRate, Mode=TwoWay}" DisplayMemberPath="Label"
+                                  ToolTip="{x:Static vm:Tips.TuneOutputRate}" />
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+        </Border>
     </StackPanel>
 </UserControl>

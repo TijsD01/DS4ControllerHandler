@@ -794,7 +794,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="RepeatButton">
                     <Grid Background="Transparent" Height="20">
-                        <Border Height="4" CornerRadius="2" Background="{TemplateBinding Background}" VerticalAlignment="Center" />
+                        <Border Height="4" CornerRadius="1" Background="{TemplateBinding Background}" VerticalAlignment="Center" />
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -819,19 +819,19 @@
                             </Track.DecreaseRepeatButton>
                             <Track.IncreaseRepeatButton>
                                 <RepeatButton Style="{StaticResource SliderFill}" Command="Slider.IncreaseLarge"
-                                              Background="{StaticResource Surface3Brush}" />
+                                              Background="{StaticResource TrackBrush}" />
                             </Track.IncreaseRepeatButton>
                             <Track.Thumb>
                                 <Thumb Width="14" Height="14">
                                     <Thumb.Template>
                                         <ControlTemplate TargetType="Thumb">
-                                            <Ellipse x:Name="Dot" Fill="{StaticResource TextBrush}" />
+                                            <Border x:Name="Dot" CornerRadius="3" Background="{StaticResource TextBrush}" />
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="Dot" Property="Fill" Value="{StaticResource AccentHoverBrush}" />
+                                                    <Setter TargetName="Dot" Property="Background" Value="{StaticResource AccentHoverBrush}" />
                                                 </Trigger>
                                                 <Trigger Property="IsDragging" Value="True">
-                                                    <Setter TargetName="Dot" Property="Fill" Value="{StaticResource AccentHoverBrush}" />
+                                                    <Setter TargetName="Dot" Property="Background" Value="{StaticResource AccentHoverBrush}" />
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>

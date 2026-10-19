@@ -254,8 +254,8 @@ public sealed class TriggerTuningSection : TuningSection
 {
     public TriggerTuningSection(string title, string group, Action changed) : base(title, group, changed)
     {
-        Inner = new TuningSlider("Extra deadzone", Tips.TuneTriggerInner, 0, 0.9, 0.01, Pct, ChangedCallback);
-        Outer = new TuningSlider("Eindpunt", Tips.TuneTriggerOuter, 0, 0.5, 0.01, Pct, ChangedCallback);
+        Inner = new TuningSlider("Extra deadzone", Tips.TuneTriggerInner, 0, InputShaper.MaxTriggerInnerDeadzone, 0.01, Pct, ChangedCallback);
+        Outer = new TuningSlider("Eindpunt", Tips.TuneTriggerOuter, 0, 0.5, 0.01, Pct, OuterChanged);
         Anti = new TuningSlider("Anti-deadzone", Tips.TuneTriggerAnti, 0, 0.9, 0.01, Pct, ChangedCallback);
         Curve = new TuningSlider("Curve", Tips.TuneCurve, 0.2, 5, 0.05, CurveText, ChangedCallback);
         Sliders = new[] { Inner, Outer, Anti, Curve };
@@ -271,6 +271,19 @@ public sealed class TriggerTuningSection : TuningSection
     public TuningSlider Curve { get; }
     public IReadOnlyList<TuningSlider> Sliders { get; }
 
+    private void OuterChanged()
+    {
+        UpdateInnerMax();
+        Notify();
+    }
+
+    /// <summary>Inner deadzone limit follows the end point (see <see cref="InputShaper.MaxTriggerInner"/>), so Sanitize never changes what is shown.</summary>
+    private void UpdateInnerMax()
+    {
+        double max = InputShaper.MaxTriggerInner((float)Outer.Value);
+        Inner.SetMax(Math.Floor(max * 100 + 1e-4) / 100);
+    }
+
     protected override void LoadDefaults() => Load(new TriggerTuning());
 
     public void Load(TriggerTuning t)
@@ -278,8 +291,9 @@ public sealed class TriggerTuningSection : TuningSection
         Loading = true;
         try
         {
-            Inner.Load(t.InnerDeadzone);
             Outer.Load(t.OuterDeadzone);
+            UpdateInnerMax();
+            Inner.Load(t.InnerDeadzone);
             Anti.Load(t.AntiDeadzone);
             Curve.Load(t.Curve);
         }
@@ -389,7 +403,7 @@ public sealed class TuningViewModel : ObservableObject
     /// <summary>Shown next to the poll rate when the controller cannot change it.</summary>
     public string PollNote => SupportsPoll ? "" : "Alleen te kiezen voor een DualShock 4 via Bluetooth. Via USB bepaalt de controller zelf hoe vaak hij meet.";
 
-    public bool CanSave { get => _canSave; private set { if (SetField(ref _canSave, value)) OnPropertyChanged(nameof(SaveNote)); } }
+    private bool CanSave { get => _canSave; set { if (SetField(ref _canSave, value)) OnPropertyChanged(nameof(SaveNote)); } }
 
     public string SaveNote => CanSave ? ""
         : _blocked ? "Wijzigingen werken nu, maar worden niet bewaard: dit profiel is in gebruik door een andere controller."

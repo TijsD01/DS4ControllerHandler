@@ -33,7 +33,7 @@
                                  CenterX="{Binding CenterX}" CenterY="{Binding CenterY}" Deadzone="{Binding Deadzone}"
                                  Guided="{Binding Guided}" AutomationProperties.Name="{Binding Name}" />
                 </Grid>
-                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" Margin="0,10,0,0" />
+                <TextBlock Text="{Binding ShortName}" FontSize="13" FontWeight="SemiBold" Margin="0,10,0,0" />
                 <TextBlock Text="{Binding ValueText}" Style="{StaticResource Mono}" Margin="0,2,0,0" TextWrapping="Wrap" />
                 <TextBlock Margin="0,2,0,0" Style="{StaticResource Mono}" Cursor="Help" ToolTip="{Binding DeadzoneTip}" HorizontalAlignment="Left">
                     <Run Text="deadzone" />

@@ -85,6 +85,7 @@
                     <!-- No controller: clickable, so the empty state stays reachable from Profielen / Instellingen. -->
                     <Button Style="{StaticResource ControllerTab}" Command="{Binding ShowControllersCommand}"
                             Tag="{Binding ShowControllers, Mode=OneWay}" ToolTip="{x:Static vm:Tips.NoControllerTab}"
+                            AutomationProperties.Name="Geen controller aangesloten"
                             Visibility="{Binding IsEmpty, Converter={StaticResource BoolVis}}">
                         <StackPanel Orientation="Horizontal">
                             <Ellipse Style="{StaticResource Dot}" Margin="0,0,10,0" />
@@ -124,7 +125,8 @@
                         </StackPanel>
                     </Button>
 
-                    <RadioButton Style="{StaticResource TopNavButton}" IsChecked="{Binding ShowProfiles}" ToolTip="{x:Static vm:Tips.NavProfiles}">
+                    <RadioButton Style="{StaticResource TopNavButton}" IsChecked="{Binding ShowProfiles}" ToolTip="{x:Static vm:Tips.NavProfiles}"
+                                 AutomationProperties.Name="Profielen">
                         <StackPanel Orientation="Horizontal">
                             <Viewbox Width="16" Height="16" Margin="0,0,8,0">
                                 <Path Data="{StaticResource ProfileIconGeometry}" Width="24" Height="24" StrokeThickness="1.8"
@@ -133,7 +135,8 @@
                             <TextBlock Text="Profielen" VerticalAlignment="Center" />
                         </StackPanel>
                     </RadioButton>
-                    <RadioButton Style="{StaticResource TopNavButton}" IsChecked="{Binding ShowSettings}" ToolTip="{x:Static vm:Tips.NavSettings}">
+                    <RadioButton Style="{StaticResource TopNavButton}" IsChecked="{Binding ShowSettings}" ToolTip="{x:Static vm:Tips.NavSettings}"
+                                 AutomationProperties.Name="Instellingen">
                         <StackPanel Orientation="Horizontal">
                             <Viewbox Width="16" Height="16" Margin="0,0,8,0">
                                 <Path Data="{StaticResource SettingsIconGeometry}" Width="24" Height="24" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"

@@ -53,21 +53,6 @@ public sealed class WidthToColumnsConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
 }
 
-/// <summary>Maps a <see cref="Level"/> string to an icon glyph (Segoe Fluent Icons).</summary>
-public sealed class LevelIconConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => (value as string) switch
-    {
-        Level.Ok => "",       // check
-        Level.Warn => "",     // warning
-        Level.Bad => "",      // error
-        Level.Learning => "", // processing
-        _ => "",
-    };
-
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
-}
-
 /// <summary>true → Visible; with ConverterParameter "invert" the other way round.</summary>
 public sealed class BoolVisibilityConverter : IValueConverter
 {

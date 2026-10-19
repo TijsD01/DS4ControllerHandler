@@ -56,6 +56,37 @@ public class ShapeResponseTests
         }
     }
 
+    /// <summary>Hard-coded results of the trigger formula as it was before ShapeResponse existed.</summary>
+    [Theory]
+    [InlineData(0.5f, 0.1f, 0.05f, 0f, 1f, 0.470588f)]
+    [InlineData(0.5f, 0.2f, 0.2f, 0.15f, 2.2f, 0.334992f)]
+    [InlineData(0.3f, 0f, 0.4f, 0.5f, 0.3f, 0.906126f)]
+    [InlineData(0.12f, 0.1f, 0f, 0.25f, 1f, 0.266667f)]
+    [InlineData(0.95f, 0.1f, 0.05f, 0f, 1f, 1f)]
+    [InlineData(0.7f, 0f, 0f, 0f, 3f, 0.343f)]
+    public void Trigger_MatchesTheOriginalFormula(float v, float inner, float outer, float anti, float curve, float expected)
+    {
+        var t = new TriggerTuning { InnerDeadzone = inner, OuterDeadzone = outer, AntiDeadzone = anti, Curve = curve };
+        Assert.Equal(expected, InputShaper.ShapeTrigger(v, t), 1e-5f);
+        Assert.Equal(expected, InputShaper.ShapeResponse(v, inner, outer, anti, curve), 1e-5f);
+    }
+
+    [Theory]
+    [InlineData(0f, 0.9f)]
+    [InlineData(0.05f, 0.9f)]
+    [InlineData(0.2f, 0.75f)]
+    [InlineData(0.5f, 0.45f)]
+    public void MaxTriggerInner_KeepsTheEndPointThroughSanitize(float outer, float expectedMax)
+    {
+        float max = InputShaper.MaxTriggerInner(outer);
+        Assert.Equal(expectedMax, max, 1e-5f);
+        // What the slider can show (whole percents, rounded down) survives Sanitize unchanged.
+        float inner = MathF.Floor(max * 100f + 1e-4f) / 100f;
+        var t = InputShaper.Sanitize(new TriggerTuning { InnerDeadzone = inner, OuterDeadzone = outer });
+        Assert.Equal(inner, t.InnerDeadzone);
+        Assert.Equal(outer, t.OuterDeadzone, 1e-5f);
+    }
+
     [Fact]
     public void ZeroInsideDeadzone_FullAtEndPoint_Monotonic()
     {

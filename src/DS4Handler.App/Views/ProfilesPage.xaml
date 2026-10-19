@@ -50,7 +50,8 @@
                                                ToolTip="{x:Static vm:Tips.ProfileOnCard}" />
                                     <ComboBox Grid.Column="3" Style="{StaticResource Combo}" VerticalAlignment="Center"
                                               ItemsSource="{Binding Choices}" SelectedItem="{Binding Selected}"
-                                              DisplayMemberPath="Label" ToolTip="{x:Static vm:Tips.ProfileChoose}" />
+                                              DisplayMemberPath="Label" ToolTip="{x:Static vm:Tips.ProfileChoose}"
+                                              AutomationProperties.Name="Profiel voor deze controller" />
                                 </Grid>
                             </Border>
                         </DataTemplate>

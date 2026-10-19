@@ -59,9 +59,17 @@ public sealed class StickViewModel : ObservableObject
     private string _summaryLevel = Level.Learning;
     private string _deadzoneTip = Tips.Deadzone;
 
-    public StickViewModel(string name) => Name = name;
+    public StickViewModel(string name, string shortName)
+    {
+        Name = name;
+        ShortName = shortName;
+    }
 
+    /// <summary>"Linker stick" / "Rechter stick" (Kalibratie, summaries).</summary>
     public string Name { get; }
+
+    /// <summary>"Links" / "Rechts" (label under the live stick).</summary>
+    public string ShortName { get; }
 
     public double RawX { get => _rawX; private set => SetNumber(ref _rawX, value); }
     public double RawY { get => _rawY; private set => SetNumber(ref _rawY, value); }
@@ -254,8 +262,8 @@ public sealed class ControllerViewModel : ObservableObject
         Session = session;
         _host = host;
         _confirm = confirm;
-        Left = new StickViewModel("Linker stick");
-        Right = new StickViewModel("Rechter stick");
+        Left = new StickViewModel("Linker stick", "Links");
+        Right = new StickViewModel("Rechter stick", "Rechts");
         L2 = new TriggerViewModel(session, right: false);
         R2 = new TriggerViewModel(session, right: true);
         _learning = session.LearningEnabled;
@@ -313,9 +321,6 @@ public sealed class ControllerViewModel : ObservableObject
     public bool IsBluetooth => Session.Connection == ConnectionType.Bluetooth;
     public string ConnectionText => IsBluetooth ? "Bluetooth" : "USB";
     public string ConnectionTip => IsBluetooth ? Tips.Bluetooth : Tips.Usb;
-
-    /// <summary>Short model name ("DS4" / "DualSense").</summary>
-    public string ModelShort => Session.Model == ControllerModel.DualShock4 ? "DS4" : "DualSense";
 
     /// <summary>Mono line on the controller's tab in the top bar: "BT · 82%" or "USB".</summary>
     public string TabMeta { get => _tabMeta; private set => SetField(ref _tabMeta, value); }
@@ -472,12 +477,12 @@ public sealed class ControllerViewModel : ObservableObject
                 StatusTip = "De controller is verbonden maar stuurt (nog) geen standen. Bij Bluetooth: druk op de PS-knop. Blijft dit staan, sluit hem dan opnieuw aan.";
                 break;
             case VirtualPadState.Active when Session.OutputMode == OutputMode.DualShock4:
-                StatusText = "Actief als DualShock 4-controller";
+                StatusText = "Virtuele DualShock 4 actief";
                 StatusLevel = Level.Ok;
                 StatusTip = "Games zien deze controller nu als een (virtuele) DualShock 4, inclusief trillen. De correcties uit de kalibratie worden al toegepast. Zet 'Verborgen voor games' aan zodat games niet ook je echte controller zien.";
                 break;
             case VirtualPadState.Active:
-                StatusText = "Actief als Xbox-controller";
+                StatusText = "Virtuele Xbox 360 actief";
                 StatusLevel = Level.Ok;
                 StatusTip = "Games zien deze controller nu als een Xbox 360-controller, inclusief trillen. De correcties uit de kalibratie worden al toegepast.";
                 break;

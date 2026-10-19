@@ -295,6 +295,17 @@ public static class InputShaper
         return Math.Clamp((1f - MinSpan - outer) / DiagonalFactor(shape), 0f, MaxStickInnerDeadzone);
     }
 
+    /// <summary>
+    /// Largest trigger inner deadzone <see cref="Sanitize(TriggerTuning)"/> keeps with this outer deadzone
+    /// without shrinking the outer one: 1 - <see cref="MinSpan"/> - outer, never above
+    /// <see cref="MaxTriggerInnerDeadzone"/>. For limiting a slider.
+    /// </summary>
+    public static float MaxTriggerInner(float outerDeadzone)
+    {
+        float outer = Clamp(outerDeadzone, 0f, 0f, MaxOuterDeadzone);
+        return Math.Clamp(1f - MinSpan - outer, 0f, MaxTriggerInnerDeadzone);
+    }
+
     private static float DiagonalFactor(DeadzoneShape shape) => shape is DeadzoneShape.Square or DeadzoneShape.Axial ? Sqrt2 : 1f;
 
     public static TriggerTuning Sanitize(TriggerTuning? t)

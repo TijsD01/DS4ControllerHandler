@@ -40,10 +40,10 @@
     <SolidColorBrush x:Key="InsetBrush" Color="#0A1020" po:Freeze="True" />            <!-- recessed areas: plates, tracks, inputs -->
     <SolidColorBrush x:Key="InsetBorderBrush" Color="#26324A" po:Freeze="True" />      <!-- border of recessed areas -->
     <SolidColorBrush x:Key="ControlBrush" Color="#1B2539" po:Freeze="True" />          <!-- button background -->
-    <SolidColorBrush x:Key="ControlBorderBrush" Color="#33425C" po:Freeze="True" />    <!-- button / input border -->
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="#5E6E8A" po:Freeze="True" />    <!-- button / input border (≥ 3:1 on cards) -->
     <SolidColorBrush x:Key="ControlHoverBrush" Color="#243049" po:Freeze="True" />     <!-- hovered button background -->
-    <SolidColorBrush x:Key="ControlHoverBorderBrush" Color="#45577A" po:Freeze="True" /> <!-- hovered button / input border -->
-    <SolidColorBrush x:Key="TrackBrush" Color="#2A3650" po:Freeze="True" />            <!-- switch (off), slider rail, segmented host border -->
+    <SolidColorBrush x:Key="ControlHoverBorderBrush" Color="#7A8CAA" po:Freeze="True" /> <!-- hovered button / input border -->
+    <SolidColorBrush x:Key="TrackBrush" Color="#5E6E8A" po:Freeze="True" />            <!-- switch (off), slider rail, segmented host border (≥ 3:1 on cards) -->
     <SolidColorBrush x:Key="PopupBrush" Color="#1B2539" po:Freeze="True" />            <!-- tooltips, drop-downs, menus, dialogs -->
     <SolidColorBrush x:Key="PopupBorderBrush" Color="#45577A" po:Freeze="True" />      <!-- border of the above -->
 
@@ -61,6 +61,7 @@
     <SolidColorBrush x:Key="LinkBrush" Color="#7FB0FF" po:Freeze="True" />             <!-- links, info dots -->
     <SolidColorBrush x:Key="LinkHoverBrush" Color="#A9C9FF" po:Freeze="True" />        <!-- hovered link -->
     <SolidColorBrush x:Key="FocusBrush" Color="#8DB8FF" po:Freeze="True" />            <!-- keyboard focus ring -->
+    <SolidColorBrush x:Key="HoverOverlayBrush" Color="#1FFFFFFF" po:Freeze="True" />   <!-- translucent hover for text buttons; works on every strip colour -->
 
     <!-- Status -->
     <SolidColorBrush x:Key="OkBrush" Color="#22C55E" po:Freeze="True" />               <!-- ok dot -->
@@ -100,8 +101,9 @@
     <!-- ===================================================================================== -->
 
     <!-- Bundled fonts (Assets/Fonts, OFL), with system fallbacks. -->
-    <FontFamily x:Key="UiFont">pack://application:,,,/Assets/Fonts/#IBM Plex Sans, Segoe UI</FontFamily>
-    <FontFamily x:Key="MonoFont">pack://application:,,,/Assets/Fonts/#JetBrains Mono, Cascadia Mono, Consolas</FontFamily>
+    <!-- Relative to the application root (no pack://application:,,, prefix: WPF splits family lists on commas). -->
+    <FontFamily x:Key="UiFont">/Assets/Fonts/#IBM Plex Sans, Segoe UI</FontFamily>
+    <FontFamily x:Key="MonoFont">/Assets/Fonts/#JetBrains Mono, Cascadia Mono, Consolas</FontFamily>
 
     <CornerRadius x:Key="ControlRadius">6</CornerRadius>   <!-- buttons, inputs -->
     <CornerRadius x:Key="CardRadius">8</CornerRadius>      <!-- cards, segmented hosts, plates -->
@@ -118,7 +120,7 @@
     <Geometry x:Key="ArrowRightGeometry">M2,8 H14 M9,3 L14,8 L9,13</Geometry> <!-- 16x16 -->
 
     <!-- ===================================================================================== -->
-    <!-- Converters (the Level ones live in App.xaml: LevelBrush, LevelIcon, BoolVis, TextVis)   -->
+    <!-- Converters (the others live in App.xaml: LevelBrush, BoolVis, TextVis)               -->
     <!-- ===================================================================================== -->
 
     <c:LevelWordConverter x:Key="LevelWord" />              <!-- Level → "in orde", "leert", ... -->
@@ -335,7 +337,7 @@
                             BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource ControlRadius}"
                             Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
                         <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" />
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsPressed" Value="True">
@@ -408,11 +410,8 @@
         <Setter Property="MinHeight" Value="28" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource InfoStripBrush}" />
+                <Setter Property="Background" Value="{StaticResource HoverOverlayBrush}" />
                 <Setter Property="BorderBrush" Value="Transparent" />
-            </Trigger>
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Foreground" Value="{StaticResource OffBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -420,11 +419,6 @@
     <!-- Destructive text link ("Verwijderen"). -->
     <Style x:Key="DangerLinkButton" TargetType="Button" BasedOn="{StaticResource LinkButton}">
         <Setter Property="Foreground" Value="{StaticResource DangerTextBrush}" />
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource DangerSoftBrush}" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 
     <!-- A whole card that is clickable (e.g. the Kalibratie summary on Live). Content stretches. -->
@@ -465,7 +459,7 @@
     <ControlTemplate x:Key="TopBarItemTemplate" TargetType="ButtonBase">
         <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2"
                 Padding="{TemplateBinding Padding}" MinHeight="{TemplateBinding MinHeight}" SnapsToDevicePixels="True">
-            <ContentPresenter VerticalAlignment="Center" RecognizesAccessKey="True" />
+            <ContentPresenter VerticalAlignment="Center" />
         </Border>
     </ControlTemplate>
 
@@ -557,7 +551,7 @@
                 <ControlTemplate TargetType="TabItem">
                     <Border Background="Transparent" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2"
                             Padding="14,10" Margin="0,0,4,-1">
-                        <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" />
+                        <ContentPresenter ContentSource="Header" />
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
@@ -603,7 +597,7 @@
                 <ControlTemplate TargetType="RadioButton">
                     <Border x:Name="Bd" CornerRadius="5" Padding="{TemplateBinding Padding}" MinHeight="{TemplateBinding MinHeight}"
                             Background="{TemplateBinding Background}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsEnabled" Value="False">
@@ -651,14 +645,14 @@
                             <Ellipse x:Name="Thumb" Width="14" Height="14" Fill="{StaticResource TextBrush}"
                                      HorizontalAlignment="Left" Margin="3,0,0,0" />
                         </Border>
-                        <ContentPresenter x:Name="Label" Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                        <ContentPresenter x:Name="Label" Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="Content" Value="{x:Null}">
                             <Setter TargetName="Label" Property="Margin" Value="0" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Track" Property="Background" Value="{StaticResource ControlBorderBrush}" />
+                            <Setter TargetName="Track" Property="Background" Value="{StaticResource ControlHoverBorderBrush}" />
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Track" Property="Background" Value="{StaticResource AccentBrush}" />
@@ -923,7 +917,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="MenuItem">
                     <Border x:Name="Bd" CornerRadius="4" Padding="12,7" Background="Transparent">
-                        <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" />
+                        <ContentPresenter ContentSource="Header" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsHighlighted" Value="True">

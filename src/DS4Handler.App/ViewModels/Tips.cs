@@ -33,7 +33,7 @@ public static class Tips
 
     // ----- Controller card -----
     public const string ControllerName =
-        "Het type PlayStation-controller. De app laat hem in games werken als een Xbox 360-controller.";
+        "Het type PlayStation-controller. De app laat hem in games werken als een Xbox 360- of DualShock 4-controller (zie 'Games zien hem als').";
     public const string ControllerId =
         "Het unieke adres van deze controller. Daarop wordt zijn kalibratie bewaard, dus via USB en Bluetooth gebruikt hij hetzelfde profiel.";
     public const string ControllerIdUnstable =
@@ -211,7 +211,7 @@ public static class Tips
     public const string TuneTriggerAnti =
         "Anti-deadzone: zodra je de trigger voorbij zijn deadzone indrukt, springt de uitvoer meteen naar minstens dit percentage. Handig als de game zelf pas reageert na een stukje indrukken. Begin klein, ongeveer 10%.";
     public const string TuneCurve =
-        "Curve: hoe de stick reageert tussen midden en rand. Lineair is gewoon 1 op 1. Hoger dan 1 is rustiger rond het midden (precies richten) en heftiger aan de rand. Lager dan 1 is juist snel bij kleine bewegingen.";
+        "Curve: hoe de stick of trigger reageert tussen begin en eind. 1,00 is recht: 1 op 1. Hoger dan 1 is rustiger in het begin (precies richten) en heftiger aan het eind. Lager dan 1 is juist snel bij kleine bewegingen.";
     public const string TuneSensitivity =
         "Gevoeligheid: vermenigvuldigt de uitslag van de stick. Boven 1× haal je volle uitslag al voordat de stick de rand raakt; onder 1× haal je nooit helemaal vol. De uitkomst gaat nooit boven 100%. Bij Kruis werkt dit per as.";
     public const string TuneSquareOutput =

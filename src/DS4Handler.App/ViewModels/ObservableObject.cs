@@ -55,3 +55,21 @@ public sealed class RelayCommand : ICommand
         if (CanExecute(parameter)) _execute();
     }
 }
+
+/// <summary>ICommand around a delegate that takes the command parameter.</summary>
+public sealed class RelayCommand<T> : ICommand where T : class
+{
+    private readonly Action<T?> _execute;
+
+    public RelayCommand(Action<T?> execute) => _execute = execute;
+
+    public event EventHandler? CanExecuteChanged
+    {
+        add => CommandManager.RequerySuggested += value;
+        remove => CommandManager.RequerySuggested -= value;
+    }
+
+    public bool CanExecute(object? parameter) => true;
+
+    public void Execute(object? parameter) => _execute(parameter as T);
+}

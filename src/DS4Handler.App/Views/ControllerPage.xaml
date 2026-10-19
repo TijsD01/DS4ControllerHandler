@@ -1,0 +1,264 @@
+<UserControl x:Class="DS4Handler.App.Views.ControllerPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:DS4Handler.App.Controls"
+             xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:ControllerViewModel}">
+
+    <UserControl.Resources>
+        <!-- Name column | explanation | status word: the grid of one Kalibratie row. -->
+        <Style x:Key="CalRowGrid" TargetType="Grid">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <!-- Status word at the end of a Kalibratie row ("in orde", "leert", ...). -->
+        <Style x:Key="StatusWord" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Text" Value="{Binding SummaryLevel, Converter={StaticResource LevelWord}}" />
+            <Setter Property="Foreground" Value="{Binding SummaryLevel, Converter={StaticResource LevelBrush}}" />
+        </Style>
+
+        <!-- Kalibratie row of a stick. -->
+        <DataTemplate x:Key="StickCalibration" DataType="{x:Type vm:StickViewModel}">
+            <Border Style="{StaticResource SettingRow}">
+                <Grid Style="{StaticResource CalRowGrid}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Summary}" Style="{StaticResource Body}" Foreground="{StaticResource TextDimBrush}"
+                               VerticalAlignment="Center" Margin="16,0" ToolTip="{x:Static vm:Tips.StickSummary}" />
+                    <TextBlock Grid.Column="2" Style="{StaticResource StatusWord}" />
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- Kalibratie row of a trigger, with the guided assistant. -->
+        <DataTemplate x:Key="TriggerCalibration" DataType="{x:Type vm:TriggerViewModel}">
+            <Border Style="{StaticResource SettingRow}">
+                <Grid Style="{StaticResource CalRowGrid}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0">
+                        <TextBlock Style="{StaticResource Body}" Foreground="{StaticResource TextDimBrush}" Text="{Binding Summary}"
+                                   ToolTip="{x:Static vm:Tips.TriggerSummary}" />
+                        <Border Margin="0,8,0,0" Background="{StaticResource AccentTileBrush}" BorderBrush="{StaticResource AccentBrush}"
+                                BorderThickness="1" CornerRadius="4" Padding="12,7" HorizontalAlignment="Left"
+                                Visibility="{Binding GuidedActive, Converter={StaticResource BoolVis}}">
+                            <TextBlock Text="{Binding GuidedText}" FontWeight="SemiBold" FontSize="14" Foreground="{StaticResource TextBrush}" />
+                        </Border>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource StatusWord}" Margin="0,0,14,0" />
+                        <Grid>
+                            <Button Content="{Binding CalibrateText}" Command="{Binding StartGuidedCommand}"
+                                    ToolTip="{x:Static vm:Tips.CalibrateTrigger}"
+                                    Visibility="{Binding GuidedActive, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
+                            <Button Content="Annuleren" Style="{StaticResource GhostButton}" Command="{Binding CancelGuidedCommand}"
+                                    ToolTip="{x:Static vm:Tips.CancelGuided}"
+                                    Visibility="{Binding GuidedActive, Converter={StaticResource BoolVis}}" />
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <!-- A trigger in the live view. -->
+        <DataTemplate x:Key="TriggerRow" DataType="{x:Type vm:TriggerViewModel}">
+            <StackPanel ToolTip="{Binding BarTip}" Background="Transparent">
+                <DockPanel Margin="0,0,0,8">
+                    <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" />
+                    <TextBlock HorizontalAlignment="Right" Style="{StaticResource Mono}" FontSize="13"
+                               Foreground="{StaticResource TextDimBrush}" Text="{Binding ValueText}" />
+                </DockPanel>
+                <c:TriggerBar Raw="{Binding Raw}" Output="{Binding Output}" EndStop="{Binding EndStop}" Rest="{Binding Rest}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- A stick in the live view. -->
+        <DataTemplate x:Key="StickCell" DataType="{x:Type vm:StickViewModel}">
+            <StackPanel MaxWidth="176" HorizontalAlignment="Center">
+                <Grid ToolTip="{x:Static vm:Tips.StickView}" Background="Transparent">
+                    <c:StickView RawX="{Binding RawX}" RawY="{Binding RawY}" OutX="{Binding OutX}" OutY="{Binding OutY}"
+                                 CenterX="{Binding CenterX}" CenterY="{Binding CenterY}" Deadzone="{Binding Deadzone}"
+                                 Guided="{Binding Guided}" />
+                </Grid>
+                <DockPanel Margin="0,8,0,0">
+                    <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" />
+                    <TextBlock HorizontalAlignment="Right" Style="{StaticResource Mono}" FontSize="13"
+                               Foreground="{StaticResource TextDimBrush}" Text="{Binding ValueText}" />
+                </DockPanel>
+                <TextBlock Margin="0,2,0,0" Style="{StaticResource Mono}" Cursor="Help" ToolTip="{Binding DeadzoneTip}" HorizontalAlignment="Left">
+                    <Run Text="deadzone" />
+                    <Run Text="{Binding Deadzone, StringFormat={}{0:P0}, Mode=OneWay}" Foreground="{StaticResource WarningBrush}" />
+                </TextBlock>
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <StackPanel>
+        <!-- ===== Header ===== -->
+        <Grid Margin="32,24,32,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Margin="0,0,24,0">
+                <TextBlock Text="{Binding Title}" Style="{StaticResource H1}" TextTrimming="CharacterEllipsis"
+                           ToolTip="{x:Static vm:Tips.ControllerName}" />
+                <!-- model · connection · report rate · battery · MAC -->
+                <WrapPanel Margin="0,4,0,0">
+                    <TextBlock Style="{StaticResource Mono}" Text="{Binding Session.DisplayName, Mode=OneWay}" ToolTip="{x:Static vm:Tips.ControllerName}" />
+                    <TextBlock Style="{StaticResource Mono}" Text="{Binding ConnectionText, StringFormat='{} · {0}', Mode=OneWay}" ToolTip="{Binding ConnectionTip}" />
+                    <TextBlock Style="{StaticResource Mono}" Text="{Binding ReportRateText, StringFormat='{} · {0}'}" ToolTip="{x:Static vm:Tips.ReportRate}"
+                               Visibility="{Binding ReportRateText, Converter={StaticResource TextVis}}" />
+                    <TextBlock Style="{StaticResource Mono}" Text="{Binding BatteryText, StringFormat='{} · batterij {0}'}" ToolTip="{Binding BatteryTip}"
+                               Visibility="{Binding HasBattery, Converter={StaticResource BoolVis}}" />
+                    <TextBlock Style="{StaticResource Mono}" Text="{Binding IdText, StringFormat='{} · {0}', Mode=OneWay}" ToolTip="{Binding IdTip}" Cursor="Help" />
+                </WrapPanel>
+                <!-- Status: virtual controller, hidden for games, profile -->
+                <WrapPanel Margin="0,8,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,20,0" ToolTip="{Binding StatusTip}" Background="Transparent">
+                        <Rectangle Style="{StaticResource Dot}" Margin="0,0,8,0" Fill="{Binding StatusLevel, Converter={StaticResource LevelBrush}}" />
+                        <TextBlock Text="{Binding StatusText}" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{Binding StatusLevel, Converter={StaticResource LevelBrush}}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding HideStatusText}" FontSize="13" Margin="0,0,20,0" Cursor="Help" ToolTip="{Binding HideStatusTip}"
+                               Foreground="{Binding HideLevel, Converter={StaticResource LevelBrush}}"
+                               Visibility="{Binding HideStatusText, Converter={StaticResource TextVis}}" />
+                    <TextBlock Text="{Binding ProfileText}" FontSize="13" Cursor="Help" ToolTip="{Binding ProfileTip}"
+                               Foreground="{Binding ProfileLevel, Converter={StaticResource LevelBrush}}"
+                               Visibility="{Binding ProfileText, Converter={StaticResource TextVis}}" />
+                </WrapPanel>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                <TextBlock Text="Games zien hem als" FontSize="13" Foreground="{StaticResource TextDimBrush}" VerticalAlignment="Center"
+                           Margin="0,0,12,0" ToolTip="{x:Static vm:Tips.Output}" Cursor="Help" />
+                <Border Style="{StaticResource SegmentHost}">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton Style="{StaticResource Segment}" Content="Xbox 360" IsChecked="{Binding OutputXbox}"
+                                     GroupName="{Binding Session.Id, StringFormat=out-{0}}" ToolTip="{x:Static vm:Tips.OutputXbox}" />
+                        <RadioButton Style="{StaticResource Segment}" Content="DualShock 4" IsChecked="{Binding OutputDs4}"
+                                     GroupName="{Binding Session.Id, StringFormat=out-{0}}" ToolTip="{x:Static vm:Tips.OutputDs4}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- ===== Tabs ===== -->
+        <TabControl Style="{StaticResource Tabs}" Padding="32,0" Margin="0,14,0,0">
+            <TabItem Style="{StaticResource Tab}" Header="Live" ToolTip="{x:Static vm:Tips.TabLive}">
+                <StackPanel Margin="32,24,32,28">
+                    <!-- Sticks + triggers -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="STICKS" Style="{StaticResource SectionLabel}" HorizontalAlignment="Left" />
+                                <Grid Margin="0,14,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="28" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <ContentPresenter Content="{Binding Left}" ContentTemplate="{StaticResource StickCell}" />
+                                    <ContentPresenter Grid.Column="2" Content="{Binding Right}" ContentTemplate="{StaticResource StickCell}" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="2" Style="{StaticResource Card}">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top" Text="TRIGGERS" Style="{StaticResource SectionLabel}" HorizontalAlignment="Left" />
+                                <!-- Legend -->
+                                <WrapPanel DockPanel.Dock="Bottom" Margin="0,20,0,0">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,20,0" ToolTip="{x:Static vm:Tips.LegendRaw}" Background="Transparent">
+                                        <Rectangle Width="12" Height="4" Fill="{StaticResource TextMutedBrush}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="Echte stand" FontSize="12" Foreground="{StaticResource TextDimBrush}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,20,0" ToolTip="{x:Static vm:Tips.LegendOutput}" Background="Transparent">
+                                        <Rectangle Width="12" Height="6" Fill="{StaticResource AccentBrush}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="Naar de game" FontSize="12" Foreground="{StaticResource TextDimBrush}" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" ToolTip="{x:Static vm:Tips.LegendDeadzone}" Background="Transparent">
+                                        <Rectangle Width="2" Height="10" Fill="{StaticResource WarningBrush}" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="Deadzone / eindpunt" FontSize="12" Foreground="{StaticResource TextDimBrush}" />
+                                    </StackPanel>
+                                </WrapPanel>
+                                <StackPanel Margin="0,22,0,0">
+                                    <ContentPresenter Content="{Binding L2}" ContentTemplate="{StaticResource TriggerRow}" Margin="0,0,0,22" />
+                                    <ContentPresenter Content="{Binding R2}" ContentTemplate="{StaticResource TriggerRow}" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Kalibratie -->
+                    <Border Style="{StaticResource Card}" Padding="0" Margin="0,20,0,0">
+                        <StackPanel>
+                            <DockPanel Margin="16,12">
+                                <TextBlock Text="KALIBRATIE" Style="{StaticResource SectionLabel}" Cursor="Help"
+                                           ToolTip="{x:Static vm:Tips.CalibrationSection}" />
+                                <Grid HorizontalAlignment="Right">
+                                    <Button Content="Sticks centreren" Command="{Binding RecenterCommand}" ToolTip="{x:Static vm:Tips.Recenter}"
+                                            Visibility="{Binding SticksGuided, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
+                                    <StackPanel Orientation="Horizontal" Visibility="{Binding SticksGuided, Converter={StaticResource BoolVis}}">
+                                        <TextBlock Text="Laat beide sticks los…" FontWeight="SemiBold" FontSize="13" Foreground="{StaticResource LinkBrush}"
+                                                   VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <Button Content="Annuleren" Style="{StaticResource GhostButton}" Command="{Binding CancelRecenterCommand}"
+                                                ToolTip="{x:Static vm:Tips.CancelGuided}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DockPanel>
+                            <ContentPresenter Content="{Binding Left}" ContentTemplate="{StaticResource StickCalibration}" />
+                            <ContentPresenter Content="{Binding Right}" ContentTemplate="{StaticResource StickCalibration}" />
+                            <ContentPresenter Content="{Binding L2}" ContentTemplate="{StaticResource TriggerCalibration}" />
+                            <ContentPresenter Content="{Binding R2}" ContentTemplate="{StaticResource TriggerCalibration}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Switches -->
+                    <DockPanel Margin="0,20,0,0" LastChildFill="False">
+                        <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding LearningEnabled}" Margin="0,0,28,0" VerticalAlignment="Center"
+                                  ToolTip="{x:Static vm:Tips.Learning}">
+                            <TextBlock Text="Leren" />
+                        </CheckBox>
+                        <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding JitterFilterEnabled}" Margin="0,0,28,0" VerticalAlignment="Center"
+                                  ToolTip="{x:Static vm:Tips.JitterFilter}">
+                            <TextBlock Text="Trillingsfilter" />
+                        </CheckBox>
+                        <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding HideFromGames}" IsEnabled="{Binding HideAvailable}"
+                                  ToolTip="{Binding HideTip}" Margin="0,0,28,0" VerticalAlignment="Center">
+                            <TextBlock Text="Verberg voor games" />
+                        </CheckBox>
+                        <Button DockPanel.Dock="Right" Style="{StaticResource DangerButton}" Command="{Binding ResetCommand}"
+                                Content="Kalibratie resetten" ToolTip="{x:Static vm:Tips.Reset}" />
+                    </DockPanel>
+                </StackPanel>
+            </TabItem>
+
+            <!-- The adjustable settings of this controller (deadzone shape, polling rate, response curves) go on
+                 this tab. Its header stays hidden until those settings exist, so the strip only shows "Live". -->
+            <TabItem Style="{StaticResource Tab}" Header="Afstellen" ToolTip="{x:Static vm:Tips.TabAdjust}" Visibility="Collapsed">
+                <StackPanel Margin="32,24,32,28" />
+            </TabItem>
+        </TabControl>
+    </StackPanel>
+</UserControl>

@@ -13,6 +13,17 @@ public static class Tips
     public const string NavSettings =
         "Opstarten met Windows, systeemvak en HidHide (je echte controller verbergen voor games).";
 
+    public const string SidebarController =
+        "Klik om de live weergave en de kalibratie van deze controller te openen. Het blokje is groen als games hem kunnen gebruiken, oranje of rood als er iets mis is.";
+    public const string DriversSection =
+        "De twee gratis hulpprogramma's die DS4 Handler gebruikt. ViGEmBus maakt de controller die games zien; HidHide verbergt je echte controller, zodat games hem niet dubbel zien. Wijs een regel aan voor meer uitleg.";
+
+    // ----- Controller page -----
+    public const string TabLive =
+        "Zie wat je sticks en triggers op dit moment doen, wat de game daarvan krijgt en wat de app over deze controller heeft geleerd.";
+    public const string TabAdjust =
+        "Stel zelf in hoe deze controller reageert. Wijzigingen worden meteen opgeslagen in het profiel van de controller.";
+
     // ----- Controller card -----
     public const string ControllerName =
         "Het type PlayStation-controller. De app laat hem in games werken als een Xbox 360-controller.";

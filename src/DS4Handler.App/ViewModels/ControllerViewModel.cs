@@ -64,7 +64,7 @@ public sealed class StickViewModel : ObservableObject
         CenterY = live.CenterY;
         Deadzone = live.Deadzone;
         Guided = live.GuidedInProgress;
-        ValueText = $"Game: {Fmt.Signed(outX)} ; {Fmt.Signed(outY)}";
+        ValueText = $"{Fmt.Signed(outX)}  {Fmt.Signed(outY)}";
     }
 
     internal void UpdateSummary(StickSummary s, bool guided)
@@ -149,7 +149,7 @@ public sealed class TriggerViewModel : ObservableObject
         Output = output;
         EndStop = live.EndStop / 255.0;
         Rest = live.Rest / 255.0;
-        ValueText = $"{Fmt.Pct(raw / 255.0)} → {Fmt.Pct(output)}";
+        ValueText = $"ingedrukt {Fmt.Pct(raw / 255.0)} → game {Fmt.Pct(output)}";
         GuidedActive = live.GuidedInProgress;
         GuidedText = live.GuidedInProgress
             ? (live.GuidedPressesRemaining > 0
@@ -219,6 +219,8 @@ public sealed class ControllerViewModel : ObservableObject
     private string _rate = "";
     private bool _sticksGuided;
     private bool _anyInput;
+    private bool _isShown;
+    private string _sidebarMeta = "";
     private OutputMode _output;
 
     public ControllerViewModel(ControllerSession session, AppHost host, Func<string, string, string, bool> confirm)
@@ -234,6 +236,7 @@ public sealed class ControllerViewModel : ObservableObject
         _jitterFilter = host.SettingsStore.Read(s => s.For(session.Id).JitterFilterEnabled);
         _hide = host.SettingsStore.Read(s => s.For(session.Id).HideFromGames);
         _output = host.SettingsStore.Read(s => s.For(session.Id).Output);
+        _sidebarMeta = $"{ModelShort} · {ConnectionText}";
 
         ResetCommand = new RelayCommand(Reset);
         RecenterCommand = new RelayCommand(() => Session.StartGuidedCenter());
@@ -269,6 +272,15 @@ public sealed class ControllerViewModel : ObservableObject
     public string ConnectionText => IsBluetooth ? "Bluetooth" : "USB";
     public string ConnectionIcon => IsBluetooth ? "" : "";
     public string ConnectionTip => IsBluetooth ? Tips.Bluetooth : Tips.Usb;
+
+    /// <summary>Short model name for the sidebar ("DS4" / "DualSense").</summary>
+    public string ModelShort => Session.Model == ControllerModel.DualShock4 ? "DS4" : "DualSense";
+
+    /// <summary>Second line of the sidebar entry: "DS4 · Bluetooth · 42%".</summary>
+    public string SidebarMeta { get => _sidebarMeta; private set => SetField(ref _sidebarMeta, value); }
+
+    /// <summary>This controller's page is the one on screen (drives the sidebar highlight).</summary>
+    public bool IsShown { get => _isShown; internal set => SetField(ref _isShown, value); }
 
     public string BatteryText { get => _battery; private set => SetField(ref _battery, value); }
     public string BatteryIcon { get => _batteryIcon; private set => SetField(ref _batteryIcon, value); }
@@ -386,7 +398,7 @@ public sealed class ControllerViewModel : ObservableObject
         {
             double seconds = (now - _lastRateTimestamp) / (double)System.Diagnostics.Stopwatch.Frequency;
             double rate = seconds > 0 ? (_snap.Reports - _lastReports) / seconds : 0;
-            ReportRateText = $"{rate:0}/s";
+            ReportRateText = $"{rate:0} Hz";
         }
         _lastRateTimestamp = now;
         _lastReports = _snap.Reports;
@@ -395,6 +407,7 @@ public sealed class ControllerViewModel : ObservableObject
     private void UpdateBattery(byte? percent)
     {
         HasBattery = percent.HasValue;
+        SidebarMeta = percent is { } b ? $"{ModelShort} · {ConnectionText} · {b}%" : $"{ModelShort} · {ConnectionText}";
         if (percent is not { } p) return;
         BatteryText = $"{p}%";
         BatteryIcon = p >= 95 ? "" : char.ConvertFromUtf32(0xE850 + Math.Clamp(p / 10, 0, 9));

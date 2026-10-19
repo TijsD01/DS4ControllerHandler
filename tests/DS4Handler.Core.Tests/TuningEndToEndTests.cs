@@ -216,6 +216,7 @@ public sealed class TuningEndToEndTests : IDisposable
             float c = (float)Math.Cos(a), s = (float)Math.Sin(a);
             float prevX = 0, prevY = 0, prevLen = 0;
             bool started = false;
+            bool xLive = false, yLive = false;
             for (int i = 0; i <= Steps; i++)
             {
                 float r = (float)i / Steps;
@@ -226,9 +227,8 @@ public sealed class TuningEndToEndTests : IDisposable
                 float len = Len(x, y);
                 // Never goes backwards along the ray, on the magnitude or on either axis.
                 Assert.True(len >= prevLen - 1e-5f, $"{t}: magnitude falls at angle {k} r={r}: {prevLen} -> {len}");
-                // Axial clamps the magnitude after rescaling each axis, so a saturated axis may give back a
-                // fraction of a percent while the other still grows (reported; tolerated here).
-                float axisTol = t.Shape == DeadzoneShape.Axial ? 0.01f : 1e-5f;
+                // Axial works per axis, so no axis may give anything back either.
+                const float axisTol = 1e-5f;
                 Assert.True(MathF.Abs(x) >= MathF.Abs(prevX) - axisTol && MathF.Abs(y) >= MathF.Abs(prevY) - axisTol,
                     $"{t}: axis falls at angle {k} r={r}: ({prevX},{prevY}) -> ({x},{y})");
                 // Continuous: the only allowed jump is the anti-deadzone at the first live sample.
@@ -237,12 +237,18 @@ public sealed class TuningEndToEndTests : IDisposable
                 // A curve below 1 is steep at 0 (r^0.3) but still continuous; a 4000-step sweep allows more.
                 if (!started && t.Curve < 1f) allowed += MathF.Pow(1f / Steps / MinSpan(t), t.Curve) * MathF.Min(t.Sensitivity, 1f) * 3f + 0.05f;
                 else if (t.Curve < 1f) allowed = MathF.Max(allowed, 0.05f);
+                // Axial applies the anti-deadzone per axis: the second axis also jumps when it goes live, and
+                // with square output that jump moves the other axis too (the point leaves the disc).
+                bool newAxis = t.Shape == DeadzoneShape.Axial && ((!xLive && x != 0) || (!yLive && y != 0));
+                if (newAxis) allowed = MathF.Max(allowed, t.SquareOutput ? 1.01f : t.AntiDeadzone * 1.05f + 0.02f);
                 Assert.True(jump <= allowed, $"{t}: jump {jump} at angle {k} r={r} ({prevX},{prevY}) -> ({x},{y})");
+                xLive |= x != 0; yLive |= y != 0;
                 if (len > 0) started = true;
                 prevX = x; prevY = y; prevLen = len;
             }
-            // Full push reaches full magnitude whenever the live range is not cut by an axial diagonal.
-            if (t.Shape != DeadzoneShape.Axial && t.InnerDeadzone < 0.7f && t.Sensitivity >= 1f)
+            // Full push reaches full magnitude in every direction, for every shape (the sanitize cap keeps
+            // square and cross diagonals live).
+            if (t.Sensitivity >= 1f)
                 Assert.True(prevLen >= 0.999f, $"{t}: full push at angle {k} only reaches {prevLen}");
         }
     }
@@ -273,7 +279,7 @@ public sealed class TuningEndToEndTests : IDisposable
                 Assert.True(xb >= prev, $"{shape}: X falls at raw ({x},{y}): {prev} -> {xb}");
                 prev = xb;
             }
-            if (shape != DeadzoneShape.Axial) Assert.InRange(prev, 32700, 32767); // axial loses diagonal reach (reported)
+            Assert.InRange(prev, 32700, 32767); // full reach on every row, axial included
         }
     }
 

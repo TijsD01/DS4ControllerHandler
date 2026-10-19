@@ -74,7 +74,11 @@ public class InputShaperTests
         var axial = Stick(0.6f, 0.08f, new StickTuning { Shape = DeadzoneShape.Axial, InnerDeadzone = 0.1f });
         Assert.True(radial.Y > 0.05f);
         Assert.Equal(0f, axial.Y);
-        Assert.Equal((0.6f - 0.1f) / 0.9f, axial.X, Tol);
+        // Per-axis rescale, divided by what a full push in this direction gives, so full push stays 1.
+        float r = MathF.Sqrt(0.6f * 0.6f + 0.08f * 0.08f);
+        float fullX = (0.6f / r - 0.1f) / 0.9f, fullY = (0.08f / r - 0.1f) / 0.9f;
+        Assert.True(fullY > 0f);
+        Assert.Equal((0.6f - 0.1f) / 0.9f / MathF.Sqrt(fullX * fullX + fullY * fullY), axial.X, Tol);
     }
 
     [Theory]
@@ -89,14 +93,81 @@ public class InputShaperTests
     }
 
     [Theory]
-    [InlineData(DeadzoneShape.Radial)]
-    [InlineData(DeadzoneShape.Square)]
-    public void FullPushDiagonal_ReachesFullRadius(DeadzoneShape shape)
+    [InlineData(DeadzoneShape.Radial, 0.3f)]
+    [InlineData(DeadzoneShape.Square, 0.3f)]
+    [InlineData(DeadzoneShape.Axial, 0.1f)]
+    [InlineData(DeadzoneShape.Axial, 0.3f)]
+    [InlineData(DeadzoneShape.Square, 0.6f)]
+    [InlineData(DeadzoneShape.Axial, 0.6f)]
+    public void FullPushDiagonal_ReachesFullRadius(DeadzoneShape shape, float dz)
     {
         float d = MathF.Sqrt(0.5f);
-        var o = Stick(d, d, new StickTuning { Shape = shape, InnerDeadzone = 0.3f });
+        var o = Stick(d, d, InputShaper.Sanitize(new StickTuning { Shape = shape, InnerDeadzone = dz }));
         Assert.Equal(1f, Len(o), Tol);
         Assert.Equal(o.X, o.Y, Tol); // direction kept
+    }
+
+    [Theory]
+    [InlineData(DeadzoneShape.Radial)]
+    [InlineData(DeadzoneShape.Square)]
+    [InlineData(DeadzoneShape.Axial)]
+    public void FullPush_ReachesFull_InEveryDirection_EvenAtTheMaxDeadzone(DeadzoneShape shape)
+    {
+        foreach (float outer in new[] { 0f, 0.2f })
+        {
+            var t = InputShaper.Sanitize(new StickTuning { Shape = shape, InnerDeadzone = 0.9f, OuterDeadzone = outer });
+            Assert.Equal(InputShaper.MaxInnerDeadzone(shape, 0f), t.InnerDeadzone);
+            for (int k = 0; k < 360; k++)
+            {
+                float a = k * MathF.PI / 180f;
+                Assert.True(Len(Stick(MathF.Cos(a), MathF.Sin(a), t)) >= 0.999f, $"{shape} outer {outer} angle {k}");
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(0.1f)]
+    [InlineData(0.3f)]
+    public void AxialWithSquareOutput_FullDiagonalHitsTheCorner(float dz)
+    {
+        float d = MathF.Sqrt(0.5f);
+        var o = Stick(d, d, new StickTuning { Shape = DeadzoneShape.Axial, InnerDeadzone = dz, SquareOutput = true });
+        Assert.Equal((short)32767, XboxMapper.StickToShort(o.X));
+        Assert.Equal((short)32767, XboxMapper.StickToShort(o.Y));
+    }
+
+    [Fact]
+    public void Axial_SaturatedAxisNeverDrops_WhileTheOtherGrows()
+    {
+        var t = new StickTuning { Shape = DeadzoneShape.Axial, InnerDeadzone = 0.15f, OuterDeadzone = 0.3f, AntiDeadzone = 0.3f, Curve = 0.5f, Sensitivity = 2f };
+        float prev = 0f;
+        for (int i = 0; i <= 1000; i++)
+        {
+            float r = i / 1000f;
+            var o = Stick(r * 0.9f, r * 0.43f, t); // near the x axis, inside the unit circle
+            Assert.True(o.X >= prev - 1e-6f, $"x falls at r={r}: {prev} -> {o.X}");
+            prev = o.X;
+        }
+    }
+
+    [Theory]
+    [InlineData(DeadzoneShape.Radial, 0f, 0.9f)]
+    [InlineData(DeadzoneShape.Radial, 0.3f, 0.65f)]
+    [InlineData(DeadzoneShape.Square, 0f, 0.95f / 1.41421356f)]
+    [InlineData(DeadzoneShape.Axial, 0.2f, 0.75f / 1.41421356f)]
+    [InlineData(DeadzoneShape.Square, float.NaN, 0.95f / 1.41421356f)]
+    public void MaxInnerDeadzone_DependsOnShapeAndOuter(DeadzoneShape shape, float outer, float expected)
+    {
+        Assert.Equal(expected, InputShaper.MaxInnerDeadzone(shape, outer), 1e-5f);
+    }
+
+    [Fact]
+    public void Sanitize_SquareDeadzone_KeepsDiagonalsLive()
+    {
+        var t = InputShaper.Sanitize(new StickTuning { Shape = DeadzoneShape.Square, InnerDeadzone = 0.6f, OuterDeadzone = 0.3f });
+        Assert.Equal(0.6f, t.InnerDeadzone);
+        Assert.True(t.InnerDeadzone * MathF.Sqrt(2f) + t.OuterDeadzone <= 1f - InputShaper.MinSpan + 1e-5f);
+        Assert.Same(t, InputShaper.Sanitize(t)); // stable
     }
 
     [Theory]
@@ -202,7 +273,7 @@ public class InputShaperTests
         Assert.Equal((0f, 0f), Stick(0f, 0f, t));
         Assert.Equal(1f, Stick(1f, 0f, t).X, Tol);
         Assert.Equal(0f, Stick(1f, 0f, t).Y, Tol);
-        Assert.Equal(0.5f, Stick(0.5f, 0f, t).X, Tol);
+        Assert.Equal(0.5f, Stick(0.5f, 0f, t).X, 1e-3f); // the rim overscale is ~0.02% here
         // Small movements barely change, so aiming feels the same.
         var small = Stick(0.05f, 0.05f, t);
         Assert.Equal(0.05f, small.X, 2e-3f);
@@ -222,6 +293,47 @@ public class InputShaperTests
         }
         var outside = InputShaper.DiscToSquare(1f, 1f); // outside the disc: normalised first
         Assert.Equal(1f, outside.X, 1e-3f);
+    }
+
+    [Fact]
+    public void SquareOutput_FullDiagonalWithFloatRounding_GivesExactCorner()
+    {
+        // A calibrated full push is often r = 0.99999994, where the plain mapping gives 32761.
+        float d = 0.70710677f * 0.99999994f;
+        var o = Stick(d, -d, new StickTuning { SquareOutput = true });
+        Assert.Equal((short)32767, XboxMapper.StickToShort(o.X));
+        Assert.Equal((short)-32768, XboxMapper.StickToShort(o.Y));
+    }
+
+    [Theory]
+    [InlineData(0f)]
+    [InlineData(1f)]
+    [InlineData(2.5f)]
+    [InlineData(-2.5f)]
+    public void SquareOutput_CornerHasAFewDegreesOfWidth(float degreesOff)
+    {
+        float a = (45f + degreesOff) * MathF.PI / 180f;
+        var o = Stick(MathF.Cos(a), MathF.Sin(a), new StickTuning { SquareOutput = true });
+        Assert.Equal((short)32767, XboxMapper.StickToShort(o.X));
+        Assert.Equal((short)32767, XboxMapper.StickToShort(o.Y));
+    }
+
+    [Fact]
+    public void SquareOutput_IsMonotonicAlongEveryRay()
+    {
+        var t = new StickTuning { SquareOutput = true };
+        for (int k = 0; k < 90; k++)
+        {
+            float a = k * MathF.PI / 45f + 0.01f;
+            float px = 0f, py = 0f;
+            for (int i = 0; i <= 2000; i++)
+            {
+                float r = i / 2000f;
+                var o = Stick(r * MathF.Cos(a), r * MathF.Sin(a), t);
+                Assert.True(MathF.Abs(o.X) >= px - 1e-6f && MathF.Abs(o.Y) >= py - 1e-6f, $"angle {k} r={r}");
+                px = MathF.Abs(o.X); py = MathF.Abs(o.Y);
+            }
+        }
     }
 
     [Fact]

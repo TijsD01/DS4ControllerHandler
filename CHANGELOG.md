@@ -3,6 +3,13 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
+## 1.2.0
+
+- Nieuw ontwerp: rustiger en strakker, met dezelfde duidelijke kleuren. Je controllers staan links in een lijst; klik er een aan om hem te bekijken.
+- Per controller zie je sticks, triggers en kalibratie overzichtelijk naast en onder elkaar. Getallen springen niet meer heen en weer.
+- Meldingen (zoals een nieuwe versie) staan als smalle balk bovenin in plaats van als grote kaart.
+- Profielen en Instellingen zijn opgeruimd tot overzichtelijke lijsten. De uitleg als je met de muis ergens op staat is overal gebleven.
+
 ## 1.1.0
 
 - Nieuw tabblad Profielen: elke controller die je pc kent, met een eigen naam (bijvoorbeeld "Controller van Sem"), wanneer hij laatst verbonden was en wat er is geleerd.

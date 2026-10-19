@@ -5,13 +5,10 @@
         WindowStyle="None" ResizeMode="NoResize" AllowsTransparency="True" Background="Transparent"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         FontFamily="{StaticResource UiFont}" Language="nl-NL">
-    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="#3A4150" BorderThickness="1" CornerRadius="14" Padding="24" Margin="12">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="24" ShadowDepth="4" Opacity="0.5" />
-        </Border.Effect>
+    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource PopupBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="24" Margin="1">
         <StackPanel>
-            <TextBlock x:Name="TitleText" Style="{StaticResource H2}" FontSize="18" Margin="0,0,0,10" />
-            <TextBlock x:Name="MessageText" Style="{StaticResource Dim}" FontSize="14" LineHeight="20" />
+            <TextBlock x:Name="TitleText" Style="{StaticResource H2}" Margin="0,0,0,10" />
+            <TextBlock x:Name="MessageText" Style="{StaticResource Dim}" LineHeight="20" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
                 <Button x:Name="CancelButton" Content="Annuleren" Margin="0,0,10,0" IsCancel="True" Click="OnCancel"
                         ToolTip="Sluit dit venster zonder iets te veranderen." />

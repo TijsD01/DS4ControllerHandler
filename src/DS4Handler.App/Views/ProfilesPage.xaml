@@ -6,51 +6,51 @@
              xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:ProfilesViewModel}">
-    <StackPanel MaxWidth="900" HorizontalAlignment="Left">
+    <StackPanel MaxWidth="1000" HorizontalAlignment="Left">
 
         <!-- Intro + import -->
-        <DockPanel Margin="0,0,0,16">
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                <Button Content="Profielmap openen" Command="{Binding OpenFolderCommand}" Margin="0,0,10,0"
+        <DockPanel Margin="0,0,0,24">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom">
+                <Button Content="Profielmap openen" Command="{Binding OpenFolderCommand}" Margin="0,0,8,0"
                         ToolTip="{x:Static vm:Tips.OpenProfileFolder}" />
-                <Button Style="{StaticResource AccentButton}" Command="{Binding ImportCommand}" ToolTip="{x:Static vm:Tips.ProfileImport}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Style="{StaticResource Icon}" FontSize="13" Text="&#xE8B5;" Margin="0,0,8,0" />
-                        <TextBlock Text="Importeren…" />
-                    </StackPanel>
-                </Button>
+                <Button Style="{StaticResource AccentButton}" Content="Importeren…" Command="{Binding ImportCommand}"
+                        ToolTip="{x:Static vm:Tips.ProfileImport}" />
             </StackPanel>
-            <StackPanel Margin="0,0,24,0" ToolTip="{x:Static vm:Tips.ProfilesIntro}" Background="Transparent">
+            <StackPanel Margin="0,0,24,0" MaxWidth="620" HorizontalAlignment="Left" ToolTip="{x:Static vm:Tips.ProfilesIntro}" Background="Transparent">
                 <TextBlock Text="Profielen" Style="{StaticResource H1}" />
-                <TextBlock Style="{StaticResource Dim}" Margin="0,4,0,0"
-                           Text="Elke controller heeft een eigen profiel, herkend aan zijn MAC-adres. Geef hem een naam, deel of kopieer een profiel, of neem het profiel van een vriend mee." />
+                <TextBlock Style="{StaticResource Dim}" Margin="0,6,0,0"
+                           Text="Elke controller krijgt een eigen profiel, herkend aan zijn MAC-adres. Neem het profiel van een vriend mee met Importeren." />
             </StackPanel>
         </DockPanel>
 
         <!-- Profiel kiezen per aangesloten controller -->
-        <Border Style="{StaticResource Card}" Margin="0,0,0,18" Visibility="{Binding HasConnected, Converter={StaticResource BoolVis}}">
+        <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,0,24" Visibility="{Binding HasConnected, Converter={StaticResource BoolVis}}">
             <StackPanel>
-                <TextBlock Text="PROFIEL KIEZEN VOOR AANGESLOTEN CONTROLLERS" Style="{StaticResource SectionTitle}"
+                <TextBlock Text="AANGESLOTEN NU" Style="{StaticResource SectionLabel}" HorizontalAlignment="Left" Margin="16,12"
                            ToolTip="{x:Static vm:Tips.ProfileChoose}" />
                 <ItemsControl ItemsSource="{Binding Connected}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:LinkRowViewModel}">
-                            <Grid Margin="0,0,0,14">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="340" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
-                                    <TextBlock Text="{Binding Name}" Style="{StaticResource Body}" FontWeight="SemiBold" ToolTip="{x:Static vm:Tips.ProfileName}" />
-                                    <TextBlock Text="{Binding MacText}" Style="{StaticResource Caption}" ToolTip="{x:Static vm:Tips.ProfileMac}" Cursor="Help" />
-                                    <TextBlock Text="{Binding StatusText}" FontSize="12" Margin="0,3,0,0"
+                            <Border Style="{StaticResource SettingRow}" Padding="16,14">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="240" />
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="280" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                               Margin="0,0,20,0" ToolTip="{x:Static vm:Tips.ProfileName}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding MacText}" Style="{StaticResource Mono}" VerticalAlignment="Center"
+                                               ToolTip="{x:Static vm:Tips.ProfileMac}" Cursor="Help" />
+                                    <TextBlock Grid.Column="2" Text="{Binding StatusText}" FontSize="13" VerticalAlignment="Center" Margin="0,0,20,0"
                                                Foreground="{Binding StatusLevel, Converter={StaticResource LevelBrush}}"
                                                ToolTip="{x:Static vm:Tips.ProfileOnCard}" TextWrapping="Wrap" />
-                                </StackPanel>
-                                <ComboBox Grid.Column="1" Style="{StaticResource Combo}" VerticalAlignment="Center"
-                                          ItemsSource="{Binding Choices}" SelectedItem="{Binding Selected}"
-                                          DisplayMemberPath="Label" ToolTip="{x:Static vm:Tips.ProfileChoose}" />
-                            </Grid>
+                                    <ComboBox Grid.Column="3" Style="{StaticResource Combo}" VerticalAlignment="Center"
+                                              ItemsSource="{Binding Choices}" SelectedItem="{Binding Selected}"
+                                              DisplayMemberPath="Label" ToolTip="{x:Static vm:Tips.ProfileChoose}" />
+                                </Grid>
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -58,73 +58,76 @@
         </Border>
 
         <!-- Alle profielen -->
-        <TextBlock Text="Nog geen profielen. Sluit een controller aan of importeer een profiel." Style="{StaticResource Dim}"
-                   Visibility="{Binding HasProfiles, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
-        <ItemsControl ItemsSource="{Binding Profiles}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type vm:ProfileRowViewModel}">
-                    <Border Style="{StaticResource Card}" Padding="20" Margin="0,0,0,14">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+        <Border Style="{StaticResource Card}" Padding="0">
+            <StackPanel>
+                <DockPanel Margin="16,12">
+                    <TextBlock DockPanel.Dock="Right" Style="{StaticResource Mono}" Text="{Binding Profiles.Count, Mode=OneWay}" />
+                    <TextBlock Text="ALLE PROFIELEN" Style="{StaticResource SectionLabel}" HorizontalAlignment="Left" />
+                </DockPanel>
+                <Border Style="{StaticResource SettingRow}" Padding="16,14"
+                        Visibility="{Binding HasProfiles, Converter={StaticResource BoolVis}, ConverterParameter=invert}">
+                    <TextBlock Text="Nog geen profielen. Sluit een controller aan of importeer een profiel." Style="{StaticResource Dim}" />
+                </Border>
+                <ItemsControl ItemsSource="{Binding Profiles}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:ProfileRowViewModel}">
+                            <Border Style="{StaticResource SettingRow}" Padding="16,14">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="240" />
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
 
-                            <!-- Name (editable), MAC, model -->
-                            <StackPanel Margin="0,0,16,0">
-                                <Grid MaxWidth="360" HorizontalAlignment="Left" MinWidth="260">
-                                    <TextBox x:Name="NameBox" Style="{StaticResource Input}" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                                             ToolTip="{x:Static vm:Tips.ProfileName}" MaxLength="60"
-                                             LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" Loaded="OnNameLoaded" />
-                                    <TextBlock Text="{Binding NamePlaceholder}" Foreground="{StaticResource TextMutedBrush}" FontSize="15"
-                                               Margin="10,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
-                                               Visibility="{Binding Name, Converter={StaticResource TextVis}, ConverterParameter=invert}" />
+                                    <!-- Name (editable) -->
+                                    <Grid Margin="0,0,20,0" VerticalAlignment="Center">
+                                        <TextBox x:Name="NameBox" Style="{StaticResource Input}" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="{x:Static vm:Tips.ProfileName}" MaxLength="60" FontWeight="SemiBold"
+                                                 LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" Loaded="OnNameLoaded" />
+                                        <TextBlock Text="{Binding NamePlaceholder}" Foreground="{StaticResource TextMutedBrush}" FontSize="14"
+                                                   Margin="10,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                                                   Visibility="{Binding Name, Converter={StaticResource TextVis}, ConverterParameter=invert}" />
+                                    </Grid>
+
+                                    <!-- MAC + model -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,20,0">
+                                        <TextBlock Text="{Binding MacText}" Style="{StaticResource Mono}" Foreground="{StaticResource TextDimBrush}"
+                                                   ToolTip="{Binding MacTip}" Cursor="Help" />
+                                        <TextBlock Text="{Binding ModelText}" Style="{StaticResource Caption}"
+                                                   ToolTip="{x:Static vm:Tips.ProfileModel}" Cursor="Help" />
+                                    </StackPanel>
+
+                                    <!-- Status, what was learned, used by -->
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,20,0">
+                                        <StackPanel Orientation="Horizontal" ToolTip="{Binding StatusTip}" Background="Transparent" HorizontalAlignment="Left">
+                                            <Rectangle Style="{StaticResource Dot}" Margin="0,0,8,0"
+                                                       Fill="{Binding StatusLevel, Converter={StaticResource LevelBrush}}" />
+                                            <TextBlock Text="{Binding StatusText}" FontSize="13"
+                                                       Foreground="{Binding StatusLevel, Converter={StaticResource LevelBrush}}" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Summary}" Style="{StaticResource Dim}" Margin="0,2,0,0"
+                                                   ToolTip="{x:Static vm:Tips.ProfileSummary}" />
+                                        <TextBlock Text="{Binding UsedByText}" FontSize="12" Margin="0,2,0,0" TextWrapping="Wrap"
+                                                   Foreground="{StaticResource LinkBrush}" ToolTip="{x:Static vm:Tips.ProfileUsedBy}"
+                                                   Visibility="{Binding UsedByText, Converter={StaticResource TextVis}}" />
+                                    </StackPanel>
+
+                                    <!-- Actions -->
+                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Style="{StaticResource LinkButton}" Content="Hernoemen" Command="{Binding RenameCommand}" ToolTip="{x:Static vm:Tips.ProfileRename}" />
+                                        <Button Style="{StaticResource LinkButton}" Content="Kopiëren naar…" Click="OnCopyClick"
+                                                IsEnabled="{Binding CanCopy}" ToolTip="{Binding CopyTip}" />
+                                        <Button Style="{StaticResource LinkButton}" Content="Exporteren…" Command="{Binding ExportCommand}" ToolTip="{x:Static vm:Tips.ProfileExport}" />
+                                        <Button Style="{StaticResource LinkButton}" Foreground="{StaticResource DangerBrush}" Content="Verwijderen"
+                                                Command="{Binding DeleteCommand}" IsEnabled="{Binding CanDelete}" ToolTip="{Binding DeleteTip}" />
+                                    </StackPanel>
                                 </Grid>
-                                <StackPanel Orientation="Horizontal" Margin="2,8,0,0">
-                                    <TextBlock Text="{Binding MacText}" Style="{StaticResource Caption}" FontFamily="Consolas" FontSize="13"
-                                               ToolTip="{Binding MacTip}" Cursor="Help" Margin="0,0,14,0" />
-                                    <TextBlock Text="{Binding ModelText}" Style="{StaticResource Caption}" FontSize="13"
-                                               ToolTip="{x:Static vm:Tips.ProfileModel}" Cursor="Help" />
-                                </StackPanel>
-                            </StackPanel>
-
-                            <!-- Connected / last seen -->
-                            <Border Grid.Column="1" Style="{StaticResource Pill}" Margin="0" VerticalAlignment="Top" ToolTip="{Binding StatusTip}"
-                                    Background="{Binding StatusLevel, Converter={StaticResource LevelBrush}, ConverterParameter=bg}">
-                                <StackPanel Orientation="Horizontal">
-                                    <Ellipse Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center"
-                                             Fill="{Binding StatusLevel, Converter={StaticResource LevelBrush}}" />
-                                    <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="SemiBold"
-                                               Foreground="{Binding StatusLevel, Converter={StaticResource LevelBrush}}" />
-                                </StackPanel>
                             </Border>
-
-                            <!-- What was learned -->
-                            <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Summary}" Style="{StaticResource Body}" Margin="2,12,0,0"
-                                       ToolTip="{x:Static vm:Tips.ProfileSummary}" />
-                            <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding UsedByText}" FontSize="12" Margin="2,6,0,0"
-                                       Foreground="{StaticResource AccentHoverBrush}" ToolTip="{x:Static vm:Tips.ProfileUsedBy}"
-                                       Visibility="{Binding UsedByText, Converter={StaticResource TextVis}}" />
-
-                            <!-- Actions -->
-                            <WrapPanel Grid.Row="3" Grid.ColumnSpan="2" Margin="0,14,0,0">
-                                <Button Content="Hernoemen" Command="{Binding RenameCommand}" Margin="0,0,8,0" ToolTip="{x:Static vm:Tips.ProfileRename}" />
-                                <Button Content="Kopiëren naar…" Margin="0,0,8,0" Click="OnCopyClick"
-                                        IsEnabled="{Binding CanCopy}" ToolTip="{Binding CopyTip}" />
-                                <Button Content="Exporteren…" Command="{Binding ExportCommand}" Margin="0,0,8,0" ToolTip="{x:Static vm:Tips.ProfileExport}" />
-                                <Button Style="{StaticResource DangerButton}" Content="Verwijderen" Command="{Binding DeleteCommand}"
-                                        IsEnabled="{Binding CanDelete}" ToolTip="{Binding DeleteTip}" />
-                            </WrapPanel>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
     </StackPanel>
 </UserControl>

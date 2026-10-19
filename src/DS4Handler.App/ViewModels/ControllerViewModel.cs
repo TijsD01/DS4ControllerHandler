@@ -235,6 +235,8 @@ public sealed class ControllerViewModel : ObservableObject
         _hide = host.SettingsStore.Read(s => s.For(session.Id).HideFromGames);
         _output = host.SettingsStore.Read(s => s.For(session.Id).Output);
 
+        Tuning = new TuningViewModel(session, host);
+        ToggleTuningCommand = new RelayCommand(() => TuningExpanded = !TuningExpanded);
         ResetCommand = new RelayCommand(Reset);
         RecenterCommand = new RelayCommand(() => Session.StartGuidedCenter());
         CancelRecenterCommand = new RelayCommand(() => Session.CancelGuidedCenter());
@@ -245,6 +247,25 @@ public sealed class ControllerViewModel : ObservableObject
     public StickViewModel Right { get; }
     public TriggerViewModel L2 { get; }
     public TriggerViewModel R2 { get; }
+
+    /// <summary>The collapsible "Afstellen" section (deadzone shapes, curves, poll rate, ...).</summary>
+    public TuningViewModel Tuning { get; }
+    public ICommand ToggleTuningCommand { get; }
+
+    private bool _tuningExpanded;
+
+    /// <summary>Collapsed by default.</summary>
+    public bool TuningExpanded
+    {
+        get => _tuningExpanded;
+        private set
+        {
+            if (!SetField(ref _tuningExpanded, value)) return;
+            OnPropertyChanged(nameof(TuningChevron));
+        }
+    }
+
+    public string TuningChevron => TuningExpanded ? "\uE70E" : "\uE70D"; // chevron up / down
 
     public ICommand ResetCommand { get; }
     public ICommand RecenterCommand { get; }
@@ -363,6 +384,7 @@ public sealed class ControllerViewModel : ObservableObject
         UpdateStatus();
         UpdateHide();
         UpdateProfile();
+        Tuning.Refresh(); // picks up a profile switch without applying it back
         if (Session.GetSummary() is { } summary)
         {
             Left.UpdateSummary(summary.Left, _snap.Left.GuidedInProgress);

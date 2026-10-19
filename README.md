@@ -51,6 +51,16 @@ Het venster heeft drie tabbladen: **Controllers**, **Profielen** en **Instelling
 
 **Opbouw.** `Engine/` (apparaten zoeken, hot-plug, één sessie per controller met een eigen leesdraad met hoge prioriteit, ViGEm-uitvoer, trillen) staat los van de UI (`ViewModels/`, `Views/`, `Controls/`). Het leespad alloceert niets per rapport en stuurt alleen wijzigingen naar de driver; de UI leest ongeveer 30× per seconde een momentopname, en 1× per seconde als het venster verborgen is.
 
+## Afstellen
+
+Op elke controllerkaart staat een knop **Afstellen** (standaard dicht). Alles daarin komt bovenop wat de app zelf heeft geleerd en staat standaard op "niets veranderen"; elk onderdeel heeft een knop *Standaard*.
+
+- **Sticks:** vorm van de extra deadzone (rond, vierkant of kruis), extra deadzone, eindpunt, anti-deadzone, curve, gevoeligheid, vierkante uitvoer en X/Y omdraaien.
+- **Triggers (L2/R2):** extra deadzone, eindpunt, anti-deadzone en curve.
+- **Snelheid:** meetsnelheid van een DualShock 4 via Bluetooth (62 tot 1000 per seconde; via USB bepaalt de controller dit zelf) en een maximum voor hoe vaak de virtuele controller wordt bijgewerkt (standaard bij elke meting).
+
+De afstelling wordt in het profiel van de controller bewaard, dus ze gaat mee met gekoppelde en geëxporteerde profielen en blijft staan bij *Kalibratie resetten*. Is het profiel in gebruik door een andere controller, dan werken wijzigingen wel maar worden ze niet bewaard; de kaart zegt dat erbij. Een tooltip bij elke instelling legt uit wat ze doet.
+
 ## Projectstructuur
 
 | Map | Wat |

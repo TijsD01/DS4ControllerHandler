@@ -1,209 +1,301 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:po="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
                     xmlns:c="clr-namespace:DS4Handler.App.Controls"
-                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+                    mc:Ignorable="po">
 
     <!--
-        Flat dark theme: hairline borders, small radii (4 px controls, 6 px panels), no gradients,
-        no shadows except tooltips and pop-ups. Numbers (values, MAC, Hz, percentages) use MonoFont.
+        DS4 Handler design system 2.0 (source: the HTML mockups "DS4 Handler – nieuw ontwerp 2.0").
+
+        Dark slate theme: flat surfaces with 1 px borders, radius 6 for controls, 8 for cards and
+        segmented hosts, pills (999) for fact chips. No gradients; shadows only under tooltips and pop-ups.
+        Text uses UiFont (IBM Plex Sans); numbers, MAC addresses, Hz and percentages use MonoFont
+        (JetBrains Mono). Views use only the keys below, never raw colours.
+
+        Notes for building pages:
+        • A page sits in a ScrollViewer in MainWindow; give it a MaxWidth of 1180 and Margin "32,24,32,40"
+          (PageMargin) or let MainWindow's page host do that.
+        • Section labels: write the text in CAPITALS (WPF has no text-transform or letter-spacing).
+        • Status colours come from the Level converters in App.xaml: LevelBrush (dots; ConverterParameter
+          "text" for text), LevelWord (short Dutch status word).
+        • Every interactive element gets a ToolTip from ViewModels/Tips.cs, and icon-only buttons an
+          AutomationProperties.Name.
     -->
 
-    <!-- ===== Palette ===== -->
-    <Color x:Key="BgColor">#0F1115</Color>
-    <Color x:Key="SidebarColor">#13161B</Color>
-    <Color x:Key="SurfaceColor">#151820</Color>
-    <Color x:Key="Surface2Color">#1A1D24</Color>
-    <Color x:Key="Surface3Color">#232730</Color>
-    <Color x:Key="PlateColor">#11141A</Color>
-    <Color x:Key="BorderColor">#2B303B</Color>
-    <Color x:Key="HairlineColor">#232730</Color>
-    <Color x:Key="DividerColor">#1E222A</Color>
-    <Color x:Key="ControlBorderColor">#323846</Color>
-    <Color x:Key="TextColor">#ECEEF3</Color>
-    <Color x:Key="TextDimColor">#A3ABBA</Color>
-    <Color x:Key="TextMutedColor">#6E7686</Color>
+    <!-- ===================================================================================== -->
+    <!-- Colours                                                                               -->
+    <!-- ===================================================================================== -->
+
     <Color x:Key="AccentColor">#4C8DFF</Color>
-    <Color x:Key="AccentHoverColor">#6AA0FF</Color>
-    <Color x:Key="SuccessColor">#3CCB82</Color>
-    <Color x:Key="WarningColor">#F5A524</Color>
-    <Color x:Key="DangerColor">#F2645F</Color>
 
-    <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}" />
-    <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource SidebarColor}" />
-    <!-- Panels / cards. -->
-    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
-    <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource SurfaceColor}" />
-    <!-- Control background (buttons, inputs). -->
-    <SolidColorBrush x:Key="Surface2Brush" Color="{StaticResource Surface2Color}" />
-    <SolidColorBrush x:Key="ControlBrush" Color="{StaticResource Surface2Color}" />
-    <!-- Hover background. -->
-    <SolidColorBrush x:Key="Surface3Brush" Color="{StaticResource Surface3Color}" />
-    <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource Surface3Color}" />
-    <SolidColorBrush x:Key="NavSelectedBrush" Color="#1F232C" />
-    <SolidColorBrush x:Key="PlateBrush" Color="{StaticResource PlateColor}" />
-    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
-    <SolidColorBrush x:Key="HairlineBrush" Color="{StaticResource HairlineColor}" />
-    <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}" />
-    <SolidColorBrush x:Key="ControlBorderBrush" Color="{StaticResource ControlBorderColor}" />
-    <SolidColorBrush x:Key="TrackBrush" Color="#2A2F3A" />
-    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
-    <SolidColorBrush x:Key="TextDimBrush" Color="{StaticResource TextDimColor}" />
-    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
-    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}" />
-    <SolidColorBrush x:Key="OnAccentBrush" Color="#0A1428" />
-    <SolidColorBrush x:Key="LinkBrush" Color="#8DB4FF" />
-    <SolidColorBrush x:Key="LinkHoverBrush" Color="#B5CEFF" />
-    <SolidColorBrush x:Key="AccentSoftBrush" Color="#1F4C8DFF" />
-    <SolidColorBrush x:Key="AccentTileBrush" Color="#18213A" />
-    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
-    <SolidColorBrush x:Key="SuccessSoftBrush" Color="#1A3CCB82" />
-    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
-    <SolidColorBrush x:Key="WarningSoftBrush" Color="#1AF5A524" />
-    <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
-    <SolidColorBrush x:Key="DangerSoftBrush" Color="#1AF2645F" />
-    <SolidColorBrush x:Key="DangerBorderBrush" Color="#4A2B2D" />
-    <SolidColorBrush x:Key="TooltipBrush" Color="#262B35" />
-    <SolidColorBrush x:Key="PopupBorderBrush" Color="#3A4150" />
+    <!-- Surfaces -->
+    <SolidColorBrush x:Key="BgBrush" Color="#0F172A" po:Freeze="True" />               <!-- window / page background -->
+    <SolidColorBrush x:Key="TopBarBrush" Color="#0A1020" po:Freeze="True" />           <!-- top bar -->
+    <SolidColorBrush x:Key="TopBarHoverBrush" Color="#121B2E" po:Freeze="True" />      <!-- hovered / selected top-bar item -->
+    <SolidColorBrush x:Key="CardBrush" Color="#151E31" po:Freeze="True" />             <!-- cards, fact chips -->
+    <SolidColorBrush x:Key="CardHoverBrush" Color="#19233A" po:Freeze="True" />        <!-- hovered clickable card -->
+    <SolidColorBrush x:Key="CardBorderBrush" Color="#222D42" po:Freeze="True" />       <!-- card border, row dividers, hairlines -->
+    <SolidColorBrush x:Key="InsetBrush" Color="#0A1020" po:Freeze="True" />            <!-- recessed areas: plates, tracks, inputs -->
+    <SolidColorBrush x:Key="InsetBorderBrush" Color="#26324A" po:Freeze="True" />      <!-- border of recessed areas -->
+    <SolidColorBrush x:Key="ControlBrush" Color="#1B2539" po:Freeze="True" />          <!-- button background -->
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="#5E6E8A" po:Freeze="True" />    <!-- button / input border (≥ 3:1 on cards) -->
+    <SolidColorBrush x:Key="ControlHoverBrush" Color="#243049" po:Freeze="True" />     <!-- hovered button background -->
+    <SolidColorBrush x:Key="ControlHoverBorderBrush" Color="#7A8CAA" po:Freeze="True" /> <!-- hovered button / input border -->
+    <SolidColorBrush x:Key="TrackBrush" Color="#5E6E8A" po:Freeze="True" />            <!-- switch (off), slider rail, segmented host border (≥ 3:1 on cards) -->
+    <SolidColorBrush x:Key="PopupBrush" Color="#1B2539" po:Freeze="True" />            <!-- tooltips, drop-downs, menus, dialogs -->
+    <SolidColorBrush x:Key="PopupBorderBrush" Color="#45577A" po:Freeze="True" />      <!-- border of the above -->
 
-    <!-- Notice strips (full-width bands above the page). -->
-    <SolidColorBrush x:Key="InfoStripBrush" Color="#16203A" />
-    <SolidColorBrush x:Key="InfoStripBorderBrush" Color="#22305A" />
-    <SolidColorBrush x:Key="InfoStripTextBrush" Color="#C9D6F2" />
-    <SolidColorBrush x:Key="WarnStripBrush" Color="#2A2113" />
-    <SolidColorBrush x:Key="WarnStripBorderBrush" Color="#4A3A1C" />
-    <SolidColorBrush x:Key="WarnStripTextBrush" Color="#EBD9B8" />
-    <SolidColorBrush x:Key="WarnStripLinkBrush" Color="#F5C46A" />
-    <SolidColorBrush x:Key="BadStripBrush" Color="#2A1517" />
-    <SolidColorBrush x:Key="BadStripBorderBrush" Color="#4A2B2D" />
-    <SolidColorBrush x:Key="BadStripTextBrush" Color="#F0C9C7" />
-    <SolidColorBrush x:Key="BadStripLinkBrush" Color="#F59A96" />
-    <SolidColorBrush x:Key="OkStripBrush" Color="#132219" />
-    <SolidColorBrush x:Key="OkStripBorderBrush" Color="#1F3D2C" />
-    <SolidColorBrush x:Key="OkStripTextBrush" Color="#C4E8D4" />
-    <SolidColorBrush x:Key="OkStripLinkBrush" Color="#7FDDAA" />
+    <!-- Text (all ≥ 4.5:1 on CardBrush and BgBrush) -->
+    <SolidColorBrush x:Key="TextBrush" Color="#F1F5F9" po:Freeze="True" />             <!-- primary text -->
+    <SolidColorBrush x:Key="TextDimBrush" Color="#A8B6CA" po:Freeze="True" />          <!-- secondary text, descriptions -->
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#93A3BA" po:Freeze="True" />        <!-- mono values, section labels, captions -->
+    <SolidColorBrush x:Key="NavTextBrush" Color="#C9D4E3" po:Freeze="True" />          <!-- top-bar items, ghost buttons -->
+    <SolidColorBrush x:Key="SegmentTextBrush" Color="#B4C1D4" po:Freeze="True" />      <!-- unselected segment -->
 
-    <FontFamily x:Key="UiFont">Segoe UI Variable Text, Segoe UI</FontFamily>
-    <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
-    <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
+    <!-- Accent -->
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" po:Freeze="True" /> <!-- primary actions, selection, output -->
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#6BA0FF" po:Freeze="True" />      <!-- hovered primary button -->
+    <SolidColorBrush x:Key="OnAccentBrush" Color="#06122B" po:Freeze="True" />         <!-- text / thumb on an accent background -->
+    <SolidColorBrush x:Key="LinkBrush" Color="#7FB0FF" po:Freeze="True" />             <!-- links, info dots -->
+    <SolidColorBrush x:Key="LinkHoverBrush" Color="#A9C9FF" po:Freeze="True" />        <!-- hovered link -->
+    <SolidColorBrush x:Key="FocusBrush" Color="#8DB8FF" po:Freeze="True" />            <!-- keyboard focus ring -->
+    <SolidColorBrush x:Key="HoverOverlayBrush" Color="#1FFFFFFF" po:Freeze="True" />   <!-- translucent hover for text buttons; works on every strip colour -->
 
-    <!-- ===== Converters ===== -->
-    <c:LevelWordConverter x:Key="LevelWord" />
+    <!-- Status -->
+    <SolidColorBrush x:Key="OkBrush" Color="#22C55E" po:Freeze="True" />               <!-- ok dot -->
+    <SolidColorBrush x:Key="OkTextBrush" Color="#4ADE80" po:Freeze="True" />           <!-- ok text ("in orde") -->
+    <SolidColorBrush x:Key="WarnBrush" Color="#F5A524" po:Freeze="True" />             <!-- warn / learning dot and text, deadzone marks -->
+    <SolidColorBrush x:Key="BadBrush" Color="#F2645F" po:Freeze="True" />              <!-- problem dot -->
+    <SolidColorBrush x:Key="DangerTextBrush" Color="#FF8A85" po:Freeze="True" />       <!-- problem text, destructive buttons -->
+    <SolidColorBrush x:Key="DangerBorderBrush" Color="#5A2B33" po:Freeze="True" />     <!-- border of destructive buttons -->
+    <SolidColorBrush x:Key="DangerSoftBrush" Color="#2A1519" po:Freeze="True" />       <!-- hovered destructive button -->
+    <SolidColorBrush x:Key="OffBrush" Color="#5B6B82" po:Freeze="True" />              <!-- off / unknown dot (not for text) -->
+    <SolidColorBrush x:Key="RawBrush" Color="#6B7C96" po:Freeze="True" />              <!-- raw (uncorrected) value in live views -->
 
-    <!-- ===== Text ===== -->
+    <!-- Notice strips under the top bar, one set per level -->
+    <SolidColorBrush x:Key="InfoStripBrush" Color="#13254A" po:Freeze="True" />
+    <SolidColorBrush x:Key="InfoStripBorderBrush" Color="#24427A" po:Freeze="True" />
+    <SolidColorBrush x:Key="InfoStripTextBrush" Color="#DCE8FF" po:Freeze="True" />
+    <SolidColorBrush x:Key="WarnStripBrush" Color="#2A2113" po:Freeze="True" />
+    <SolidColorBrush x:Key="WarnStripBorderBrush" Color="#5A4318" po:Freeze="True" />
+    <SolidColorBrush x:Key="WarnStripTextBrush" Color="#FBE7C2" po:Freeze="True" />
+    <SolidColorBrush x:Key="WarnStripLinkBrush" Color="#FFC966" po:Freeze="True" />
+    <SolidColorBrush x:Key="BadStripBrush" Color="#2A1519" po:Freeze="True" />
+    <SolidColorBrush x:Key="BadStripBorderBrush" Color="#5A2B33" po:Freeze="True" />
+    <SolidColorBrush x:Key="BadStripTextBrush" Color="#FFDCDA" po:Freeze="True" />
+    <SolidColorBrush x:Key="BadStripLinkBrush" Color="#FF8A85" po:Freeze="True" />
+    <SolidColorBrush x:Key="OkStripBrush" Color="#0F2A1C" po:Freeze="True" />
+    <SolidColorBrush x:Key="OkStripBorderBrush" Color="#1E5A38" po:Freeze="True" />
+    <SolidColorBrush x:Key="OkStripTextBrush" Color="#D2F7DF" po:Freeze="True" />
+    <SolidColorBrush x:Key="OkStripLinkBrush" Color="#4ADE80" po:Freeze="True" />
+
+    <!-- Live views and curve preview (read by the controls in Controls/*.cs) -->
+    <SolidColorBrush x:Key="GateBrush" Color="#2C3A55" po:Freeze="True" />             <!-- stick range circle -->
+    <SolidColorBrush x:Key="CrosshairBrush" Color="#1E2940" po:Freeze="True" />        <!-- stick crosshair -->
+    <SolidColorBrush x:Key="DeadzoneBandBrush" Color="#1A2336" po:Freeze="True" />     <!-- grey deadzone band in the curve preview -->
+
+    <!-- ===================================================================================== -->
+    <!-- Fonts, sizes, geometry                                                                -->
+    <!-- ===================================================================================== -->
+
+    <!-- Bundled fonts (Assets/Fonts, OFL), with system fallbacks. -->
+    <!-- Relative to the application root (no pack://application:,,, prefix: WPF splits family lists on commas). -->
+    <FontFamily x:Key="UiFont">/Assets/Fonts/#IBM Plex Sans, Segoe UI</FontFamily>
+    <FontFamily x:Key="MonoFont">/Assets/Fonts/#JetBrains Mono, Cascadia Mono, Consolas</FontFamily>
+
+    <CornerRadius x:Key="ControlRadius">6</CornerRadius>   <!-- buttons, inputs -->
+    <CornerRadius x:Key="CardRadius">8</CornerRadius>      <!-- cards, segmented hosts, plates -->
+    <CornerRadius x:Key="PillRadius">999</CornerRadius>    <!-- fact chips -->
+    <Thickness x:Key="PageMargin">32,24,32,40</Thickness>  <!-- around page content -->
+    <sys:Double x:Key="PageMaxWidth">1180</sys:Double>     <!-- page content width -->
+
+    <!-- Icons (24x24 stroke icons unless noted); draw with a Path, Stroke and StrokeThickness ~1.8, in a Viewbox. -->
+    <!-- Outline controller, 72x48, stroke 4 at 26x18 (brand) or 1.5 at 96x64 (empty state). -->
+    <Geometry x:Key="ControllerGeometry">M20,6 H52 C61,6 66,14 68,26 C69.6,35.6 66.6,42 61.4,42 C57.4,42 55,38 52,34 H20 C17,38 14.6,42 10.6,42 C5.4,42 2.4,35.6 4,26 C6,14 11,6 20,6 Z</Geometry>
+    <Geometry x:Key="ProfileIconGeometry">M16,8 A4,4 0 1 1 8,8 A4,4 0 1 1 16,8 Z M4,21 C5.5,17 8.5,15 12,15 C15.5,15 18.5,17 20,21</Geometry>
+    <Geometry x:Key="SettingsIconGeometry">M15,12 A3,3 0 1 1 9,12 A3,3 0 1 1 15,12 Z M12,2 V5 M12,19 V22 M2,12 H5 M19,12 H22 M4.9,4.9 L7,7 M17,17 L19.1,19.1 M4.9,19.1 L7,17 M17,7 L19.1,4.9</Geometry>
+    <Geometry x:Key="ChevronDownGeometry">M1,1 L5,5 L9,1</Geometry> <!-- 10x6 -->
+    <Geometry x:Key="ArrowRightGeometry">M2,8 H14 M9,3 L14,8 L9,13</Geometry> <!-- 16x16 -->
+
+    <!-- ===================================================================================== -->
+    <!-- Converters (the others live in App.xaml: LevelBrush, BoolVis, TextVis)               -->
+    <!-- ===================================================================================== -->
+
+    <c:LevelWordConverter x:Key="LevelWord" />              <!-- Level → "in orde", "leert", ... -->
+    <c:WidthToColumnsConverter x:Key="WidthToColumns" />    <!-- ActualWidth → 2 columns when ≥ ConverterParameter (px), else 1 -->
+
+    <!-- ===================================================================================== -->
+    <!-- Focus                                                                                 -->
+    <!-- ===================================================================================== -->
+
+    <!-- Visible keyboard focus ring (only shown for keyboard navigation). Every style below uses it. -->
+    <Style x:Key="FocusRing">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" BorderBrush="{StaticResource FocusBrush}" BorderThickness="2" CornerRadius="8" SnapsToDevicePixels="True" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ===================================================================================== -->
+    <!-- Text                                                                                  -->
+    <!-- ===================================================================================== -->
+
+    <!-- Page title, 24 px. -->
     <Style x:Key="H1" TargetType="TextBlock">
         <Setter Property="FontSize" Value="24" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
+    <!-- Card / dialog title, 15 px. -->
     <Style x:Key="H2" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontSize" Value="15" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
-    <!-- Uppercase 11 px section label. Write the text itself in capitals (WPF has no text-transform). -->
-    <Style x:Key="SectionLabel" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="11" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-    <Style x:Key="SectionTitle" TargetType="TextBlock" BasedOn="{StaticResource SectionLabel}">
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="Margin" Value="0,0,0,12" />
-    </Style>
+    <!-- Body text, 14 px, wraps. -->
     <Style x:Key="Body" TargetType="TextBlock">
         <Setter Property="FontSize" Value="14" />
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
+    <!-- Title of a settings / list row, 14 px semibold. -->
+    <Style x:Key="RowTitle" TargetType="TextBlock" BasedOn="{StaticResource Body}">
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <!-- Secondary text (descriptions under a row title), 13 px, wraps. -->
     <Style x:Key="Dim" TargetType="TextBlock">
         <Setter Property="FontSize" Value="13" />
         <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
+    <!-- Small note, 12 px muted, wraps. -->
     <Style x:Key="Caption" TargetType="TextBlock">
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
-    <!-- Numbers, MAC addresses, Hz, percentages. -->
+    <!-- Numbers, MAC addresses, Hz, percentages: 12 px mono, muted, tabular digits. -->
     <Style x:Key="Mono" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
         <Setter Property="Typography.NumeralAlignment" Value="Tabular" />
     </Style>
-    <Style x:Key="Icon" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource IconFont}" />
-        <Setter Property="FontSize" Value="16" />
+    <!-- A value next to a slider: 13 px mono in primary text, right aligned. -->
+    <Style x:Key="MonoValue" TargetType="TextBlock" BasedOn="{StaticResource Mono}">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <!-- 11 px semibold section label. Write the text in CAPITALS. -->
+    <Style x:Key="SectionLabel" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <!-- Bold status word at the end of a row ("in orde", "leert"); set Foreground with LevelBrush, parameter text. -->
+    <Style x:Key="StatusWord" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
-    <!-- 8 px square status dot; set Fill. -->
-    <Style x:Key="Dot" TargetType="Rectangle">
+    <!-- 8 px round status dot; use an Ellipse and set Fill (usually {Binding X, Converter={StaticResource LevelBrush}}). -->
+    <Style x:Key="Dot" TargetType="Shape">
         <Setter Property="Width" Value="8" />
         <Setter Property="Height" Value="8" />
-        <Setter Property="RadiusX" Value="2" />
-        <Setter Property="RadiusY" Value="2" />
         <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Fill" Value="{StaticResource OffBrush}" />
     </Style>
 
-    <!-- ===== Containers ===== -->
+    <!-- ===================================================================================== -->
+    <!-- Containers                                                                            -->
+    <!-- ===================================================================================== -->
+
+    <!-- Card: radius 8, padding 20,18. For a list card use Padding="0" with a CardHeader and SettingRows inside. -->
     <Style x:Key="Card" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource PanelBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource HairlineBrush}" />
+        <Setter Property="Background" Value="{StaticResource CardBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="20,16,20,18" />
+        <Setter Property="CornerRadius" Value="{StaticResource CardRadius}" />
+        <Setter Property="Padding" Value="20,18" />
     </Style>
-    <!-- Recessed area inside a card. -->
-    <Style x:Key="Panel" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource PlateBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource HairlineBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="16" />
-    </Style>
-    <!-- One row in a list panel: top hairline, 16 px side padding. -->
-    <Style x:Key="SettingRow" TargetType="Border">
-        <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
-        <Setter Property="BorderThickness" Value="0,1,0,0" />
-        <Setter Property="Padding" Value="16,11" />
+    <!-- Header line of a list card (section label left, optional action right). -->
+    <Style x:Key="CardHeader" TargetType="Border">
+        <Setter Property="Padding" Value="20,14" />
         <Setter Property="Background" Value="Transparent" />
     </Style>
-    <!-- Small flat tag. -->
-    <Style x:Key="Pill" TargetType="Border">
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Padding" Value="8,3" />
-        <Setter Property="Background" Value="{StaticResource Surface2Brush}" />
-        <Setter Property="Margin" Value="0,0,8,0" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Cursor" Value="Help" />
+    <!-- One row in a list card: top divider, 20 px sides. -->
+    <Style x:Key="SettingRow" TargetType="Border">
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+        <Setter Property="Padding" Value="20,16" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <!-- Recessed plate inside a card. -->
+    <Style x:Key="Inset" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource InsetBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource InsetBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource ControlRadius}" />
+        <Setter Property="Padding" Value="12" />
+    </Style>
+    <!-- Pill-shaped fact chip (dot or switch + short text) in the controller header. -->
+    <Style x:Key="FactChip" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource CardBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource PillRadius}" />
+        <Setter Property="Padding" Value="12,5" />
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="Margin" Value="0,0,8,8" />
+    </Style>
+    <!-- Highlighted instruction during a guided step ("Druk R2 nog 2× helemaal in"). -->
+    <Style x:Key="GuidedNote" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource InfoStripBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource ControlRadius}" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>
 
-    <!-- ===== Tooltip ===== -->
+    <!-- ===================================================================================== -->
+    <!-- Tooltip                                                                               -->
+    <!-- ===================================================================================== -->
+
     <Style TargetType="ToolTip">
-        <Setter Property="Background" Value="{StaticResource TooltipBrush}" />
-        <Setter Property="Foreground" Value="#D5DAE3" />
+        <Setter Property="Background" Value="{StaticResource PopupBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource PopupBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
         <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="Normal" />
-        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
-        <Setter Property="MaxWidth" Value="340" />
+        <Setter Property="MaxWidth" Value="380" />
         <Setter Property="HasDropShadow" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
-                    <!-- The shadow sits on a separate layer: an Effect on the text's own parent would turn off ClearType. -->
-                    <Grid Margin="0,0,10,12">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                    <!-- Shadow on its own layer: an Effect on the text's parent would turn off ClearType. -->
+                    <Grid Margin="0,0,10,12" MaxWidth="370">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="{StaticResource ControlRadius}">
                             <Border.Effect>
-                                <DropShadowEffect BlurRadius="20" ShadowDepth="6" Direction="270" Opacity="0.4" />
+                                <DropShadowEffect BlurRadius="20" ShadowDepth="6" Direction="270" Opacity="0.45" />
                             </Border.Effect>
                         </Border>
                         <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="12,10">
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource ControlRadius}" Padding="12,10">
                             <ContentPresenter>
                                 <ContentPresenter.Resources>
                                     <Style TargetType="TextBlock">
@@ -219,65 +311,35 @@
         </Setter>
     </Style>
 
-    <!-- ===== Buttons ===== -->
+    <!-- ===================================================================================== -->
+    <!-- Buttons                                                                               -->
+    <!-- ===================================================================================== -->
+
+    <!-- Default button: control background, 36 px high, radius 6. Also the implicit Button style. -->
     <Style x:Key="ButtonBase" TargetType="ButtonBase">
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         <Setter Property="Background" Value="{StaticResource ControlBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="14,0" />
-        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="MinHeight" Value="36" />
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ButtonBase">
                     <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource ControlRadius}"
+                            Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                     </Border>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource HoverBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Opacity" Value="0.8" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="Bd" Property="Opacity" Value="0.45" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-    <Style TargetType="Button" BasedOn="{StaticResource ButtonBase}" />
-
-    <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
-        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentHoverBrush}" />
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentHoverBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource TextBrush}" />
-                        </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Bd" Property="Opacity" Value="0.85" />
                         </Trigger>
@@ -288,60 +350,256 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource ControlHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource ControlHoverBorderBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+    <Style TargetType="Button" BasedOn="{StaticResource ButtonBase}" />
+
+    <!-- Primary action (one per area): accent background, dark text. -->
+    <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
+        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource AccentHoverBrush}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
-    <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
-        <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource DangerSoftBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource DangerBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Opacity" Value="0.8" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="Bd" Property="Opacity" Value="0.45" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
+    <!-- Quiet secondary action ("Annuleren"): no background until hovered. -->
     <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
-        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="Foreground" Value="{StaticResource NavTextBrush}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource ControlHoverBrush}" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Destructive action ("Kalibratie resetten", "Afsluiten"): red text, red border. -->
+    <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource DangerTextBrush}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource DangerSoftBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource DangerTextBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Text link button ("Standaard", "Hernoemen", "Wat is er nieuw"). Override Foreground on coloured strips. -->
+    <Style x:Key="LinkButton" TargetType="Button" BasedOn="{StaticResource ButtonBase}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource LinkBrush}" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="MinHeight" Value="28" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource HoverOverlayBrush}" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Destructive text link ("Verwijderen"). -->
+    <Style x:Key="DangerLinkButton" TargetType="Button" BasedOn="{StaticResource LinkButton}">
+        <Setter Property="Foreground" Value="{StaticResource DangerTextBrush}" />
+    </Style>
+
+    <!-- A whole card that is clickable (e.g. the Kalibratie summary on Live). Content stretches. -->
+    <Style x:Key="CardButton" TargetType="Button">
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Background" Value="{StaticResource CardBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="20,14" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource CardRadius}"
+                            Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ===================================================================================== -->
+    <!-- Top bar                                                                               -->
+    <!-- ===================================================================================== -->
+
+    <!-- Shared look of a top-bar item: full bar height, 2 px underline when selected. -->
+    <ControlTemplate x:Key="TopBarItemTemplate" TargetType="ButtonBase">
+        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2"
+                Padding="{TemplateBinding Padding}" MinHeight="{TemplateBinding MinHeight}" SnapsToDevicePixels="True">
+            <ContentPresenter VerticalAlignment="Center" />
+        </Border>
+    </ControlTemplate>
+
+    <Style x:Key="TopBarItemBase" TargetType="ButtonBase">
+        <Setter Property="Foreground" Value="{StaticResource NavTextBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="MinHeight" Value="54" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="Template" Value="{StaticResource TopBarItemTemplate}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource TopBarHoverBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- One connected controller in the top bar. Bind Tag to "is selected" (bool). -->
+    <Style x:Key="ControllerTab" TargetType="Button" BasedOn="{StaticResource TopBarItemBase}">
+        <Style.Triggers>
+            <Trigger Property="Tag">
+                <Trigger.Value>
+                    <sys:Boolean>True</sys:Boolean>
+                </Trigger.Value>
+                <Setter Property="Background" Value="{StaticResource TopBarHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Page navigation in the top bar (Profielen, Instellingen): a RadioButton, IsChecked = page shown. -->
+    <Style x:Key="TopNavButton" TargetType="RadioButton" BasedOn="{StaticResource TopBarItemBase}">
+        <Setter Property="Padding" Value="12,0" />
+        <Style.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="{StaticResource TopBarHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Compact status item in the top bar (drivers): 12 px text. -->
+    <Style x:Key="TopBarStatus" TargetType="Button" BasedOn="{StaticResource TopBarItemBase}">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Padding" Value="12,0" />
+    </Style>
+
+    <!-- ===================================================================================== -->
+    <!-- Tabs (Live | Kalibratie | Afstellen): TabControl Style Tabs, TabItems Style Tab        -->
+    <!-- ===================================================================================== -->
+
+    <Style x:Key="Tabs" TargetType="TabControl">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="KeyboardNavigation.TabNavigation" Value="Local" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <DockPanel KeyboardNavigation.TabNavigation="Local">
+                        <Border DockPanel.Dock="Top" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,0,0,1"
+                                Padding="{TemplateBinding Padding}">
+                            <StackPanel Orientation="Horizontal" IsItemsHost="True" KeyboardNavigation.TabIndex="1"
+                                        KeyboardNavigation.DirectionalNavigation="Cycle" />
+                        </Border>
+                        <ContentPresenter ContentSource="SelectedContent" KeyboardNavigation.TabIndex="2" />
+                    </DockPanel>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="Tab" TargetType="TabItem">
+        <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabItem">
+                    <Border Background="Transparent" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,0,0,2"
+                            Padding="14,10" Margin="0,0,4,-1">
+                        <ContentPresenter ContentSource="Header" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            </Trigger>
+            <Trigger Property="IsSelected" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- ===================================================================================== -->
+    <!-- Segmented control: RadioButtons (Style Segment) in a StackPanel inside a Border        -->
+    <!-- with Style SegmentHost. Leave GroupName empty: buttons in one panel group by parent.   -->
+    <!-- ===================================================================================== -->
+
+    <Style x:Key="SegmentHost" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource InsetBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TrackBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource CardRadius}" />
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <Style x:Key="Segment" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource SegmentTextBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="Margin" Value="1,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="Bd" CornerRadius="5" Padding="{TemplateBinding Padding}" MinHeight="{TemplateBinding MinHeight}"
+                            Background="{TemplateBinding Background}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Opacity" Value="0.8" />
-                        </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Bd" Property="Opacity" Value="0.45" />
                         </Trigger>
@@ -349,40 +607,30 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                <Setter Property="Background" Value="{StaticResource TopBarHoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+                <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
-    <!-- Text-only button in link blue (e.g. "Wat is nieuw"). Override Foreground on coloured strips. -->
-    <Style x:Key="LinkButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
-        <Setter Property="Foreground" Value="{StaticResource LinkBrush}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd" Background="Transparent" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter x:Name="Cp" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Cp" Property="Opacity" Value="0.8" />
-                        </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="Bd" Property="Opacity" Value="0.45" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
+    <!-- ===================================================================================== -->
+    <!-- Switch (CheckBox): 36x20 track; optional label (Content) to the right.                 -->
+    <!-- Without Content, set AutomationProperties.Name.                                        -->
+    <!-- ===================================================================================== -->
 
-    <!-- On/off switch (a CheckBox): 34x18 track, label (Content) to the right of it. -->
     <Style x:Key="Switch" TargetType="CheckBox">
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
         <Setter Property="Template">
             <Setter.Value>
@@ -392,10 +640,10 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Border x:Name="Track" Width="34" Height="18" CornerRadius="9" Background="{StaticResource TrackBrush}"
-                                BorderBrush="Transparent" BorderThickness="1" VerticalAlignment="Center">
-                            <Ellipse x:Name="Thumb" Width="14" Height="14" Fill="#C9CED8"
-                                     HorizontalAlignment="Left" Margin="1,0,0,0" />
+                        <Border x:Name="Track" Width="36" Height="20" CornerRadius="10" Background="{StaticResource TrackBrush}"
+                                VerticalAlignment="Center">
+                            <Ellipse x:Name="Thumb" Width="14" Height="14" Fill="{StaticResource TextBrush}"
+                                     HorizontalAlignment="Left" Margin="3,0,0,0" />
                         </Border>
                         <ContentPresenter x:Name="Label" Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center" />
                     </Grid>
@@ -403,15 +651,22 @@
                         <Trigger Property="Content" Value="{x:Null}">
                             <Setter TargetName="Label" Property="Margin" Value="0" />
                         </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="{StaticResource ControlHoverBorderBrush}" />
+                        </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Track" Property="Background" Value="{StaticResource AccentBrush}" />
-                            <Setter TargetName="Thumb" Property="Fill" Value="White" />
+                            <Setter TargetName="Thumb" Property="Fill" Value="{StaticResource OnAccentBrush}" />
                             <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right" />
-                            <Setter TargetName="Thumb" Property="Margin" Value="0,0,1,0" />
+                            <Setter TargetName="Thumb" Property="Margin" Value="0,0,3,0" />
                         </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Track" Property="BorderBrush" Value="{StaticResource AccentHoverBrush}" />
-                        </Trigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsChecked" Value="True" />
+                                <Condition Property="IsMouseOver" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="Track" Property="Background" Value="{StaticResource AccentHoverBrush}" />
+                        </MultiTrigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45" />
                         </Trigger>
@@ -421,33 +676,66 @@
         </Setter>
     </Style>
 
-    <!-- Sidebar navigation item (RadioButton / ToggleButton): Content is usually icon + text. -->
-    <Style x:Key="SideNav" TargetType="ToggleButton">
-        <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="Margin" Value="8,0,8,2" />
-        <Setter Property="Padding" Value="12,9" />
-        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    <!-- ===================================================================================== -->
+    <!-- Slider (Style Slider): 4 px rail, accent fill, round thumb. Runs 0..1 by default       -->
+    <!-- (the Afstellen view model maps that to real values). Arrow keys step 1%.               -->
+    <!-- ===================================================================================== -->
+
+    <Style x:Key="SliderFill" TargetType="RepeatButton">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="ToggleButton">
-                    <Border x:Name="Bd" CornerRadius="4" Padding="{TemplateBinding Padding}" Background="Transparent"
-                            BorderBrush="Transparent" BorderThickness="1">
-                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
-                    </Border>
+                <ControlTemplate TargetType="RepeatButton">
+                    <Grid Background="Transparent">
+                        <Border Height="4" CornerRadius="2" Background="{TemplateBinding Background}" VerticalAlignment="Center" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="Slider" TargetType="Slider">
+        <Setter Property="Minimum" Value="0" />
+        <Setter Property="Maximum" Value="1" />
+        <Setter Property="SmallChange" Value="0.01" />
+        <Setter Property="LargeChange" Value="0.1" />
+        <Setter Property="IsMoveToPointEnabled" Value="True" />
+        <Setter Property="Height" Value="24" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid Background="Transparent">
+                        <Track x:Name="PART_Track">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Style="{StaticResource SliderFill}" Command="Slider.DecreaseLarge" Background="{StaticResource AccentBrush}" />
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Style="{StaticResource SliderFill}" Command="Slider.IncreaseLarge" Background="{StaticResource TrackBrush}" />
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb Width="16" Height="16" Focusable="False">
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="Thumb">
+                                            <Ellipse x:Name="Knob" Fill="{StaticResource TextBrush}" Stroke="{StaticResource AccentBrush}" StrokeThickness="2" />
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Knob" Property="Stroke" Value="{StaticResource AccentHoverBrush}" />
+                                                </Trigger>
+                                                <Trigger Property="IsDragging" Value="True">
+                                                    <Setter TargetName="Knob" Property="Fill" Value="{StaticResource AccentHoverBrush}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource ControlBrush}" />
-                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource NavSelectedBrush}" />
-                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -455,185 +743,82 @@
         </Setter>
     </Style>
 
-    <!-- Same look for a plain Button (sidebar controller entries); Tag = true marks it as selected. -->
-    <Style x:Key="SideNavItem" TargetType="Button">
-        <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="Margin" Value="8,0,8,2" />
-        <Setter Property="Padding" Value="12,9" />
-        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd" CornerRadius="4" Padding="{TemplateBinding Padding}" Background="Transparent"
-                            BorderBrush="Transparent" BorderThickness="1">
-                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource ControlBrush}" />
-                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-                        </Trigger>
-                        <Trigger Property="Tag">
-                            <Trigger.Value>
-                                <sys:Boolean>True</sys:Boolean>
-                            </Trigger.Value>
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource NavSelectedBrush}" />
-                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
+    <!-- ===================================================================================== -->
+    <!-- Text input (Style Input, also implicit for TextBox)                                    -->
+    <!-- ===================================================================================== -->
 
-    <!-- Former top navigation tab; now the sidebar look. -->
-    <Style x:Key="NavTab" TargetType="RadioButton" BasedOn="{StaticResource SideNav}" />
-
-    <!-- Underline tabs: TabControl with Style Tabs, TabItems with Style Tab.
-         The TabControl's Padding is applied to the tab strip only (use it to line the tabs up with the page). -->
-    <Style x:Key="Tabs" TargetType="TabControl">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="TabControl">
-                    <DockPanel>
-                        <Border DockPanel.Dock="Top" BorderBrush="{StaticResource HairlineBrush}" BorderThickness="0,0,0,1"
-                                Padding="{TemplateBinding Padding}">
-                            <StackPanel Orientation="Horizontal" IsItemsHost="True" KeyboardNavigation.TabIndex="1" />
-                        </Border>
-                        <ContentPresenter ContentSource="SelectedContent" />
-                    </DockPanel>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-    <Style x:Key="Tab" TargetType="TabItem">
-        <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="TabItem">
-                    <Border x:Name="Bd" Background="Transparent" BorderBrush="Transparent" BorderThickness="0,0,0,2"
-                            Padding="2,10,2,10" Margin="0,0,24,-1">
-                        <ContentPresenter ContentSource="Header" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentHoverBrush}" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- Segmented choice (RadioButtons in a horizontal StackPanel inside a Border with Style SegmentHost). -->
-    <Style x:Key="SegmentHost" TargetType="Border">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Padding" Value="0" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-    <Style x:Key="Segment" TargetType="RadioButton">
-        <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
-        <Setter Property="FontSize" Value="13" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-        <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="RadioButton">
-                    <Border x:Name="Bd" CornerRadius="3" Padding="12,6" Background="Transparent"
-                            BorderBrush="Transparent" BorderThickness="0">
-                        <ContentPresenter HorizontalAlignment="Center" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentBrush}" />
-                            <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentHoverBrush}" />
-                            <Setter TargetName="Bd" Property="BorderThickness" Value="1" />
-                            <Setter TargetName="Bd" Property="Padding" Value="11,5" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- ===== Text input ===== -->
     <Style x:Key="Input" TargetType="TextBox">
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-        <Setter Property="Background" Value="{StaticResource ControlBrush}" />
+        <Setter Property="Background" Value="{StaticResource InsetBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CaretBrush" Value="{StaticResource TextBrush}" />
         <Setter Property="SelectionBrush" Value="{StaticResource AccentBrush}" />
         <Setter Property="FontSize" Value="14" />
-        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="MinHeight" Value="36" />
         <Setter Property="Padding" Value="8,4" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" /> <!-- the border turns accent instead -->
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
                     <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="1" CornerRadius="4">
-                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource ControlRadius}">
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" Focusable="False" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="#454C5B" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ControlHoverBorderBrush}" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                            <Setter TargetName="Bd" Property="BorderThickness" Value="2" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Bd" Property="Opacity" Value="0.45" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
+    <Style TargetType="TextBox" BasedOn="{StaticResource Input}" />
 
-    <!-- ===== Drop-down ===== -->
+    <!-- ===================================================================================== -->
+    <!-- Drop-down (Style Combo, also implicit for ComboBox)                                    -->
+    <!-- ===================================================================================== -->
+
+    <!-- Invisible, full-size click target that opens the drop-down; the visuals are in the ComboBox template. -->
     <Style x:Key="ComboToggle" TargetType="ToggleButton">
         <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="ClickMode" Value="Press" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
-                    <Border x:Name="Bd" Background="{StaticResource ControlBrush}" BorderBrush="{StaticResource ControlBorderBrush}"
-                            BorderThickness="1" CornerRadius="4">
-                        <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="10" Foreground="{StaticResource TextDimBrush}"
-                                   HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <Border Background="Transparent" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- One option in a drop-down list. -->
+    <Style x:Key="ComboItem" TargetType="ComboBoxItem">
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border x:Name="Bd" CornerRadius="4" Padding="10,7" Background="Transparent">
+                        <ContentPresenter />
                     </Border>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource HoverBrush}" />
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource InfoStripBrush}" />
                         </Trigger>
-                        <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource ControlHoverBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -642,31 +827,41 @@
     </Style>
     <Style x:Key="Combo" TargetType="ComboBox">
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Background" Value="{StaticResource InsetBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
         <Setter Property="FontSize" Value="13" />
-        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="MinHeight" Value="36" />
         <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" /> <!-- the border turns accent instead -->
         <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
+        <Setter Property="ItemContainerStyle" Value="{StaticResource ComboItem}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBox">
                     <Grid>
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="{StaticResource ControlRadius}" />
                         <ToggleButton Style="{StaticResource ComboToggle}"
                                       IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" />
                         <ContentPresenter Content="{TemplateBinding SelectionBoxItem}"
                                           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                           ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
                                           Margin="12,0,32,0" VerticalAlignment="Center" IsHitTestVisible="False" />
+                        <Path Data="{StaticResource ChevronDownGeometry}" Stroke="{StaticResource TextDimBrush}" StrokeThickness="1.6"
+                              Width="10" Height="6" Stretch="None" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0"
+                              IsHitTestVisible="False" />
                         <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True"
                                Focusable="False" PopupAnimation="Fade">
                             <!-- Shadow on its own layer so the item text keeps ClearType. -->
                             <Grid Margin="0,4,10,12">
-                                <Border Background="{StaticResource TooltipBrush}" CornerRadius="4">
+                                <Border Background="{StaticResource PopupBrush}" CornerRadius="{StaticResource ControlRadius}">
                                     <Border.Effect>
-                                        <DropShadowEffect BlurRadius="20" ShadowDepth="6" Direction="270" Opacity="0.4" />
+                                        <DropShadowEffect BlurRadius="20" ShadowDepth="6" Direction="270" Opacity="0.45" />
                                     </Border.Effect>
                                 </Border>
-                                <Border Background="{StaticResource TooltipBrush}" BorderBrush="{StaticResource PopupBorderBrush}" BorderThickness="1" CornerRadius="4"
-                                        Padding="4" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                <Border Background="{StaticResource PopupBrush}" BorderBrush="{StaticResource PopupBorderBrush}" BorderThickness="1"
+                                        CornerRadius="{StaticResource ControlRadius}" Padding="4"
+                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
                                         MaxHeight="{TemplateBinding MaxDropDownHeight}">
                                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                                         <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
@@ -675,42 +870,39 @@
                             </Grid>
                         </Popup>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource ControlHoverBorderBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                            <Setter TargetName="Bd" Property="BorderThickness" Value="2" />
+                        </Trigger>
+                        <Trigger Property="IsDropDownOpen" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Setter Property="ItemContainerStyle">
-            <Setter.Value>
-                <Style TargetType="ComboBoxItem">
-                    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ComboBoxItem">
-                                <Border x:Name="Bd" CornerRadius="3" Padding="10,7" Background="Transparent">
-                                    <ContentPresenter />
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsHighlighted" Value="True">
-                                        <Setter TargetName="Bd" Property="Background" Value="{StaticResource HoverBrush}" />
-                                    </Trigger>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentTileBrush}" />
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Setter.Value>
-        </Setter>
     </Style>
+    <Style TargetType="ComboBox" BasedOn="{StaticResource Combo}" />
 
-    <!-- Context menu (Kopiëren naar…) -->
+    <!-- ===================================================================================== -->
+    <!-- Context menu (Kopiëren naar…)                                                         -->
+    <!-- ===================================================================================== -->
+
     <Style TargetType="ContextMenu">
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ContextMenu">
-                    <Border Background="{StaticResource TooltipBrush}" BorderBrush="{StaticResource PopupBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="4">
+                    <Border Background="{StaticResource PopupBrush}" BorderBrush="{StaticResource PopupBorderBrush}" BorderThickness="1"
+                            CornerRadius="{StaticResource ControlRadius}" Padding="4">
                         <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
                     </Border>
                 </ControlTemplate>
@@ -724,12 +916,12 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="MenuItem">
-                    <Border x:Name="Bd" CornerRadius="3" Padding="12,7" Background="Transparent">
+                    <Border x:Name="Bd" CornerRadius="4" Padding="12,7" Background="Transparent">
                         <ContentPresenter ContentSource="Header" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsHighlighted" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource HoverBrush}" />
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource ControlHoverBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -737,15 +929,21 @@
         </Setter>
     </Style>
 
-    <!-- ===== Slim scrollbar ===== -->
+    <!-- ===================================================================================== -->
+    <!-- Scrolling: slim scrollbars, no grey corner                                            -->
+    <!-- ===================================================================================== -->
+
     <Style x:Key="ScrollThumb" TargetType="Thumb">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
-                    <Border x:Name="T" CornerRadius="3" Background="{StaticResource BorderBrush}" />
+                    <Border x:Name="T" CornerRadius="3" Background="{StaticResource ControlBorderBrush}" />
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="T" Property="Background" Value="#3A4150" />
+                            <Setter TargetName="T" Property="Background" Value="{StaticResource ControlHoverBorderBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="T" Property="Background" Value="{StaticResource ControlHoverBorderBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -770,6 +968,7 @@
         <Style.Triggers>
             <Trigger Property="Orientation" Value="Horizontal">
                 <Setter Property="Width" Value="Auto" />
+                <Setter Property="MinWidth" Value="0" />
                 <Setter Property="Height" Value="10" />
                 <Setter Property="Template">
                     <Setter.Value>
@@ -785,66 +984,28 @@
             </Trigger>
         </Style.Triggers>
     </Style>
-
-    <!-- ===== Slider for the Afstellen panel (own section at the end of the file; always 0..1, the view model maps it to real values) ===== -->
-    <Style x:Key="SliderFill" TargetType="RepeatButton">
-        <Setter Property="Focusable" Value="False" />
-        <Setter Property="IsTabStop" Value="False" />
+    <Style TargetType="ScrollViewer">
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="RepeatButton">
-                    <Grid Background="Transparent" Height="20">
-                        <Border Height="4" CornerRadius="1" Background="{TemplateBinding Background}" VerticalAlignment="Center" />
+                <ControlTemplate TargetType="ScrollViewer">
+                    <Grid Background="{TemplateBinding Background}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" CanContentScroll="{TemplateBinding CanContentScroll}"
+                                                Margin="{TemplateBinding Padding}" />
+                        <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1" Value="{TemplateBinding VerticalOffset}"
+                                   Maximum="{TemplateBinding ScrollableHeight}" ViewportSize="{TemplateBinding ViewportHeight}"
+                                   Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" />
+                        <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Row="1" Orientation="Horizontal" Value="{TemplateBinding HorizontalOffset}"
+                                   Maximum="{TemplateBinding ScrollableWidth}" ViewportSize="{TemplateBinding ViewportWidth}"
+                                   Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" />
                     </Grid>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-    <Style x:Key="Slider" TargetType="Slider">
-        <Setter Property="Minimum" Value="0" />
-        <Setter Property="Maximum" Value="1" />
-        <Setter Property="SmallChange" Value="0.01" />
-        <Setter Property="LargeChange" Value="0.1" />
-        <Setter Property="Height" Value="20" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Slider">
-                    <Grid Background="Transparent">
-                        <Track x:Name="PART_Track">
-                            <Track.DecreaseRepeatButton>
-                                <RepeatButton Style="{StaticResource SliderFill}" Command="Slider.DecreaseLarge"
-                                              Background="{StaticResource AccentBrush}" />
-                            </Track.DecreaseRepeatButton>
-                            <Track.IncreaseRepeatButton>
-                                <RepeatButton Style="{StaticResource SliderFill}" Command="Slider.IncreaseLarge"
-                                              Background="{StaticResource TrackBrush}" />
-                            </Track.IncreaseRepeatButton>
-                            <Track.Thumb>
-                                <Thumb Width="14" Height="14">
-                                    <Thumb.Template>
-                                        <ControlTemplate TargetType="Thumb">
-                                            <Border x:Name="Dot" CornerRadius="3" Background="{StaticResource TextBrush}" />
-                                            <ControlTemplate.Triggers>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter TargetName="Dot" Property="Background" Value="{StaticResource AccentHoverBrush}" />
-                                                </Trigger>
-                                                <Trigger Property="IsDragging" Value="True">
-                                                    <Setter TargetName="Dot" Property="Background" Value="{StaticResource AccentHoverBrush}" />
-                                                </Trigger>
-                                            </ControlTemplate.Triggers>
-                                        </ControlTemplate>
-                                    </Thumb.Template>
-                                </Thumb>
-                            </Track.Thumb>
-                        </Track>
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.45" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

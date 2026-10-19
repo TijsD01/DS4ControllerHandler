@@ -9,7 +9,6 @@
                 <ResourceDictionary Source="Themes/Theme.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <c:LevelBrushConverter x:Key="LevelBrush" />
-            <c:LevelIconConverter x:Key="LevelIcon" />
             <c:BoolVisibilityConverter x:Key="BoolVis" />
             <c:TextVisibilityConverter x:Key="TextVis" />
         </ResourceDictionary>

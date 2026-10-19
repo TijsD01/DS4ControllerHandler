@@ -47,15 +47,17 @@ public class ReleaseChangelogTests
         lines.Select((l, i) => (l.Trim(), i)).Where(x => Regex.IsMatch(lines[x.i], @"^\s{0,3}##\s")).ToList();
 
     [Fact]
-    public void TopSection_IsTheHighestVersion_And_1_2_1_IsAboveAllOlderOnes()
+    public void TopSection_IsTheHighestVersion_And_2_0_0_DirectlyPrecedes_1_2_0()
     {
         var headings = VersionHeadings(File.ReadAllLines(RepoFile("CHANGELOG.md")));
         var versions = headings.Select(h => Version.TryParse(h.Heading[2..].Trim(), out var v) ? v : null).ToList();
         var top = versions[0];
         if (top != null) Assert.All(versions.Where(v => v != null), v => Assert.True(v <= top, $"{v} is above the top section {top}"));
-        int i121 = headings.FindIndex(h => h.Heading == "## 1.2.1");
+        // 1.2.1 was never released on its own; its notes are part of 2.0.0.
+        Assert.DoesNotContain(headings, h => h.Heading == "## 1.2.1");
+        int i200 = headings.FindIndex(h => h.Heading == "## 2.0.0");
         int i120 = headings.FindIndex(h => h.Heading == "## 1.2.0");
-        Assert.True(i121 >= 0 && i120 == i121 + 1, "## 1.2.1 must directly precede ## 1.2.0");
+        Assert.True(i200 >= 0 && i120 == i200 + 1, "## 2.0.0 must directly precede ## 1.2.0");
     }
 
     [Fact]
@@ -76,18 +78,19 @@ public class ReleaseChangelogTests
     }
 
     [Fact]
-    public void Section_1_2_1_ParsesToItsFiveBullets()
+    public void Section_2_0_0_HoldsTheFrontendAndThe_1_2_1_Bullets()
     {
-        // Feed the workflow and the app only the 1.2.1 section onwards, as it was when 1.2.1 was released.
+        // Feed the workflow and the app only the 2.0.0 section onwards, as it will be when 2.0.0 is released.
         var lines = File.ReadAllLines(RepoFile("CHANGELOG.md"));
-        var from = Array.FindIndex(lines, l => l.Trim() == "## 1.2.1");
+        var from = Array.FindIndex(lines, l => l.Trim() == "## 2.0.0");
         Assert.True(from >= 0);
         var text = "# Wijzigingen\n\n" + string.Join("\n", lines[from..]);
         var workflow = WorkflowNotes(text.Split('\n'));
-        Assert.DoesNotContain("Nieuw ontwerp", workflow); // first bullet of 1.2.0
+        Assert.DoesNotContain("Je controllers staan links in een lijst", workflow); // 1.2.0
         var app = ReleaseNotes.NewestFromChangelog(text);
-        Assert.Equal(5, app.Count);
-        Assert.StartsWith("Verwijderen maakt je controllers nu ook weer zichtbaar", app[0]);
+        Assert.Equal(11, app.Count);
+        Assert.StartsWith("Helemaal nieuw ontwerp", app[0]);
+        Assert.Contains(app, b => b.StartsWith("Verwijderen maakt je controllers nu ook weer zichtbaar"));
         Assert.StartsWith("De app start niet meer met een foutmelding", app[^1]);
         Assert.Equal(app, ReleaseNotes.FromReleaseBody($"## {ReleaseNotes.NewSectionHeading}\n\n{workflow}\n"));
     }

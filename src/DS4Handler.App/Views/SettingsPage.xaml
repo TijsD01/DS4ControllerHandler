@@ -7,142 +7,189 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}">
     <UserControl.Resources>
-        <Style x:Key="RowTitle" TargetType="TextBlock" BasedOn="{StaticResource Body}">
-            <Setter Property="FontWeight" Value="SemiBold" />
+        <!-- Two columns from 900 px of page width, otherwise the two stacks sit under each other. -->
+        <Style x:Key="ColumnStack" TargetType="StackPanel">
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Grid.ColumnSpan" Value="2" />
+        </Style>
+        <Style x:Key="LeftColumn" TargetType="StackPanel" BasedOn="{StaticResource ColumnStack}">
+            <Setter Property="Grid.Row" Value="0" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource WidthToColumns}, ConverterParameter=900}" Value="2">
+                    <Setter Property="Grid.ColumnSpan" Value="1" />
+                    <Setter Property="Margin" Value="0,0,10,0" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="RightColumn" TargetType="StackPanel" BasedOn="{StaticResource ColumnStack}">
+            <Setter Property="Grid.Row" Value="1" />
+            <Setter Property="Margin" Value="0,20,0,0" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource WidthToColumns}, ConverterParameter=900}" Value="2">
+                    <Setter Property="Grid.Row" Value="0" />
+                    <Setter Property="Grid.Column" Value="1" />
+                    <Setter Property="Grid.ColumnSpan" Value="1" />
+                    <Setter Property="Margin" Value="10,0,0,0" />
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
     </UserControl.Resources>
 
-    <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+    <StackPanel>
         <TextBlock Text="Instellingen" Style="{StaticResource H1}" Margin="0,0,0,20" />
 
-        <!-- Opstarten -->
-        <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,0,20">
-            <StackPanel>
-                <TextBlock Text="OPSTARTEN" Style="{StaticResource SectionLabel}" HorizontalAlignment="Left" Margin="16,12" />
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Left: Opstarten + Updates -->
+            <StackPanel Style="{StaticResource LeftColumn}">
+                <Border Style="{StaticResource Card}" Padding="0">
+                    <StackPanel>
+                <Border Style="{StaticResource CardHeader}">
+                    <TextBlock Text="OPSTARTEN" Style="{StaticResource SectionLabel}" />
+                </Border>
                 <Border Style="{StaticResource SettingRow}" ToolTip="{x:Static vm:Tips.StartWithWindows}">
-                    <Grid Background="Transparent">
+                    <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel Margin="0,0,24,0">
+                        <StackPanel Margin="0,0,24,0" VerticalAlignment="Center">
                             <TextBlock Text="Start met Windows" Style="{StaticResource RowTitle}" />
                             <TextBlock Text="De app start als je inlogt, zodat je controller meteen werkt." Style="{StaticResource Dim}" />
                         </StackPanel>
                         <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding StartWithWindows}"
-                                  VerticalAlignment="Center" ToolTip="{x:Static vm:Tips.StartWithWindows}" />
+                                  AutomationProperties.Name="Start met Windows" ToolTip="{x:Static vm:Tips.StartWithWindows}" />
                     </Grid>
                 </Border>
                 <Border Style="{StaticResource SettingRow}" ToolTip="{x:Static vm:Tips.StartMinimized}">
-                    <Grid Background="Transparent">
+                    <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel Margin="0,0,24,0">
+                        <StackPanel Margin="0,0,24,0" VerticalAlignment="Center">
                             <TextBlock Text="Geminimaliseerd starten" Style="{StaticResource RowTitle}" />
                             <TextBlock Text="Alleen als icoon in het systeemvak naast de klok." Style="{StaticResource Dim}" />
                         </StackPanel>
                         <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding StartMinimized}"
-                                  VerticalAlignment="Center" ToolTip="{x:Static vm:Tips.StartMinimized}" />
+                                  AutomationProperties.Name="Geminimaliseerd starten" ToolTip="{x:Static vm:Tips.StartMinimized}" />
                     </Grid>
                 </Border>
-            </StackPanel>
-        </Border>
-
-        <!-- HidHide -->
-        <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,0,20">
-            <StackPanel>
-                <DockPanel Margin="16,12">
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center"
-                                ToolTip="{Binding HidHideStatus}" Background="Transparent">
-                        <Rectangle Style="{StaticResource Dot}" Margin="0,0,8,0"
-                                   Fill="{Binding HidHideLevel, Converter={StaticResource LevelBrush}}" />
-                        <TextBlock Text="{Binding HidHideLevel, Converter={StaticResource LevelWord}}" FontSize="13"
-                                   Foreground="{Binding HidHideLevel, Converter={StaticResource LevelBrush}}" />
-                    </StackPanel>
-                    <TextBlock Text="VERBERGEN VOOR GAMES · HIDHIDE" Style="{StaticResource SectionLabel}" HorizontalAlignment="Left" />
-                </DockPanel>
-                <Border Style="{StaticResource SettingRow}" Padding="16,9">
-                    <TextBlock Text="{Binding HidHideStatus}" Style="{StaticResource Dim}" />
-                </Border>
-                <Border Style="{StaticResource SettingRow}" ToolTip="{x:Static vm:Tips.HidHideEnabled}">
-                    <Grid Background="Transparent">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel Margin="0,0,24,0">
-                            <TextBlock Text="HidHide gebruiken" Style="{StaticResource RowTitle}" />
-                            <TextBlock Text="Games zien alleen de virtuele controller, zodat je geen dubbele input krijgt. Per controller zet je dit aan met 'Verberg voor games'." Style="{StaticResource Dim}" />
-                        </StackPanel>
-                        <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding HidHideEnabled}"
-                                  VerticalAlignment="Center" ToolTip="{x:Static vm:Tips.HidHideEnabled}" />
-                    </Grid>
-                </Border>
-                <Border Style="{StaticResource SettingRow}" ToolTip="{x:Static vm:Tips.UnhideOnExit}">
-                    <Grid Background="Transparent">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel Margin="0,0,24,0">
-                            <TextBlock Text="Weer zichtbaar maken bij afsluiten" Style="{StaticResource RowTitle}" />
-                            <TextBlock Text="Na het sluiten zien games je PlayStation-controller weer gewoon." Style="{StaticResource Dim}" />
-                        </StackPanel>
-                        <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding UnhideOnExit}"
-                                  VerticalAlignment="Center" ToolTip="{x:Static vm:Tips.UnhideOnExit}" />
-                    </Grid>
-                </Border>
-                <Border Style="{StaticResource SettingRow}">
-                    <StackPanel Orientation="Horizontal">
-                        <Button Content="Opnieuw controleren" Command="{Binding RecheckHidHideCommand}" Margin="0,0,8,0"
-                                ToolTip="{x:Static vm:Tips.RecheckHidHide}" />
-                        <Button Style="{StaticResource GhostButton}" Content="HidHide downloaden" Command="{Binding DownloadHidHideCommand}"
-                                ToolTip="{x:Static vm:Tips.DownloadHidHide}" />
                     </StackPanel>
                 </Border>
-            </StackPanel>
-        </Border>
 
-        <!-- Updates -->
-        <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,0,20" DataContext="{Binding Updates}">
-            <StackPanel>
-                <TextBlock Text="UPDATES" Style="{StaticResource SectionLabel}" HorizontalAlignment="Left" Margin="16,12" />
+                <Border Style="{StaticResource Card}" Padding="0" Margin="0,20,0,0" DataContext="{Binding Updates}">
+                    <StackPanel>
+                <Border Style="{StaticResource CardHeader}">
+                    <TextBlock Text="UPDATES" Style="{StaticResource SectionLabel}" />
+                </Border>
                 <Border Style="{StaticResource SettingRow}" ToolTip="{x:Static vm:Tips.CheckForUpdates}">
-                    <Grid Background="Transparent">
+                    <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <StackPanel Margin="0,0,24,0">
+                        <StackPanel Margin="0,0,24,0" VerticalAlignment="Center">
                             <TextBlock Text="Automatisch zoeken naar nieuwe versies" Style="{StaticResource RowTitle}" />
                             <TextBlock Text="Je profielen en instellingen blijven bewaard bij het bijwerken." Style="{StaticResource Dim}" />
                         </StackPanel>
                         <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding CheckForUpdates}"
-                                  VerticalAlignment="Center" ToolTip="{x:Static vm:Tips.CheckForUpdates}" />
+                                  AutomationProperties.Name="Automatisch zoeken naar nieuwe versies" ToolTip="{x:Static vm:Tips.CheckForUpdates}" />
                     </Grid>
                 </Border>
-                <Border Style="{StaticResource SettingRow}">
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                        <TextBlock Style="{StaticResource Dim}" Margin="0,0,24,0" VerticalAlignment="Center">
-                            <Run Text="{Binding CurrentVersionText, Mode=OneWay}" /><LineBreak />
-                            <Run Text="{Binding Status, Mode=OneWay}" />
-                        </TextBlock>
-                        <Button Grid.Column="1" Content="Nu zoeken naar updates" Command="{Binding CheckNowCommand}"
-                                ToolTip="{x:Static vm:Tips.CheckNow}" VerticalAlignment="Center" />
-                    </Grid>
-                </Border>
-            </StackPanel>
-        </Border>
-
-        <!-- Over -->
-        <Border Style="{StaticResource Card}" Padding="0">
-            <StackPanel>
-                <TextBlock Text="OVER" Style="{StaticResource SectionLabel}" HorizontalAlignment="Left" Margin="16,12" />
-                <Border Style="{StaticResource SettingRow}">
-                    <StackPanel>
-                        <TextBlock Style="{StaticResource Dim}" Margin="0,0,0,12">
-                            <Run Text="{Binding Version, Mode=OneWay}" /><LineBreak />
-                            <Run Text="Je PlayStation-controller werkt in games als een Xbox 360-controller. De app leert vanzelf de drift van je sticks en de slijtage van je triggers en corrigeert die." />
-                        </TextBlock>
-                        <WrapPanel>
-                            <Button Content="Profielmap openen" Command="{Binding OpenProfilesCommand}" Margin="0,0,8,8"
-                                    ToolTip="{x:Static vm:Tips.OpenProfiles}" />
-                            <Button Content="Logbestand openen" Command="{Binding OpenLogCommand}" Margin="0,0,8,8"
-                                    ToolTip="{x:Static vm:Tips.OpenLog}" />
-                            <Button Style="{StaticResource GhostButton}" Content="ViGEmBus downloaden" Command="{Binding DownloadViGEmCommand}" Margin="0,0,0,8"
-                                    ToolTip="{x:Static vm:Tips.DownloadViGEm}" />
-                        </WrapPanel>
+                        <Border Style="{StaticResource SettingRow}">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource Dim}" Margin="0,0,24,0" VerticalAlignment="Center">
+                                    <Run Text="{Binding CurrentVersionText, Mode=OneWay}" /><LineBreak />
+                                    <Run Text="{Binding Status, Mode=OneWay}" />
+                                </TextBlock>
+                                <Button Grid.Column="1" Content="Nu zoeken naar updates" Command="{Binding CheckNowCommand}"
+                                        ToolTip="{x:Static vm:Tips.CheckNow}" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
                     </StackPanel>
                 </Border>
             </StackPanel>
-        </Border>
+
+            <!-- Right: HidHide + Over -->
+            <StackPanel Style="{StaticResource RightColumn}">
+                <Border Style="{StaticResource Card}" Padding="0">
+                    <StackPanel>
+                        <Border Style="{StaticResource CardHeader}">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0"
+                                            ToolTip="{Binding HidHideStatus}" Background="Transparent">
+                                    <Ellipse Style="{StaticResource Dot}" Margin="0,0,8,0"
+                                             Fill="{Binding HidHideLevel, Converter={StaticResource LevelBrush}}" />
+                                    <TextBlock Text="{Binding HidHideWord}" Style="{StaticResource StatusWord}"
+                                               Foreground="{Binding HidHideLevel, Converter={StaticResource LevelBrush}, ConverterParameter=text}" />
+                                </StackPanel>
+                                <TextBlock Text="VERBORGEN VOOR GAMES · HIDHIDE" Style="{StaticResource SectionLabel}" TextTrimming="CharacterEllipsis" />
+                            </DockPanel>
+                        </Border>
+                        <Border Style="{StaticResource SettingRow}">
+                            <TextBlock Text="{Binding HidHideStatus}" Style="{StaticResource Dim}" />
+                        </Border>
+                <Border Style="{StaticResource SettingRow}" ToolTip="{x:Static vm:Tips.HidHideEnabled}">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,24,0" VerticalAlignment="Center">
+                            <TextBlock Text="HidHide gebruiken" Style="{StaticResource RowTitle}" />
+                            <TextBlock Text="Games zien alleen de virtuele controller. Per controller zet je dit aan met 'Verborgen voor games'." Style="{StaticResource Dim}" />
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding HidHideEnabled}"
+                                  AutomationProperties.Name="HidHide gebruiken" ToolTip="{x:Static vm:Tips.HidHideEnabled}" />
+                    </Grid>
+                </Border>
+                <Border Style="{StaticResource SettingRow}" ToolTip="{x:Static vm:Tips.UnhideOnExit}">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,24,0" VerticalAlignment="Center">
+                            <TextBlock Text="Weer zichtbaar maken bij afsluiten" Style="{StaticResource RowTitle}" />
+                            <TextBlock Text="Na het sluiten zien games je PlayStation-controller weer gewoon." Style="{StaticResource Dim}" />
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding UnhideOnExit}"
+                                  AutomationProperties.Name="Weer zichtbaar maken bij afsluiten" ToolTip="{x:Static vm:Tips.UnhideOnExit}" />
+                    </Grid>
+                </Border>
+                        <Border Style="{StaticResource SettingRow}">
+                            <WrapPanel>
+                                <Button Content="Opnieuw controleren" Command="{Binding RecheckHidHideCommand}" Margin="0,0,8,0"
+                                        ToolTip="{x:Static vm:Tips.RecheckHidHide}" />
+                                <Button Style="{StaticResource GhostButton}" Content="HidHide downloaden" Command="{Binding DownloadHidHideCommand}"
+                                        ToolTip="{x:Static vm:Tips.DownloadHidHide}" />
+                            </WrapPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource Card}" Padding="0" Margin="0,20,0,0">
+                    <StackPanel>
+                <Border Style="{StaticResource CardHeader}">
+                    <TextBlock Text="OVER" Style="{StaticResource SectionLabel}" />
+                </Border>
+                        <Border Style="{StaticResource SettingRow}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Version}" Style="{StaticResource Mono}" Margin="0,0,0,6" />
+                                <TextBlock Style="{StaticResource Dim}" Margin="0,0,0,14"
+                                           Text="Je PlayStation-controller werkt in games als een Xbox 360- of DualShock 4-controller. De app leert vanzelf de drift van je sticks en de slijtage van je triggers en corrigeert die." />
+                                <WrapPanel>
+                                    <Button Content="Profielmap openen" Command="{Binding OpenProfilesCommand}" Margin="0,0,8,8"
+                                            ToolTip="{x:Static vm:Tips.OpenProfiles}" />
+                                    <Button Content="Logbestand openen" Command="{Binding OpenLogCommand}" Margin="0,0,8,8"
+                                            ToolTip="{x:Static vm:Tips.OpenLog}" />
+                                    <Button Style="{StaticResource GhostButton}" Content="ViGEmBus downloaden" Command="{Binding DownloadViGEmCommand}" Margin="0,0,0,8"
+                                            ToolTip="{x:Static vm:Tips.DownloadViGEm}" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+
+        <!-- Afsluiten -->
+        <Button Style="{StaticResource DangerButton}" Content="Afsluiten" Command="{Binding QuitCommand}"
+                HorizontalAlignment="Right" Margin="0,24,0,0" ToolTip="{x:Static vm:Tips.Quit}" />
     </StackPanel>
 </UserControl>

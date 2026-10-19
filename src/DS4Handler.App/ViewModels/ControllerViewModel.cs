@@ -7,9 +7,11 @@ using DS4Handler.Core.Input;
 
 namespace DS4Handler.App.ViewModels;
 
-/// <summary>Status colour of a pill or line: "ok", "learning", "warn", "bad", "off".</summary>
+/// <summary>Status colour of a dot or line: "ok", "learning", "warn", "bad", "off", "info".</summary>
 public static class Level
 {
+    /// <summary>Neutral information (blue), e.g. which profile a controller uses.</summary>
+    public const string Info = "info";
     public const string Ok = "ok";
     public const string Learning = "learning";
     public const string Warn = "warn";
@@ -26,6 +28,26 @@ internal static class Fmt
     public static string Signed(double v) => v.ToString("+0.00;−0.00;0.00", Nl);
 }
 
+internal static class Words
+{
+    /// <summary>Status after a name in a short summary: "in orde", "leert nog", ...</summary>
+    public static string Short(string level) => level switch
+    {
+        Level.Ok => "in orde",
+        Level.Learning => "leert nog",
+        Level.Warn => "let op",
+        Level.Bad => "probleem",
+        _ => "uit",
+    };
+
+    /// <summary>The least healthy of two levels (bad, warn, learning, ok, off).</summary>
+    public static string Worst(string a, string b)
+    {
+        static int Rank(string l) => l switch { Level.Bad => 4, Level.Warn => 3, Level.Learning => 2, Level.Ok => 1, _ => 0 };
+        return Rank(a) >= Rank(b) ? a : b;
+    }
+}
+
 /// <summary>Live view and learned facts of one stick.</summary>
 public sealed class StickViewModel : ObservableObject
 {
@@ -37,9 +59,17 @@ public sealed class StickViewModel : ObservableObject
     private string _summaryLevel = Level.Learning;
     private string _deadzoneTip = Tips.Deadzone;
 
-    public StickViewModel(string name) => Name = name;
+    public StickViewModel(string name, string shortName)
+    {
+        Name = name;
+        ShortName = shortName;
+    }
 
+    /// <summary>"Linker stick" / "Rechter stick" (Kalibratie, summaries).</summary>
     public string Name { get; }
+
+    /// <summary>"Links" / "Rechts" (label under the live stick).</summary>
+    public string ShortName { get; }
 
     public double RawX { get => _rawX; private set => SetNumber(ref _rawX, value); }
     public double RawY { get => _rawY; private set => SetNumber(ref _rawY, value); }
@@ -64,7 +94,7 @@ public sealed class StickViewModel : ObservableObject
         CenterY = live.CenterY;
         Deadzone = live.Deadzone;
         Guided = live.GuidedInProgress;
-        ValueText = $"{Fmt.Signed(outX)}  {Fmt.Signed(outY)}";
+        ValueText = $"x {Fmt.Signed(outX)} · y {Fmt.Signed(outY)}";
     }
 
     internal void UpdateSummary(StickSummary s, bool guided)
@@ -129,6 +159,9 @@ public sealed class TriggerViewModel : ObservableObject
 
     public string Name { get; }
     public string CalibrateText => $"Kalibreer {Name}";
+
+    /// <summary>Short status for the Kalibratie summary on Live: "L2 in orde", "R2 leert nog".</summary>
+    public string ShortStatus => $"{Name} {Words.Short(SummaryLevel)}";
     public ICommand StartGuidedCommand { get; }
     public ICommand CancelGuidedCommand { get; }
 
@@ -138,7 +171,7 @@ public sealed class TriggerViewModel : ObservableObject
     public double Rest { get => _rest; private set => SetNumber(ref _rest, value); }
     public string ValueText { get => _valueText; private set => SetField(ref _valueText, value); }
     public string Summary { get => _summary; private set => SetField(ref _summary, value); }
-    public string SummaryLevel { get => _summaryLevel; private set => SetField(ref _summaryLevel, value); }
+    public string SummaryLevel { get => _summaryLevel; private set { if (SetField(ref _summaryLevel, value)) OnPropertyChanged(nameof(ShortStatus)); } }
     public bool GuidedActive { get => _guided; private set => SetField(ref _guided, value); }
     public string GuidedText { get => _guidedText; private set => SetField(ref _guidedText, value); }
     public string BarTip { get => _barTip; private set => SetField(ref _barTip, value); }
@@ -149,7 +182,7 @@ public sealed class TriggerViewModel : ObservableObject
         Output = output;
         EndStop = live.EndStop / 255.0;
         Rest = live.Rest / 255.0;
-        ValueText = $"ingedrukt {Fmt.Pct(raw / 255.0)} → game {Fmt.Pct(output)}";
+        ValueText = $"{Fmt.Pct(raw / 255.0)} → {Fmt.Pct(output)}";
         GuidedActive = live.GuidedInProgress;
         GuidedText = live.GuidedInProgress
             ? (live.GuidedPressesRemaining > 0
@@ -207,7 +240,6 @@ public sealed class ControllerViewModel : ObservableObject
     private bool _hide;
     private bool _hideAvailable;
     private string _battery = "";
-    private string _batteryIcon = "";
     private string _batteryTip = "";
     private bool _hasBattery;
     private string _status = "";
@@ -220,7 +252,9 @@ public sealed class ControllerViewModel : ObservableObject
     private bool _sticksGuided;
     private bool _anyInput;
     private bool _isShown;
-    private string _sidebarMeta = "";
+    private string _tabMeta = "";
+    private int _selectedTab;
+    private string _sticksLevel = Level.Learning;
     private OutputMode _output;
 
     public ControllerViewModel(ControllerSession session, AppHost host, Func<string, string, string, bool> confirm)
@@ -228,21 +262,24 @@ public sealed class ControllerViewModel : ObservableObject
         Session = session;
         _host = host;
         _confirm = confirm;
-        Left = new StickViewModel("Linker stick");
-        Right = new StickViewModel("Rechter stick");
+        Left = new StickViewModel("Linker stick", "Links");
+        Right = new StickViewModel("Rechter stick", "Rechts");
         L2 = new TriggerViewModel(session, right: false);
         R2 = new TriggerViewModel(session, right: true);
         _learning = session.LearningEnabled;
         _jitterFilter = host.SettingsStore.Read(s => s.For(session.Id).JitterFilterEnabled);
         _hide = host.SettingsStore.Read(s => s.For(session.Id).HideFromGames);
         _output = host.SettingsStore.Read(s => s.For(session.Id).Output);
-        _sidebarMeta = $"{ModelShort} · {ConnectionText}";
+        _tabMeta = IsBluetooth ? "BT" : "USB";
 
         Tuning = new TuningViewModel(session, host);
         ResetCommand = new RelayCommand(Reset);
         RecenterCommand = new RelayCommand(() => Session.StartGuidedCenter());
         CancelRecenterCommand = new RelayCommand(() => Session.CancelGuidedCenter());
+        ShowCalibrationCommand = new RelayCommand(() => SelectedTab = TabCalibration);
     }
+
+    private const int TabCalibration = 1;
 
     public ControllerSession Session { get; }
     public StickViewModel Left { get; }
@@ -257,6 +294,16 @@ public sealed class ControllerViewModel : ObservableObject
     public ICommand RecenterCommand { get; }
     public ICommand CancelRecenterCommand { get; }
 
+    /// <summary>Switches the page to the Kalibratie tab (the summary row on Live).</summary>
+    public ICommand ShowCalibrationCommand { get; }
+
+    /// <summary>View state: the tab shown on this controller's page (0 Live, 1 Kalibratie, 2 Afstellen). Not saved.</summary>
+    public int SelectedTab { get => _selectedTab; set => SetField(ref _selectedTab, Math.Clamp(value, 0, 2)); }
+
+    /// <summary>Both sticks together, for the Kalibratie summary on Live: the least healthy of the two.</summary>
+    public string SticksLevel { get => _sticksLevel; private set { if (SetField(ref _sticksLevel, value)) OnPropertyChanged(nameof(SticksStatus)); } }
+    public string SticksStatus => "Sticks " + Words.Short(SticksLevel);
+
     private string? _title;
     private string _profileText = "";
     private string _profileLevel = Level.Off;
@@ -265,29 +312,23 @@ public sealed class ControllerViewModel : ObservableObject
     /// <summary>Friendly name from the Profielen tab, or the model name.</summary>
     public string Title { get => _title ?? Session.DisplayName; private set => SetField(ref _title, value); }
 
-    /// <summary>"Gebruikt profiel: …" when the controller learns into a shared profile (or is blocked); empty otherwise.</summary>
+    /// <summary>Which profile this controller learns into: "Profiel: eigen profiel", "Profiel: …" or a blocked warning.</summary>
     public string ProfileText { get => _profileText; private set => SetField(ref _profileText, value); }
     public string ProfileLevel { get => _profileLevel; private set => SetField(ref _profileLevel, value); }
     public string ProfileTip { get => _profileTip; private set => SetField(ref _profileTip, value); }
-    public string ModelIcon => ""; // game controller glyph
     public string IdText => Session.Mac != null ? $"MAC {Session.Mac}" : "(geen MAC gevonden)";
     public string IdTip => Session.HasStableId ? Tips.ControllerId : Tips.ControllerIdUnstable;
     public bool IsBluetooth => Session.Connection == ConnectionType.Bluetooth;
     public string ConnectionText => IsBluetooth ? "Bluetooth" : "USB";
-    public string ConnectionIcon => IsBluetooth ? "" : "";
     public string ConnectionTip => IsBluetooth ? Tips.Bluetooth : Tips.Usb;
 
-    /// <summary>Short model name for the sidebar ("DS4" / "DualSense").</summary>
-    public string ModelShort => Session.Model == ControllerModel.DualShock4 ? "DS4" : "DualSense";
+    /// <summary>Mono line on the controller's tab in the top bar: "BT · 82%" or "USB".</summary>
+    public string TabMeta { get => _tabMeta; private set => SetField(ref _tabMeta, value); }
 
-    /// <summary>Second line of the sidebar entry: "DS4 · Bluetooth · 42%".</summary>
-    public string SidebarMeta { get => _sidebarMeta; private set => SetField(ref _sidebarMeta, value); }
-
-    /// <summary>This controller's page is the one on screen (drives the sidebar highlight).</summary>
+    /// <summary>This controller's page is the one on screen (drives the top-bar tab highlight).</summary>
     public bool IsShown { get => _isShown; internal set => SetField(ref _isShown, value); }
 
     public string BatteryText { get => _battery; private set => SetField(ref _battery, value); }
-    public string BatteryIcon { get => _batteryIcon; private set => SetField(ref _batteryIcon, value); }
     public string BatteryTip { get => _batteryTip; private set => SetField(ref _batteryTip, value); }
     public bool HasBattery { get => _hasBattery; private set => SetField(ref _hasBattery, value); }
     public string StatusText { get => _status; private set => SetField(ref _status, value); }
@@ -295,7 +336,10 @@ public sealed class ControllerViewModel : ObservableObject
     public string StatusTip { get => _statusTip; private set => SetField(ref _statusTip, value); }
     public string HideStatusText { get => _hideStatus; private set => SetField(ref _hideStatus, value); }
     public string HideLevel { get => _hideLevel; private set => SetField(ref _hideLevel, value); }
-    public string HideStatusTip { get => _hideStatusTip; private set => SetField(ref _hideStatusTip, value); }
+    public string HideStatusTip { get => _hideStatusTip; private set { if (SetField(ref _hideStatusTip, value)) OnPropertyChanged(nameof(HideChipTip)); } }
+
+    /// <summary>Tooltip of the "Verborgen voor games" chip: what the switch does, plus the current state.</summary>
+    public string HideChipTip => string.IsNullOrEmpty(HideStatusTip) ? HideTip : HideTip + "\n\nNu: " + HideStatusTip;
     public string ReportRateText { get => _rate; private set => SetField(ref _rate, value); }
     public bool SticksGuided { get => _sticksGuided; private set => SetField(ref _sticksGuided, value); }
     public bool HasInput { get => _anyInput; private set => SetField(ref _anyInput, value); }
@@ -387,6 +431,7 @@ public sealed class ControllerViewModel : ObservableObject
         }
         L2.UpdateSummary(_snap.L2);
         R2.UpdateSummary(_snap.R2);
+        SticksLevel = Words.Worst(Left.SummaryLevel, Right.SummaryLevel);
     }
 
     /// <summary>Learning switched from the tray menu.</summary>
@@ -412,10 +457,9 @@ public sealed class ControllerViewModel : ObservableObject
     private void UpdateBattery(byte? percent)
     {
         HasBattery = percent.HasValue;
-        SidebarMeta = percent is { } b ? $"{ModelShort} · {ConnectionText} · {b}%" : $"{ModelShort} · {ConnectionText}";
+        TabMeta = IsBluetooth && percent is { } b ? $"BT · {b}%" : IsBluetooth ? "BT" : "USB";
         if (percent is not { } p) return;
         BatteryText = $"{p}%";
-        BatteryIcon = p >= 95 ? "" : char.ConvertFromUtf32(0xE850 + Math.Clamp(p / 10, 0, 9));
         BatteryTip = IsBluetooth
             ? $"Batterij: {p}%. " + (p <= 20 ? "Bijna leeg: sluit de kabel aan om op te laden." : "Gaat ongeveer 4 tot 8 uur mee op een volle lading.")
             : $"Batterij: {p}%. De controller laadt op via de USB-kabel.";
@@ -433,12 +477,12 @@ public sealed class ControllerViewModel : ObservableObject
                 StatusTip = "De controller is verbonden maar stuurt (nog) geen standen. Bij Bluetooth: druk op de PS-knop. Blijft dit staan, sluit hem dan opnieuw aan.";
                 break;
             case VirtualPadState.Active when Session.OutputMode == OutputMode.DualShock4:
-                StatusText = "Actief als DualShock 4-controller";
+                StatusText = "Virtuele DualShock 4 actief";
                 StatusLevel = Level.Ok;
-                StatusTip = "Games zien deze controller nu als een (virtuele) DualShock 4, inclusief trillen. De correcties uit de kalibratie worden al toegepast. Zet 'Verberg voor games' aan zodat games niet ook je echte controller zien.";
+                StatusTip = "Games zien deze controller nu als een (virtuele) DualShock 4, inclusief trillen. De correcties uit de kalibratie worden al toegepast. Zet 'Verborgen voor games' aan zodat games niet ook je echte controller zien.";
                 break;
             case VirtualPadState.Active:
-                StatusText = "Actief als Xbox-controller";
+                StatusText = "Virtuele Xbox 360 actief";
                 StatusLevel = Level.Ok;
                 StatusTip = "Games zien deze controller nu als een Xbox 360-controller, inclusief trillen. De correcties uit de kalibratie worden al toegepast.";
                 break;
@@ -472,15 +516,15 @@ public sealed class ControllerViewModel : ObservableObject
         }
         else if (!string.Equals(Session.ProfileId, Session.Id, StringComparison.OrdinalIgnoreCase))
         {
-            ProfileText = "Gebruikt profiel: " + library.DisplayName(Session.ProfileId);
-            ProfileLevel = Level.Learning;
+            ProfileText = "Profiel: " + library.DisplayName(Session.ProfileId);
+            ProfileLevel = Level.Info;
             ProfileTip = Tips.ProfileOnCard;
         }
         else
         {
-            ProfileText = "";
-            ProfileLevel = Level.Off;
-            ProfileTip = "";
+            ProfileText = "Profiel: eigen profiel";
+            ProfileLevel = Level.Info;
+            ProfileTip = Tips.ProfileOwnOnCard;
         }
     }
 
@@ -491,6 +535,7 @@ public sealed class ControllerViewModel : ObservableObject
         {
             HideAvailable = enabled;
             OnPropertyChanged(nameof(HideTip));
+            OnPropertyChanged(nameof(HideChipTip));
         }
         switch (_host.HidHide.StateFor(Session.Id))
         {

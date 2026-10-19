@@ -124,10 +124,7 @@ public static class InputShaper
         if (!(len > 0f)) return (0f, 0f);
 
         // Step 2: curve, sensitivity, anti-deadzone on the length; the direction stays.
-        float mag = MathF.Min(len, 1f);
-        mag = XboxMapper.ApplyResponseCurve(mag, t.Curve);
-        mag = MathF.Min(mag * t.Sensitivity, 1f);
-        mag = t.AntiDeadzone + (1f - t.AntiDeadzone) * mag;
+        float mag = MagnitudeSteps(MathF.Min(len, 1f), t.Curve, t.Sensitivity, t.AntiDeadzone);
         float k = mag / len;
         return (dx * k, dy * k);
     }
@@ -211,12 +208,38 @@ public static class InputShaper
     public static float ShapeTrigger(float v, TriggerTuning t)
     {
         if (IsNeutral(t)) return v;
-        if (!(v > t.InnerDeadzone)) return 0f; // also NaN
-        float span = MathF.Max(1f - t.OuterDeadzone - t.InnerDeadzone, MinSpan);
-        float mag = MathF.Min((v - t.InnerDeadzone) / span, 1f);
-        mag = XboxMapper.ApplyResponseCurve(mag, t.Curve);
-        mag = t.AntiDeadzone + (1f - t.AntiDeadzone) * mag;
-        return Math.Clamp(mag, 0f, 1f);
+        return ShapeResponse(v, t.InnerDeadzone, t.OuterDeadzone, t.AntiDeadzone, t.Curve);
+    }
+
+    /// <summary>
+    /// The one-dimensional response on a push of 0..1: inner deadzone, outer deadzone (full at
+    /// 1 - outer), curve, sensitivity (clamped to 1) and anti-deadzone, clamped to [0, 1]. This is
+    /// exactly what <see cref="ShapeTrigger"/> does, and what <see cref="ShapeStick"/> gives for a
+    /// straight push along one axis with any <see cref="DeadzoneShape"/> (before square output and
+    /// inverting). Pure; the curve preview in the app draws it, so preview and output cannot drift apart.
+    /// NaN reads as released.
+    /// </summary>
+    public static float ShapeResponse(float v, float inner, float outer, float anti, float curve, float sensitivity = 1f)
+    {
+        if (!(v > inner)) return 0f; // also NaN
+        float span = MathF.Max(1f - outer - inner, MinSpan);
+        float mag = MathF.Min((v - inner) / span, 1f);
+        return Math.Clamp(MagnitudeSteps(mag, curve, sensitivity, anti), 0f, 1f);
+    }
+
+    /// <summary><see cref="ShapeResponse(float, float, float, float, float, float)"/> with one stick's settings (neutral settings return the input).</summary>
+    public static float ShapeResponse(float v, StickTuning t) =>
+        HasMagnitudeStep(t) ? ShapeResponse(v, t.InnerDeadzone, t.OuterDeadzone, t.AntiDeadzone, t.Curve, t.Sensitivity) : v;
+
+    /// <summary>Same as <see cref="ShapeTrigger"/>.</summary>
+    public static float ShapeResponse(float v, TriggerTuning t) => ShapeTrigger(v, t);
+
+    /// <summary>Curve, sensitivity (clamped to 1), then anti-deadzone on a magnitude 0..1.</summary>
+    private static float MagnitudeSteps(float mag, float curve, float sensitivity, float anti)
+    {
+        mag = XboxMapper.ApplyResponseCurve(mag, curve);
+        mag = MathF.Min(mag * sensitivity, 1f);
+        return anti + (1f - anti) * mag;
     }
 
     /// <summary>
@@ -270,6 +293,17 @@ public static class InputShaper
     {
         float outer = Clamp(outerDeadzone, 0f, 0f, MaxOuterDeadzone);
         return Math.Clamp((1f - MinSpan - outer) / DiagonalFactor(shape), 0f, MaxStickInnerDeadzone);
+    }
+
+    /// <summary>
+    /// Largest trigger inner deadzone <see cref="Sanitize(TriggerTuning)"/> keeps with this outer deadzone
+    /// without shrinking the outer one: 1 - <see cref="MinSpan"/> - outer, never above
+    /// <see cref="MaxTriggerInnerDeadzone"/>. For limiting a slider.
+    /// </summary>
+    public static float MaxTriggerInner(float outerDeadzone)
+    {
+        float outer = Clamp(outerDeadzone, 0f, 0f, MaxOuterDeadzone);
+        return Math.Clamp(1f - MinSpan - outer, 0f, MaxTriggerInnerDeadzone);
     }
 
     private static float DiagonalFactor(DeadzoneShape shape) => shape is DeadzoneShape.Square or DeadzoneShape.Axial ? Sqrt2 : 1f;

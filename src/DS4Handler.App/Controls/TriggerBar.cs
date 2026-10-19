@@ -4,17 +4,25 @@ using System.Windows.Media;
 namespace DS4Handler.App.Controls;
 
 /// <summary>
-/// Draws one trigger as two horizontal bars: on top how far the trigger physically goes (raw), with
-/// the learned end stop marked; below what the game gets after calibration.
+/// Draws one trigger as an inset track: a thin grey line on top for how far the trigger physically
+/// goes (raw), a thicker accent bar below for what the game gets, and orange markers for the learned
+/// rest point and end stop.
 /// </summary>
 public sealed class TriggerBar : FrameworkElement
 {
-    private static readonly Brush TrackBrush = Frozen(new SolidColorBrush(Color.FromRgb(0x23, 0x27, 0x30)));
-    private static readonly Brush RawBrush = Frozen(new SolidColorBrush(Color.FromRgb(0x6E, 0x76, 0x86)));
-    private static readonly Brush OutBrush = Frozen(new SolidColorBrush(Color.FromRgb(0x4C, 0x8D, 0xFF)));
-    private static readonly Brush FullBrush = Frozen(new SolidColorBrush(Color.FromRgb(0x3C, 0xCB, 0x82)));
-    private static readonly Brush EndStopBrush = Frozen(new SolidColorBrush(Color.FromRgb(0xF5, 0xA5, 0x24)));
-    private static readonly Brush RestBrush = Frozen(new SolidColorBrush(Color.FromArgb(0x60, 0xF5, 0xA5, 0x24)));
+    private const double TrackHeight = 14;
+
+    private sealed class Palette
+    {
+        public readonly Brush Track = ThemeBrushes.Get("InsetBrush", 0x0A, 0x10, 0x20);
+        public readonly Pen TrackPen = ThemeBrushes.Pen(ThemeBrushes.Get("InsetBorderBrush", 0x26, 0x32, 0x4A), 1);
+        public readonly Brush Raw = ThemeBrushes.Get("RawBrush", 0x6B, 0x7C, 0x96);
+        public readonly Brush Output = ThemeBrushes.Get("AccentBrush", 0x4C, 0x8D, 0xFF);
+        public readonly Brush Mark = ThemeBrushes.Get("WarnBrush", 0xF5, 0xA5, 0x24);
+    }
+
+    private static Palette? _palette;
+    private static Palette P => _palette ??= new Palette();
 
     public static readonly DependencyProperty RawProperty = Register(nameof(Raw), 0.0);
     public static readonly DependencyProperty OutputProperty = Register(nameof(Output), 0.0);
@@ -34,34 +42,32 @@ public sealed class TriggerBar : FrameworkElement
     public double Rest { get => (double)GetValue(RestProperty); set => SetValue(RestProperty, value); }
 
     protected override Size MeasureOverride(Size availableSize) =>
-        new(double.IsInfinity(availableSize.Width) ? 200 : availableSize.Width, 26);
+        new(double.IsInfinity(availableSize.Width) ? 200 : availableSize.Width, TrackHeight);
 
     protected override void OnRender(DrawingContext dc)
     {
+        var p = P;
         double w = ActualWidth;
-        if (w <= 4) return;
+        if (w <= 8) return;
 
-        // Raw bar (6 px, top), with the learned rest value and the end stop tick.
-        dc.DrawRoundedRectangle(TrackBrush, null, new Rect(0, 4, w, 6), 1, 1);
-        if (Rest > 0.005) dc.DrawRoundedRectangle(RestBrush, null, new Rect(0, 4, w * Math.Clamp(Rest, 0, 1), 6), 1, 1);
+        var track = new Rect(0.5, 0.5, w - 1, TrackHeight - 1);
+        dc.DrawRoundedRectangle(p.Track, p.TrackPen, track, 4, 4);
+        dc.PushClip(new RectangleGeometry(new Rect(1, 1, w - 2, TrackHeight - 2), 3, 3));
+
+        double inner = w - 2;
         double raw = Math.Clamp(Raw, 0, 1);
-        if (raw > 0.005) dc.DrawRoundedRectangle(RawBrush, null, new Rect(0, 4, Math.Max(2, w * raw), 6), 1, 1);
-        double stop = Math.Min(Math.Round(Math.Clamp(EndStop, 0, 1) * w), w - 2);
-        dc.DrawRectangle(EndStopBrush, null, new Rect(stop, 0, 2, 14));
-
-        // Output bar (12 px, bottom): accent, green at full strength.
-        dc.DrawRoundedRectangle(TrackBrush, null, new Rect(0, 14, w, 12), 2, 2);
+        if (raw > 0.003) dc.DrawRectangle(p.Raw, null, new Rect(1, 2, Math.Max(2, inner * raw), 3));
         double output = Math.Clamp(Output, 0, 1);
-        if (output > 0.005)
-            dc.DrawRoundedRectangle(output >= 0.995 ? FullBrush : OutBrush, null, new Rect(0, 14, Math.Max(4, w * output), 12), 2, 2);
+        if (output > 0.003) dc.DrawRoundedRectangle(p.Output, null, new Rect(1, TrackHeight - 2 - 6, Math.Max(2, inner * output), 6), 1, 1);
+
+        // Rest point and end stop.
+        dc.DrawRectangle(p.Mark, null, new Rect(Marker(Rest, inner), 0, 2, TrackHeight));
+        dc.DrawRectangle(p.Mark, null, new Rect(Marker(EndStop, inner), 0, 2, TrackHeight));
+        dc.Pop();
     }
+
+    private static double Marker(double v, double inner) => 1 + Math.Min(Math.Round(Math.Clamp(v, 0, 1) * inner), inner - 2);
 
     private static DependencyProperty Register(string name, double def) => DependencyProperty.Register(
         name, typeof(double), typeof(TriggerBar), new FrameworkPropertyMetadata(def, FrameworkPropertyMetadataOptions.AffectsRender));
-
-    private static T Frozen<T>(T f) where T : Freezable
-    {
-        f.Freeze();
-        return f;
-    }
 }

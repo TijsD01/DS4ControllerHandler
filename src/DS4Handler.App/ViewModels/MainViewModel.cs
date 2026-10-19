@@ -12,7 +12,6 @@ public sealed class NoticeViewModel
     public required string Level { get; init; }
     public required string Title { get; init; }
     public required string Text { get; init; }
-    public string Icon => Level == ViewModels.Level.Bad ? "" : "";
     public string? PrimaryText { get; init; }
     public ICommand? PrimaryCommand { get; init; }
     public string? PrimaryTip { get; init; }
@@ -31,7 +30,7 @@ public sealed class MainViewModel : ObservableObject
     private int _hidHideVersion = -1;
     private string _noticeKey = "";
     private string _page = "controllers";
-    private string _driverChip = "Controleren…";
+    private string _driverChip = "Controleren…";  // short driver texts for DriversText
     private string _driverLevel = Level.Learning;
     private string _driverTip = Tips.DriverChecking;
     private string _hidHideChip = "Controleren…";
@@ -67,7 +66,7 @@ public sealed class MainViewModel : ObservableObject
     public ICommand ShowControllersCommand { get; }
     public ICommand ShowSettingsCommand { get; }
 
-    /// <summary>Sidebar: show this controller's page (parameter: the <see cref="ControllerViewModel"/>).</summary>
+    /// <summary>Top bar: show this controller's page (parameter: the <see cref="ControllerViewModel"/>).</summary>
     public ICommand SelectControllerCommand { get; }
 
     /// <summary>The controller whose page is shown on the controller page. Follows connects and disconnects.</summary>
@@ -81,7 +80,7 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    /// <summary>Version number for the sidebar wordmark.</summary>
+    /// <summary>Version number next to the wordmark in the top bar.</summary>
     public string VersionText => UpdateService.CurrentVersion.ToString();
 
     public bool HasControllers => Controllers.Count > 0;
@@ -106,16 +105,20 @@ public sealed class MainViewModel : ObservableObject
     public bool ShowProfiles { get => _page == PageProfiles; set { if (value) Page = PageProfiles; } }
     public bool ShowSettings { get => _page == PageSettings; set { if (value) Page = PageSettings; } }
 
-    public string DriverChip { get => _driverChip; private set => SetField(ref _driverChip, value); }
     public string DriverLevel { get => _driverLevel; private set => SetField(ref _driverLevel, value); }
     public string DriverTip { get => _driverTip; private set => SetField(ref _driverTip, value); }
-    public string HidHideChip { get => _hidHideChip; private set => SetField(ref _hidHideChip, value); }
     public string HidHideLevel { get => _hidHideLevel; private set => SetField(ref _hidHideLevel, value); }
     public string HidHideTip { get => _hidHideTip; private set => SetField(ref _hidHideTip, value); }
 
-    /// <summary>One- or two-word driver states for the sidebar ("werkt", "ontbreekt", ...).</summary>
+    /// <summary>One- or two-word driver states for the driver tooltip ("werkt", "ontbreekt", ...).</summary>
     public string DriverWord { get => _driverWord; private set => SetField(ref _driverWord, value); }
     public string HidHideWord { get => _hidHideWord; private set => SetField(ref _hidHideWord, value); }
+
+    /// <summary>Compact driver status in the top bar: one dot and a short text for ViGEmBus and HidHide together.</summary>
+    public string DriversText { get => _driversText; private set => SetField(ref _driversText, value); }
+    public string DriversLevel { get => _driversLevel; private set => SetField(ref _driversLevel, value); }
+    private string _driversText = "Controleren…";
+    private string _driversLevel = Level.Learning;
 
     /// <summary>Short text for the tray icon.</summary>
     public string TrayText => Controllers.Count switch
@@ -190,18 +193,18 @@ public sealed class MainViewModel : ObservableObject
         switch (manager.DriverState)
         {
             case VirtualDriverState.Ready:
-                DriverChip = "Xbox-driver OK"; DriverWord = "werkt"; DriverLevel = Level.Ok; DriverTip = Tips.DriverReady; break;
+                _driverChip = "Xbox-driver OK"; DriverWord = "werkt"; DriverLevel = Level.Ok; DriverTip = Tips.DriverReady; break;
             case VirtualDriverState.Missing:
-                DriverChip = "Xbox-driver ontbreekt"; DriverWord = "ontbreekt"; DriverLevel = Level.Bad; DriverTip = Tips.DriverMissing; break;
+                _driverChip = "Xbox-driver ontbreekt"; DriverWord = "ontbreekt"; DriverLevel = Level.Bad; DriverTip = Tips.DriverMissing; break;
             case VirtualDriverState.Failed:
-                DriverChip = "Xbox-driver fout"; DriverWord = "fout"; DriverLevel = Level.Bad; DriverTip = "ViGEmBus kon niet worden geopend: " + manager.DriverError; break;
+                _driverChip = "Xbox-driver fout"; DriverWord = "fout"; DriverLevel = Level.Bad; DriverTip = "ViGEmBus kon niet worden geopend: " + manager.DriverError; break;
             default:
-                DriverChip = "Controleren…"; DriverWord = "controleren…"; DriverLevel = Level.Learning; DriverTip = Tips.DriverChecking; break;
+                _driverChip = "Controleren…"; DriverWord = "controleren…"; DriverLevel = Level.Learning; DriverTip = Tips.DriverChecking; break;
         }
 
         if (!hidHideEnabled)
         {
-            HidHideChip = "HidHide uit"; HidHideWord = "uit"; HidHideLevel = Level.Off;
+            _hidHideChip = "HidHide uit"; HidHideWord = "uit"; HidHideLevel = Level.Off;
             HidHideTip = "Verbergen voor games staat uit (zie Instellingen). Sommige games zien dan twee controllers.";
         }
         else
@@ -209,24 +212,30 @@ public sealed class MainViewModel : ObservableObject
             switch (hidHide.Availability)
             {
                 case HidHideAvailability.Ready when hidHide.Problem == null:
-                    HidHideChip = "HidHide actief"; HidHideWord = "werkt"; HidHideLevel = Level.Ok;
+                    _hidHideChip = "HidHide actief"; HidHideWord = "werkt"; HidHideLevel = Level.Ok;
                     HidHideTip = "HidHide verbergt je echte controllers voor games, zodat ze alleen de Xbox-controller zien.";
                     break;
                 case HidHideAvailability.Ready:
-                    HidHideChip = "HidHide: let op"; HidHideWord = "let op"; HidHideLevel = Level.Warn; HidHideTip = hidHide.Problem!; break;
+                    _hidHideChip = "HidHide: let op"; HidHideWord = "let op"; HidHideLevel = Level.Warn; HidHideTip = hidHide.Problem!; break;
                 case HidHideAvailability.NotInstalled:
-                    HidHideChip = "HidHide ontbreekt"; HidHideWord = "niet gevonden"; HidHideLevel = Level.Warn;
+                    _hidHideChip = "HidHide ontbreekt"; HidHideWord = "niet gevonden"; HidHideLevel = Level.Warn;
                     HidHideTip = "HidHide is niet geïnstalleerd. Zonder HidHide zien sommige games je controller dubbel."; break;
                 case HidHideAvailability.Busy:
-                    HidHideChip = "HidHide bezet"; HidHideWord = "bezet"; HidHideLevel = Level.Warn;
+                    _hidHideChip = "HidHide bezet"; HidHideWord = "bezet"; HidHideLevel = Level.Warn;
                     HidHideTip = "Een ander programma (HidHide Configuration Client of DS4Windows) heeft HidHide open. Sluit dat en klik op Opnieuw controleren."; break;
                 case HidHideAvailability.Error:
-                    HidHideChip = "HidHide fout"; HidHideWord = "fout"; HidHideLevel = Level.Warn;
+                    _hidHideChip = "HidHide fout"; HidHideWord = "fout"; HidHideLevel = Level.Warn;
                     HidHideTip = "HidHide reageerde niet zoals verwacht. Zie het logbestand (Instellingen)."; break;
                 default:
-                    HidHideChip = "Controleren…"; HidHideWord = "controleren…"; HidHideLevel = Level.Learning; HidHideTip = "Bezig met controleren of HidHide aanwezig is."; break;
+                    _hidHideChip = "Controleren…"; HidHideWord = "controleren…"; HidHideLevel = Level.Learning; HidHideTip = "Bezig met controleren of HidHide aanwezig is."; break;
             }
         }
+
+        // One line for the top bar: the most important problem, otherwise "in orde".
+        if (DriverLevel is Level.Bad or Level.Warn) { DriversText = _driverChip; DriversLevel = DriverLevel; }
+        else if (HidHideLevel is Level.Bad or Level.Warn) { DriversText = _hidHideChip; DriversLevel = HidHideLevel; }
+        else if (DriverLevel == Level.Learning || HidHideLevel == Level.Learning) { DriversText = "Controleren…"; DriversLevel = Level.Learning; }
+        else { DriversText = "Stuurprogramma's in orde"; DriversLevel = Level.Ok; }
 
         Settings.Refresh();
         UpdateNotices(manager, hidHide, hidHideEnabled);
@@ -357,8 +366,15 @@ public sealed class SettingsViewModel : ObservableObject
         DownloadViGEmCommand = new RelayCommand(() => AppHost.OpenUrl(AppHost.ViGEmDownloadUrl));
         OpenProfilesCommand = new RelayCommand(() => AppHost.OpenFolder(host.Profiles.Directory));
         OpenLogCommand = new RelayCommand(() => AppHost.OpenUrl(Log.FilePath));
+        QuitCommand = new RelayCommand(() => QuitRequested?.Invoke(this, EventArgs.Empty));
         Updates = new UpdateViewModel(host);
     }
+
+    /// <summary>"Afsluiten": quits the app completely (the main window forwards this to the app).</summary>
+    public ICommand QuitCommand { get; }
+
+    /// <summary>Raised by <see cref="QuitCommand"/>.</summary>
+    public event EventHandler? QuitRequested;
 
     public ICommand RecheckHidHideCommand { get; }
     public ICommand DownloadHidHideCommand { get; }
@@ -369,10 +385,8 @@ public sealed class SettingsViewModel : ObservableObject
     /// <summary>The Updates block on this page; also feeds the update banner of the main window.</summary>
     public UpdateViewModel Updates { get; }
 
-    public string Version =>
-        "Versie " + UpdateService.CurrentVersion;
-
-    public string ProfileFolder => _host.Profiles.Directory;
+    /// <summary>First line of the Over card: "DS4 Handler 2.0.0".</summary>
+    public string Version => "DS4 Handler " + UpdateService.CurrentVersion;
 
     public bool StartWithWindows
     {
@@ -399,7 +413,16 @@ public sealed class SettingsViewModel : ObservableObject
     }
 
     public string HidHideStatus { get => _hidHideStatus; private set => SetField(ref _hidHideStatus, value); }
-    public string HidHideLevel { get => _hidHideLevel; private set => SetField(ref _hidHideLevel, value); }
+    public string HidHideLevel { get => _hidHideLevel; private set { if (SetField(ref _hidHideLevel, value)) OnPropertyChanged(nameof(HidHideWord)); } }
+
+    /// <summary>Status word in the HidHide header: "in orde", "let op", "probleem", or "controleren…" while checking.</summary>
+    public string HidHideWord => HidHideLevel switch
+    {
+        Level.Ok => "in orde",
+        Level.Warn => "let op",
+        Level.Bad => "probleem",
+        _ => "controleren…",
+    };
 
     internal void Refresh()
     {

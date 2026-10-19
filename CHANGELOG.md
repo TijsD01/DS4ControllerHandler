@@ -3,8 +3,14 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
-## 1.2.1
+## 2.0.0
 
+- Helemaal nieuw ontwerp, opnieuw opgebouwd vanaf nul. Je controllers staan nu als tabbladen bovenin, met naast elkaar de status van de stuurprogramma's, Profielen en Instellingen.
+- Per controller drie tabbladen: Live (sticks en triggers), Kalibratie (wat de app geleerd heeft, sticks centreren, triggers meten, leren en opnieuw beginnen) en Afstellen.
+- Bovenaan elke controller zie je in één oogopslag of de virtuele controller draait, of hij verborgen is voor games (met schakelaar) en welk profiel hij gebruikt.
+- Afstellen is opgedeeld in Sticks, Triggers en Snelheid. Een kleine grafiek laat meteen zien hoe een stick of trigger reageert terwijl je de schuifjes verschuift.
+- Nieuwe lettertypes (IBM Plex Sans en JetBrains Mono voor getallen), rustige donkere kleuren met duidelijke statuskleuren, en overal een zichtbare rand als je met het toetsenbord navigeert.
+- Afsluiten staat nu onder Instellingen. Uitleg als je met de muis ergens op staat is er nog steeds bij alles.
 - Verwijderen maakt je controllers nu ook weer zichtbaar als de app voor alle gebruikers is geïnstalleerd: de lijst met verborgen controllers van elke gebruiker wordt daarvoor gelezen.
 - Bij het verwijderen haalt de app zichzelf ook weer van de toegestane programma's van HidHide af, en zet HidHide weer uit als de app het zelf had aangezet en er niets anders meer verborgen is.
 - Het verwijderprogramma vraagt een nog draaiende app eerst om af te sluiten en schrijft eerlijk in het logboek of het weer zichtbaar maken is gelukt.

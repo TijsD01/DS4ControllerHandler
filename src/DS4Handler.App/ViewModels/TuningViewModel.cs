@@ -55,6 +55,7 @@ public sealed class TuningSlider : ObservableObject
             _value = v;
             OnPropertyChanged();
             if (!valueChanged) return;
+            OnPropertyChanged(nameof(Value));
             OnPropertyChanged(nameof(Text));
             _changed();
         }
@@ -66,6 +67,7 @@ public sealed class TuningSlider : ObservableObject
         _value = Math.Clamp(value, _min, _max);
         _position = _max > _min ? (_value - _min) / (_max - _min) : 0;
         OnPropertyChanged(nameof(Position));
+        OnPropertyChanged(nameof(Value));
         OnPropertyChanged(nameof(Text));
     }
 
@@ -82,6 +84,7 @@ public sealed class TuningSlider : ObservableObject
         if (clamped) _value = _max;
         _position = _max > _min ? (_value - _min) / (_max - _min) : 0;
         OnPropertyChanged(nameof(Position));
+        OnPropertyChanged(nameof(Value));
         OnPropertyChanged(nameof(Text));
         return clamped;
     }
@@ -125,10 +128,26 @@ public abstract class TuningSection : ObservableObject
 
     protected static string Pct(double v) => Fmt.Pct(v);
 
-    protected static string Times(double v) => v.ToString("0.0#", Fmt.Nl) + "×";
+    protected static string Times(double v) => v.ToString("0.00", Fmt.Nl) + "×";
 
-    protected static string CurveText(double v) =>
-        Math.Abs(v - 1) < 0.025 ? "Lineair" : v.ToString("0.0#", Fmt.Nl) + (v > 1 ? " (fijner)" : " (sneller)");
+    protected static string CurveText(double v) => v.ToString("0.00", Fmt.Nl);
+
+    /// <summary>Caption under the curve preview: "curve 1,40 · zachter in het midden".</summary>
+    public string CurveCaption
+    {
+        get
+        {
+            double v = CurveValue;
+            string how = Math.Abs(v - 1) < 0.025 ? "recht" : v > 1 ? "zachter in het midden" : "sneller uit het midden";
+            return $"curve {CurveText(v)} · {how}";
+        }
+    }
+
+    protected abstract double CurveValue { get; }
+
+    /// <summary>Keeps <see cref="CurveCaption"/> in step with the curve slider.</summary>
+    protected void WatchCurve(TuningSlider curve) =>
+        curve.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(TuningSlider.Text)) OnPropertyChanged(nameof(CurveCaption)); };
 }
 
 /// <summary>Settings of one stick.</summary>
@@ -145,8 +164,11 @@ public sealed class StickTuningSection : TuningSection
         Curve = new TuningSlider("Curve", Tips.TuneCurve, 0.2, 5, 0.05, CurveText, ChangedCallback);
         Sensitivity = new TuningSlider("Gevoeligheid", Tips.TuneSensitivity, 0.1, 3, 0.05, Times, ChangedCallback);
         Sliders = new[] { Inner, Outer, Anti, Curve, Sensitivity };
+        WatchCurve(Curve);
         LoadDefaults();
     }
+
+    protected override double CurveValue => Curve.Value;
 
     public TuningSlider Inner { get; }
     public TuningSlider Outer { get; }
@@ -232,19 +254,35 @@ public sealed class TriggerTuningSection : TuningSection
 {
     public TriggerTuningSection(string title, string group, Action changed) : base(title, group, changed)
     {
-        Inner = new TuningSlider("Extra deadzone", Tips.TuneTriggerInner, 0, 0.9, 0.01, Pct, ChangedCallback);
-        Outer = new TuningSlider("Eindpunt", Tips.TuneTriggerOuter, 0, 0.5, 0.01, Pct, ChangedCallback);
+        Inner = new TuningSlider("Extra deadzone", Tips.TuneTriggerInner, 0, InputShaper.MaxTriggerInnerDeadzone, 0.01, Pct, ChangedCallback);
+        Outer = new TuningSlider("Eindpunt", Tips.TuneTriggerOuter, 0, 0.5, 0.01, Pct, OuterChanged);
         Anti = new TuningSlider("Anti-deadzone", Tips.TuneTriggerAnti, 0, 0.9, 0.01, Pct, ChangedCallback);
         Curve = new TuningSlider("Curve", Tips.TuneCurve, 0.2, 5, 0.05, CurveText, ChangedCallback);
         Sliders = new[] { Inner, Outer, Anti, Curve };
+        WatchCurve(Curve);
         LoadDefaults();
     }
+
+    protected override double CurveValue => Curve.Value;
 
     public TuningSlider Inner { get; }
     public TuningSlider Outer { get; }
     public TuningSlider Anti { get; }
     public TuningSlider Curve { get; }
     public IReadOnlyList<TuningSlider> Sliders { get; }
+
+    private void OuterChanged()
+    {
+        UpdateInnerMax();
+        Notify();
+    }
+
+    /// <summary>Inner deadzone limit follows the end point (see <see cref="InputShaper.MaxTriggerInner"/>), so Sanitize never changes what is shown.</summary>
+    private void UpdateInnerMax()
+    {
+        double max = InputShaper.MaxTriggerInner((float)Outer.Value);
+        Inner.SetMax(Math.Floor(max * 100 + 1e-4) / 100);
+    }
 
     protected override void LoadDefaults() => Load(new TriggerTuning());
 
@@ -253,8 +291,9 @@ public sealed class TriggerTuningSection : TuningSection
         Loading = true;
         try
         {
-            Inner.Load(t.InnerDeadzone);
             Outer.Load(t.OuterDeadzone);
+            UpdateInnerMax();
+            Inner.Load(t.InnerDeadzone);
             Anti.Load(t.AntiDeadzone);
             Curve.Load(t.Curve);
         }
@@ -339,6 +378,24 @@ public sealed class TuningViewModel : ObservableObject
     public TriggerTuningSection L2 { get; }
     public TriggerTuningSection R2 { get; }
     public ICommand ResetAllCommand { get; }
+
+    private string _section = SectionSticks;
+    private const string SectionSticks = "sticks", SectionTriggers = "triggers", SectionSpeed = "speed";
+
+    // View state only (not saved): which part of Afstellen is shown. The segmented control binds to these;
+    // unchecking (false) is ignored, checking switches.
+    public bool ShowSticks { get => _section == SectionSticks; set { if (value) SetSection(SectionSticks); } }
+    public bool ShowTriggers { get => _section == SectionTriggers; set { if (value) SetSection(SectionTriggers); } }
+    public bool ShowSpeed { get => _section == SectionSpeed; set { if (value) SetSection(SectionSpeed); } }
+
+    private void SetSection(string section)
+    {
+        if (_section == section) return;
+        _section = section;
+        OnPropertyChanged(nameof(ShowSticks));
+        OnPropertyChanged(nameof(ShowTriggers));
+        OnPropertyChanged(nameof(ShowSpeed));
+    }
     public ICommand ResetSpeedCommand { get; }
 
     public bool SupportsPoll { get => _supportsPoll; private set { if (SetField(ref _supportsPoll, value)) OnPropertyChanged(nameof(PollNote)); } }
@@ -346,7 +403,7 @@ public sealed class TuningViewModel : ObservableObject
     /// <summary>Shown next to the poll rate when the controller cannot change it.</summary>
     public string PollNote => SupportsPoll ? "" : "Alleen te kiezen voor een DualShock 4 via Bluetooth. Via USB bepaalt de controller zelf hoe vaak hij meet.";
 
-    public bool CanSave { get => _canSave; private set { if (SetField(ref _canSave, value)) OnPropertyChanged(nameof(SaveNote)); } }
+    private bool CanSave { get => _canSave; set { if (SetField(ref _canSave, value)) OnPropertyChanged(nameof(SaveNote)); } }
 
     public string SaveNote => CanSave ? ""
         : _blocked ? "Wijzigingen werken nu, maar worden niet bewaard: dit profiel is in gebruik door een andere controller."

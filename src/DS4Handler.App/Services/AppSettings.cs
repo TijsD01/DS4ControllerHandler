@@ -45,7 +45,7 @@ public sealed class AppSettings
     /// <summary>Shown once: the window closes to the tray instead of quitting.</summary>
     public bool TrayHintShown { get; set; }
 
-    /// <summary>Look on GitHub for a newer version when the app starts (and once a day after that).</summary>
+    /// <summary>Look on GitHub for a newer version when the app starts (and every 12 hours after that).</summary>
     public bool CheckForUpdates { get; set; } = true;
 
     /// <summary>Version that ran last time, to show "what's new" once after an update.</summary>
@@ -125,11 +125,14 @@ public sealed class SettingsStore
                     loaded.HiddenInstanceIds = (loaded.HiddenInstanceIds ?? new()).Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
                     return loaded;
                 }
+                throw new InvalidDataException("settings.json bevat geen instellingen.");
             }
         }
         catch (Exception ex)
         {
-            Log.Warn("Instellingen lezen mislukt; standaardinstellingen worden gebruikt.", ex);
+            // Keep the unreadable file: the next save would overwrite it, losing the hidden-controller list.
+            try { File.Copy(FilePath, FilePath + ".bad", overwrite: true); } catch { }
+            Log.Warn("Instellingen lezen mislukt; standaardinstellingen worden gebruikt. Kopie bewaard als settings.json.bad.", ex);
         }
         return new AppSettings();
     }

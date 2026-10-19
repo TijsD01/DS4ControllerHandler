@@ -156,7 +156,7 @@ jobs:
 
           ## Downloaden
 
-          **[$setup](https://github.com/$env:REPO/releases/download/$env:TAG/$setup)** is de makkelijkste keuze: download, dubbelklik en volg de stappen. De installer zet ook ViGEmBus en HidHide op je pc als die nog ontbreken. .NET hoef je niet apart te installeren. Heb je DS4 Handler al? Dan installeert de setup over de oude versie heen en blijven je profielen en instellingen bewaard. Vanaf deze versie meldt de app zelf als er een update is.
+          **[$setup](https://github.com/$env:REPO/releases/download/$env:TAG/$setup)** is de makkelijkste keuze: download, dubbelklik en volg de stappen. De installer zet ook ViGEmBus en HidHide op je pc als die nog ontbreken. .NET hoef je niet apart te installeren. Heb je DS4 Handler al? Dan installeert de setup over de oude versie heen en blijven je profielen en instellingen bewaard. De app meldt zelf als er een update is.
 
           Liever zonder installatie? Neem ``DS4Handler-$env:VERSION-portable.exe`` en installeer [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases) (en bij voorkeur [HidHide](https://github.com/nefarius/HidHide/releases)) zelf. De app waarschuwt bij het starten als een driver ontbreekt.
 

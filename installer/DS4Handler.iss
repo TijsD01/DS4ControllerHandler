@@ -12,6 +12,7 @@
 ; (it closes a running DS4 Handler first), so there is always one version installed. Profiles,
 ; calibration and settings live in %APPDATA%\DS4ControllerHandler, outside the install folder;
 ; installing, updating and uninstalling never touch them.
+; Uninstalling stops the app and runs DS4Handler.exe --unhide, so controllers HidHide hid stay usable.
 ; The app starts the setup itself with /SILENT /CLOSEAPPLICATIONS /UPDATE=1 for one-click updates;
 ; /UPDATE=1 skips the driver choices (the app warns itself when a driver is missing) and starts the
 ; new version again when the setup is done.
@@ -97,6 +98,8 @@ Filename: "{app}\DS4Handler.exe"; Flags: nowait runasoriginaluser; Check: Starte
 
 [UninstallRun]
 Filename: "{cmd}"; Parameters: "/C taskkill /IM DS4Handler.exe /F"; Flags: runhidden; RunOnceId: "StopApp"
+; taskkill skips the app's own exit, so HidHide would keep the controllers hidden: undo that.
+Filename: "{app}\DS4Handler.exe"; Parameters: "--unhide"; Flags: runhidden waituntilterminated; RunOnceId: "UnhideControllers"
 
 [Registry]
 ; Remove the "Start met Windows" entry the app may have created.

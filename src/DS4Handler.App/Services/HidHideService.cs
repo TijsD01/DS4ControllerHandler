@@ -162,6 +162,8 @@ public sealed class HidHideService
                 // HidHide's global switch: it also applies to devices hidden by the user or other tools.
                 Log.Info("HidHide-verbergen (algemene schakelaar) aangezet.");
                 client.SetActive(true);
+                // Remembered so uninstalling can turn it off again (only then, and only if nothing else is hidden).
+                _settings.Update(s => s.HidHideActivatedByApp = true);
             }
             // Only take ownership when we put it on the list (or did so before), so we never unhide a
             // pad the user hid themselves.
@@ -227,9 +229,18 @@ public sealed class HidHideService
         var owned = _settings.Read(s => s.HiddenInstanceIds.ToArray());
         if (owned.Length == 0) return;
         if (Availability != HidHideAvailability.Ready) CheckAvailability();
-        if (Availability != HidHideAvailability.Ready) return;
+        if (Availability != HidHideAvailability.Ready)
+        {
+            Log.Warn($"HidHide is niet beschikbaar ({Availability}); {owned.Length} controller(s) blijven verborgen.");
+            return;
+        }
+        int failed = 0;
         foreach (var id in owned)
             if (TryUnhide(id)) Forget(id);
+            else failed++;
+        Log.Info(failed == 0
+            ? $"{owned.Length} controller(s) zichtbaar gemaakt."
+            : $"{owned.Length - failed} van {owned.Length} controller(s) zichtbaar gemaakt; {failed} blijven verborgen.");
         foreach (var key in _states.Keys) _states[key] = DeviceHideState.Off;
     }
 

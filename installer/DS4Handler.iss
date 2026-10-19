@@ -99,7 +99,11 @@ Filename: "{app}\DS4Handler.exe"; Flags: nowait runasoriginaluser; Check: Starte
 [UninstallRun]
 Filename: "{cmd}"; Parameters: "/C taskkill /IM DS4Handler.exe /F"; Flags: runhidden; RunOnceId: "StopApp"
 ; taskkill skips the app's own exit, so HidHide would keep the controllers hidden: undo that.
-Filename: "{app}\DS4Handler.exe"; Parameters: "--unhide"; Flags: runhidden waituntilterminated; RunOnceId: "UnhideControllers"
+; An all-users uninstall runs as administrator, whose %APPDATA% is not the user's, and Inno cannot run
+; uninstall entries as the original user. --all-users makes the app read the hidden-controller list from
+; every user profile instead (it can, as administrator).
+Filename: "{app}\DS4Handler.exe"; Parameters: "--unhide"; Flags: runhidden waituntilterminated; RunOnceId: "UnhideControllers"; Check: not IsAdminInstallMode
+Filename: "{app}\DS4Handler.exe"; Parameters: "--unhide --all-users"; Flags: runhidden waituntilterminated; RunOnceId: "UnhideControllersAllUsers"; Check: IsAdminInstallMode
 
 [Registry]
 ; Remove the "Start met Windows" entry the app may have created.

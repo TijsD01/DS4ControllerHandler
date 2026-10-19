@@ -116,7 +116,11 @@ public sealed class AppHost : IDisposable
         Manager.Dispose(); // saves all profiles
         if (SettingsStore.Read(s => s.UnhideOnExit))
         {
-            try { HidHide.UnhideAllAsync().Wait(TimeSpan.FromSeconds(3)); }
+            try
+            {
+                if (!HidHide.UnhideAllAsync().Wait(TimeSpan.FromSeconds(3)))
+                    Log.Warn("Controllers zichtbaar maken bij afsluiten duurde te lang; mogelijk blijven ze verborgen.");
+            }
             catch (Exception ex) { Log.Warn("Controllers zichtbaar maken bij afsluiten mislukt", ex); }
         }
         SettingsStore.Save();

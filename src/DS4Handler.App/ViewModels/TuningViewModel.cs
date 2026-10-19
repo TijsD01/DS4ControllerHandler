@@ -234,7 +234,7 @@ public sealed class TriggerTuningSection : TuningSection
     {
         Inner = new TuningSlider("Extra deadzone", Tips.TuneTriggerInner, 0, 0.9, 0.01, Pct, ChangedCallback);
         Outer = new TuningSlider("Eindpunt", Tips.TuneTriggerOuter, 0, 0.5, 0.01, Pct, ChangedCallback);
-        Anti = new TuningSlider("Anti-deadzone", Tips.TuneAnti, 0, 0.9, 0.01, Pct, ChangedCallback);
+        Anti = new TuningSlider("Anti-deadzone", Tips.TuneTriggerAnti, 0, 0.9, 0.01, Pct, ChangedCallback);
         Curve = new TuningSlider("Curve", Tips.TuneCurve, 0.2, 5, 0.05, CurveText, ChangedCallback);
         Sliders = new[] { Inner, Outer, Anti, Curve };
         LoadDefaults();
@@ -348,7 +348,11 @@ public sealed class TuningViewModel : ObservableObject
 
     public bool CanSave { get => _canSave; private set { if (SetField(ref _canSave, value)) OnPropertyChanged(nameof(SaveNote)); } }
 
-    public string SaveNote => CanSave ? "" : "Wijzigingen werken nu, maar worden niet bewaard: dit profiel is in gebruik door een andere controller.";
+    public string SaveNote => CanSave ? ""
+        : _blocked ? "Wijzigingen werken nu, maar worden niet bewaard: dit profiel is in gebruik door een andere controller."
+        : "Wijzigingen werken nu, maar worden niet bewaard: het profielbestand kon niet worden gelezen. Het bestand blijft ongemoeid.";
+
+    private bool _blocked;
 
     public TuningChoice SelectedPoll
     {
@@ -392,6 +396,12 @@ public sealed class TuningViewModel : ObservableObject
     private void UpdateFlags()
     {
         SupportsPoll = _session.SupportsBluetoothPollRate;
+        bool blocked = _session.ProfileBlocked;
+        if (blocked != _blocked)
+        {
+            _blocked = blocked;
+            OnPropertyChanged(nameof(SaveNote));
+        }
         CanSave = _session.CanSaveTuning;
     }
 

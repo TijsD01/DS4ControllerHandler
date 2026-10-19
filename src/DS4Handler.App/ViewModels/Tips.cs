@@ -179,6 +179,8 @@ public static class Tips
         "Eindpunt: de stick geeft al volle kracht voordat hij tegen de rand zit. Handig als de rand van de stick moeilijk te halen is, bijvoorbeeld door een dikke stickdop of een versleten stick.";
     public const string TuneAnti =
         "Anti-deadzone: zodra de stick de deadzone verlaat springt de uitvoer meteen naar minstens dit percentage. Gebruik dit als de game zelf een deadzone heeft: dan reageert je stick meteen, in plaats van dat je eerst een stuk moet duwen. Begin klein, ongeveer 10%. Bij Kruis geldt dit per as.";
+    public const string TuneTriggerAnti =
+        "Anti-deadzone: zodra je de trigger voorbij zijn deadzone indrukt, springt de uitvoer meteen naar minstens dit percentage. Handig als de game zelf pas reageert na een stukje indrukken. Begin klein, ongeveer 10%.";
     public const string TuneCurve =
         "Curve: hoe de stick reageert tussen midden en rand. Lineair is gewoon 1 op 1. Hoger dan 1 is rustiger rond het midden (precies richten) en heftiger aan de rand. Lager dan 1 is juist snel bij kleine bewegingen.";
     public const string TuneSensitivity =

@@ -31,11 +31,37 @@ public sealed class ProfileStore
 
     public string Directory => _directory;
 
+    /// <summary>
+    /// The saved profile, or null when there is none. A file that exists but cannot be read also gives
+    /// null; use <see cref="LoadStrict"/> where that difference matters (before saving over it).
+    /// </summary>
     public CalibrationProfile? Load(string controllerId)
     {
         var path = PathFor(controllerId);
         return File.Exists(path) ? ReadFile(path) : null;
     }
+
+    /// <summary>
+    /// The saved profile, or null only when no file exists. A file that exists but cannot be read or
+    /// parsed throws <see cref="InvalidDataException"/> (inner exception: the cause), so a caller never
+    /// mistakes a damaged or locked profile for a missing one and overwrites what was learned.
+    /// </summary>
+    public CalibrationProfile? LoadStrict(string controllerId)
+    {
+        var path = PathFor(controllerId);
+        if (!File.Exists(path)) return null;
+        try
+        {
+            return ReadFileCore(path) ?? throw new InvalidDataException($"Profile file {path} holds no profile.");
+        }
+        catch (Exception e) when (IsReadError(e))
+        {
+            throw new InvalidDataException($"Profile file {path} could not be read.", e);
+        }
+    }
+
+    /// <summary>True when a file exists for this profile, readable or not.</summary>
+    public bool Exists(string controllerId) => File.Exists(PathFor(controllerId));
 
     public void Save(CalibrationProfile profile)
     {
@@ -78,14 +104,22 @@ public sealed class ProfileStore
     {
         try
         {
-            var profile = JsonSerializer.Deserialize<CalibrationProfile>(File.ReadAllText(path), JsonOptions);
-            return profile is null ? null : Normalize(profile);
+            return ReadFileCore(path);
         }
-        catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException or NotSupportedException)
+        catch (Exception e) when (IsReadError(e))
         {
             return null;
         }
     }
+
+    private static CalibrationProfile? ReadFileCore(string path)
+    {
+        var profile = JsonSerializer.Deserialize<CalibrationProfile>(File.ReadAllText(path), JsonOptions);
+        return profile is null ? null : Normalize(profile);
+    }
+
+    private static bool IsReadError(Exception e) =>
+        e is JsonException or IOException or UnauthorizedAccessException or NotSupportedException or InvalidOperationException;
 
     /// <summary>Replaces sections that were null in the JSON (for example "L2": null) with defaults and sanitizes the tuning.</summary>
     private static CalibrationProfile Normalize(CalibrationProfile p) => p with

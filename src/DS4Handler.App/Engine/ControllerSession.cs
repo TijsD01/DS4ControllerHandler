@@ -180,33 +180,42 @@ public sealed class ControllerSession : IDisposable
     /// <summary>False when changes are used live but not saved (profile in use elsewhere, or unreadable).</summary>
     public bool CanSaveTuning => _profileLoaded && !ProfileBlocked;
 
+    private int _tuningGeneration;                   // bumped under _sync whenever the calibration / tuning is swapped
+
     /// <summary>
-    /// Uses new tuning at once (sanitized) and saves it into the profile. Returns at once: the save runs
-    /// on the thread pool (quick repeated calls coalesce into one save of the latest values) and a new
-    /// Bluetooth poll interval is sent by the output writer. When <see cref="CanSaveTuning"/> is false
-    /// the tuning is used live but not saved.
+    /// Changes whenever the tuning is replaced from elsewhere: a profile switch (link, unlink, blocked
+    /// profile released) or a copied / imported profile. Read it <em>before</em> <see cref="Tuning"/> and
+    /// pass it to <see cref="ApplyTuning"/>, so values shown for one profile never land in another.
     /// </summary>
-    /// <remarks>
-    /// Tuning applied while a profile switch is running lands on the profile being left; the UI should
-    /// re-read <see cref="Tuning"/> after a switch.
-    /// </remarks>
-    public void ApplyTuning(InputTuning tuning)
+    public int TuningGeneration => Volatile.Read(ref _tuningGeneration);
+
+    /// <summary>
+    /// Uses new tuning at once (sanitized) and saves it into the profile, unless the tuning was replaced
+    /// since <paramref name="expectedGeneration"/> was read (see <see cref="TuningGeneration"/>): then
+    /// nothing changes and the result is false, and the caller should reload <see cref="Tuning"/>.
+    /// Returns at once: the save runs on the thread pool (quick repeated calls coalesce into one save of
+    /// the latest values) and a new Bluetooth poll interval is sent by the output writer. When
+    /// <see cref="CanSaveTuning"/> is false the tuning is used live but not saved.
+    /// </summary>
+    public bool ApplyTuning(InputTuning tuning, int expectedGeneration)
     {
         ArgumentNullException.ThrowIfNull(tuning);
         lock (_sync)
         {
-            if (_calibration == null) return;
+            // Checked under the same lock that swaps the calibration, so it can never land on another profile.
+            if (_calibration == null || _tuningGeneration != expectedGeneration) return false;
             _calibration.Tuning = tuning;
         }
         WakeOutputWriter(); // the poll interval is part of every Bluetooth output report
-        if (!CanSaveTuning || Volatile.Read(ref _disposed) != 0) return;
-        if (Interlocked.Exchange(ref _tuningSavePending, 1) != 0) return; // a queued save picks up these values
+        if (!CanSaveTuning || Volatile.Read(ref _disposed) != 0) return true;
+        if (Interlocked.Exchange(ref _tuningSavePending, 1) != 0) return true; // a queued save picks up these values
         ThreadPool.QueueUserWorkItem(_ =>
         {
             Volatile.Write(ref _tuningSavePending, 0);
             if (Volatile.Read(ref _disposed) != 0) return; // Dispose saves on its own
             SaveProfile(force: true);
         });
+        return true;
     }
 
     private void WakeOutputWriter()
@@ -253,7 +262,11 @@ public sealed class ControllerSession : IDisposable
         (_profileLoaded, _savedFingerprint) = LoadInto(store, calibration);
         _appliedProfileId = ProfileId;
         _appliedBlocked = ProfileBlocked;
-        lock (_sync) _calibration = calibration;
+        lock (_sync)
+        {
+            _calibration = calibration;
+            _tuningGeneration++; // a view model made before Start showed defaults
+        }
 
         if (Connection == ConnectionType.Bluetooth) RequestFullReports();
 
@@ -392,7 +405,8 @@ public sealed class ControllerSession : IDisposable
         }
         try
         {
-            var profile = store.Load(ProfileId);
+            // Strict: a file that exists but cannot be read throws, so it is never overwritten.
+            var profile = store.LoadStrict(ProfileId);
             if (profile != null && profile.Model == Model) calibration.Import(profile);
             return (true, profile != null ? Fingerprint(calibration.Export()) : 0);
         }
@@ -425,11 +439,18 @@ public sealed class ControllerSession : IDisposable
         bool blocked = ProfileBlocked;
         if (string.Equals(target, _appliedProfileId, StringComparison.OrdinalIgnoreCase) && blocked == _appliedBlocked) return;
 
+        // From here on, tuning the UI read for the old profile is refused (it would be lost after the save
+        // below, or land in the new profile). Bumped again at the swap for a UI that re-read in between.
+        lock (_sync) _tuningGeneration++;
         SaveProfileCore(force: false); // the old profile, under its own id
         bool learning = LearningEnabled, jitter = JitterFilterEnabled;
         var calibration = new ControllerCalibration(target, Model) { LearningEnabled = learning, JitterFilterEnabled = jitter };
         var (loaded, fingerprint) = LoadInto(store, calibration);
-        lock (_sync) _calibration = calibration;
+        lock (_sync)
+        {
+            _calibration = calibration;
+            _tuningGeneration++;
+        }
         _profileLoaded = loaded;
         Interlocked.Exchange(ref _savedFingerprint, fingerprint);
         _appliedProfileId = target;
@@ -450,7 +471,11 @@ public sealed class ControllerSession : IDisposable
         {
             ApplyProfileCore(store); // never write into a profile we are switching away from
             if (!_profileLoaded) return false;
-            lock (_sync) _calibration?.Import(profile);
+            lock (_sync)
+            {
+                _calibration?.Import(profile);
+                _tuningGeneration++;
+            }
             SaveProfileCore(force: true);
             WakeOutputWriter();
             return true;
@@ -711,9 +736,10 @@ public sealed class ControllerSession : IDisposable
 
     /// <summary>
     /// Hands one calibrated state to the virtual pad. Only changes go to the driver (games keep the last
-    /// state). With <paramref name="outputRate"/> above 0, a change that comes sooner than 1/rate after
-    /// the previous submit waits: it is compared against the last <em>submitted</em> report, so the pad's
-    /// next report (they stream continuously) still sends it.
+    /// state). With <paramref name="outputRate"/> above 0, an analog-only change that comes sooner than
+    /// 1/rate after the previous submit waits: it is compared against the last <em>submitted</em> report,
+    /// so the pad's next report (they stream continuously) still sends it. Digital edges (buttons, d-pad,
+    /// a trigger leaving or reaching 0) always go out at once, so short taps are never swallowed.
     /// </summary>
     private void SubmitVirtual(in CalibratedState output, long arrival, int outputRate)
     {
@@ -725,7 +751,7 @@ public sealed class ControllerSession : IDisposable
                 {
                     var r = XboxMapper.Map(output);
                     if (_hasSubmitted && r == _lastXbox) return;
-                    if (TooSoon(arrival, outputRate)) return;
+                    if (TooSoon(arrival, outputRate) && !ReportEdges.HasDigitalEdge(_lastXbox, r)) return;
                     xbox.SetAxisValue(Xbox360Axis.LeftThumbX, r.LeftThumbX);
                     xbox.SetAxisValue(Xbox360Axis.LeftThumbY, r.LeftThumbY);
                     xbox.SetAxisValue(Xbox360Axis.RightThumbX, r.RightThumbX);
@@ -743,7 +769,7 @@ public sealed class ControllerSession : IDisposable
                 {
                     var r = Ds4Mapper.Map(output);
                     if (_hasSubmitted && r == _lastDs4) return;
-                    if (TooSoon(arrival, outputRate)) return;
+                    if (TooSoon(arrival, outputRate) && !ReportEdges.HasDigitalEdge(_lastDs4, r)) return;
                     // The ref properties write straight into ViGEm's native report: no lookups, no allocations.
                     ds4.LeftThumbX = r.LeftX;
                     ds4.LeftThumbY = r.LeftY;

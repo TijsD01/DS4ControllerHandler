@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace DS4Handler.Core.Tuning;
 
 /// <summary>Shape of the extra stick deadzone the user picks on top of the learned one.</summary>
@@ -63,8 +65,10 @@ public sealed record TriggerTuning
 /// <summary>
 /// Everything the user can tune for one controller profile. Saved in the profile
 /// (<see cref="Profiles.CalibrationProfile.Tuning"/>), so it follows the controller, a linked profile
-/// and an exported profile. Resetting the calibration keeps it.
+/// and an exported profile. Resetting the calibration keeps it. Read tolerantly from JSON
+/// (<see cref="InputTuningJsonConverter"/>): a bad field falls back to its default.
 /// </summary>
+[JsonConverter(typeof(InputTuningJsonConverter))]
 public sealed record InputTuning
 {
     public StickTuning LeftStick { get; init; } = new();

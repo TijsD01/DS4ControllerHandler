@@ -53,8 +53,12 @@ public sealed class AppHost : IDisposable
         SettingsStore.Update(s => s.For(session.Id).JitterFilterEnabled = enabled);
     }
 
-    /// <summary>Uses new user tuning at once and saves it in the controller's profile (done by the session).</summary>
-    public void SetTuning(ControllerSession session, InputTuning tuning) => session.ApplyTuning(tuning);
+    /// <summary>
+    /// Uses new user tuning at once and saves it in the controller's profile (done by the session).
+    /// False when the profile's tuning was replaced since <paramref name="generation"/> was read (see
+    /// <see cref="ControllerSession.TuningGeneration"/>): nothing changed; reload from the session.
+    /// </summary>
+    public bool SetTuning(ControllerSession session, InputTuning tuning, int generation) => session.ApplyTuning(tuning, generation);
 
     /// <summary>Learning on/off for every connected controller (tray menu).</summary>
     public void SetLearningAll(bool enabled)

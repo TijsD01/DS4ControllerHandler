@@ -253,6 +253,7 @@ public sealed class TuningViewModel : ObservableObject
     private readonly AppHost _host;
     private readonly DispatcherTimer _timer;
     private InputTuning _current;
+    private int _generation;                // session.TuningGeneration the shown values belong to
     private bool _loading, _pending;
     private TuningChoice _poll;
     private TuningChoice _outputRate;
@@ -292,6 +293,7 @@ public sealed class TuningViewModel : ObservableObject
             Changed();
         });
 
+        _generation = session.TuningGeneration; // before Tuning, see ControllerSession.TuningGeneration
         _current = session.Tuning;
         _poll = PollChoices[0];
         _outputRate = OutputChoices[0];
@@ -331,9 +333,24 @@ public sealed class TuningViewModel : ObservableObject
     public void Refresh()
     {
         UpdateFlags();
+        // Another profile (link, unlink, import): its values win, even over an edit not yet applied,
+        // which belonged to the old profile.
+        if (_session.TuningGeneration != _generation)
+        {
+            ReloadFromSession();
+            return;
+        }
         if (_pending || _timer.IsEnabled) return; // the user is busy; do not fight them
         var live = _session.Tuning;
         if (!live.Equals(_current)) Load(live);
+    }
+
+    private void ReloadFromSession()
+    {
+        _pending = false;
+        _timer.Stop();
+        _generation = _session.TuningGeneration;
+        Load(_session.Tuning);
     }
 
     private void UpdateFlags()
@@ -397,8 +414,13 @@ public sealed class TuningViewModel : ObservableObject
             BluetoothPollIntervalMs = SupportsPoll ? _poll.Value : _current.BluetoothPollIntervalMs,
             OutputRateHz = _outputRate.Value,
         };
+        if (!_host.SetTuning(_session, tuning, _generation))
+        {
+            // The profile changed underneath us: show its values instead of writing ours into it.
+            ReloadFromSession();
+            return false;
+        }
         _current = tuning;
-        _host.SetTuning(_session, tuning);
         return true;
     }
 }

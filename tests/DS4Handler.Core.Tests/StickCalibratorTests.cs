@@ -195,6 +195,27 @@ public class StickCalibratorTests
     }
 
     [Fact]
+    public void HeldAimJustOutsideDeadzone_AfterFullPush_IsNeverLearned()
+    {
+        var c = LearnDrift(0f, 0f, seed: 30);
+        var rnd = new Random(31);
+        float dz = c.Deadzone, cx = c.CenterX, cy = c.CenterY;
+        float hold = dz + 0.02f;
+
+        for (int i = 0; i < 8; i++)
+        {
+            Flick(c, 0f, 0f, 0f);
+            Rest(c, hold, 0f, rnd, 250, noise: 0);
+        }
+
+        Assert.Equal(dz, c.Deadzone, 4);
+        Assert.Equal(cx, c.CenterX, 4);
+        Assert.Equal(cy, c.CenterY, 4);
+        var (bx, by) = Raw(hold, 0f);
+        Assert.True(c.Map(bx, by).X > 0f);
+    }
+
+    [Fact]
     public void ShortSpikes_DoNotShrinkReach()
     {
         var c = LearnDrift(0f, 0f, seed: 13);

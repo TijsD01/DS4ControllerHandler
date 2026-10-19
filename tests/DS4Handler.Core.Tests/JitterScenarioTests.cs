@@ -561,7 +561,8 @@ public class JitterScenarioTests
         Assert.Equal(off.CenterY, on.CenterY);
         Assert.Equal(off.Releases, on.Releases);
         Assert.Equal(off.Deadzone, on.Deadzone);
-        Assert.InRange(on.CenterX, 0.10f, 0.14f);
+        // The later jump to 0.12 is outside the deadzone and is not learned (needs guided centering).
+        Assert.InRange(on.CenterX, 0.06f, 0.10f);
     }
 
     [Fact]

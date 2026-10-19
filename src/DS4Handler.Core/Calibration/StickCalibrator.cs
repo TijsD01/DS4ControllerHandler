@@ -25,23 +25,8 @@ public sealed record StickCalibrationOptions
     /// <summary>The first few releases may land anywhere within <see cref="MaxDrift"/>; the center is their median.</summary>
     public int BootstrapReleases { get; init; } = 5;
 
-    /// <summary>Releases in a row that must agree on a new spot outside the gate before the center jumps there.</summary>
-    public int RecenterReleases { get; init; } = 5;
-
-    /// <summary>Those releases must all be within this distance of their median to count as agreeing.</summary>
-    public float RecenterClusterRadius { get; init; } = 0.04f;
-
-    /// <summary>
-    /// Largest sudden jump of the center. Bigger offsets that keep repeating are more likely a held aim
-    /// than drift; slow changes are still followed, and Reset clears everything.
-    /// </summary>
-    public float RecenterMaxJump { get; init; } = 0.11f;
-
     /// <summary>Furthest from the middle a guided center (see <see cref="StickCalibrator.StartGuidedCenter"/>) may be set; also the cap on imported centers.</summary>
     public float GuidedMaxDrift { get; init; } = 0.35f;
-
-    /// <summary>After the first releases, a release only counts when it lands within the deadzone plus this margin.</summary>
-    public float CenterGateMargin { get; init; } = 0.04f;
 
     /// <summary>Slowest rate (per release) at which the center follows where the stick comes to rest.</summary>
     public float CenterRate { get; init; } = 0.1f;
@@ -220,11 +205,10 @@ public sealed record StickCalibrationData
 /// <item>Center: the first few releases may land anywhere within
 /// <see cref="StickCalibrationOptions.MaxDrift"/>, and the center is their median, so drift is found
 /// quickly and a couple of held aims among them do not matter. After that, a release only counts
-/// when it lands close to the learned center (within the deadzone plus a small margin), so a held aim
-/// offset is not learned as drift. The center moves part of the way towards each accepted release.</item>
-/// <item>Drift jumps: if several releases in a row all land outside that gate on the same new spot
-/// (with no normal release in between, and not too far away), the drift has changed (a dropped
-/// controller, or drift that grew between sessions), and the center jumps to that spot.</item>
+/// when it lands inside the deadzone (where the output is already 0), so a held aim just outside it is
+/// never learned as drift. The center moves part of the way towards each accepted release. Nothing
+/// moves the center on its own after that: if the drift changes a lot, use guided centering
+/// (<see cref="StartGuidedCenter"/>) or <see cref="Reset"/>.</item>
 /// <item>Noise: for each accepted release, the average jitter while still.</item>
 /// <item>Rest spread: worn springs return to a slightly different spot on every release. For each
 /// accepted release it measures how far it landed from the learned center and keeps a running
@@ -277,7 +261,6 @@ public sealed class StickCalibrator
     private int _releases;
     private bool _guided;
     private readonly List<(float X, float Y)> _boot = new();
-    private readonly List<(float X, float Y)> _rejected = new();
     private readonly float[] _scratch;
 
     // Jitter learning and filtering.
@@ -301,7 +284,7 @@ public sealed class StickCalibrator
         _outer = new float[Math.Max(4, _o.OuterSectors)];
         _recentRadii = new float[Math.Max(1, _o.OuterHoldSamples)];
         _recentSectors = new int[_recentRadii.Length];
-        _scratch = new float[Math.Max(_o.BootstrapReleases, _o.RecenterReleases) + 2];
+        _scratch = new float[_o.BootstrapReleases + 2];
         _filter = new StickJitterFilter(_o);
         _jx = new float[256];
         _jy = new float[256];
@@ -420,7 +403,6 @@ public sealed class StickCalibrator
         _restSamples = 0;
         _releases = 0;
         _boot.Clear();
-        _rejected.Clear();
         _guided = false;
         Array.Clear(_outer);
         _outerRefX = 0;
@@ -576,7 +558,6 @@ public sealed class StickCalibrator
         _restSamples += _stillRun;
         _releases = Math.Max(_releases + 1, _o.BootstrapReleases);
         _boot.Clear();
-        _rejected.Clear();
         Array.Clear(_outer);
         _outerRefX = cx;
         _outerRefY = cy;
@@ -761,13 +742,8 @@ public sealed class StickCalibrator
 
         float ox = mx - _centerX, oy = my - _centerY;
         float d = Dist(ox, oy);
-        if (d > Deadzone + _o.CenterGateMargin)
-        {
-            // Probably a held aim, but if many releases in a row agree on a new spot the drift has changed.
-            ConsiderRecenter(mx, my, jitter, samples);
-            return;
-        }
-        _rejected.Clear();
+        // Outside the deadzone the output is not 0, so this is a held aim, not a rest: ignore it entirely.
+        if (d > Deadzone) return;
 
         float spreadRate = d > _spread ? _o.SpreadRiseRate : _o.SpreadFallRate;
         _spread += (d - _spread) * spreadRate;
@@ -778,28 +754,6 @@ public sealed class StickCalibrator
         _centerX += ox * _o.CenterRate;
         _centerY += oy * _o.CenterRate;
         _noise += (jitter - _noise) * _o.NoiseRate;
-        AfterCenterMoved();
-    }
-
-    private void ConsiderRecenter(float mx, float my, float jitter, int samples)
-    {
-        _rejected.Add((mx, my));
-        if (_rejected.Count > _o.RecenterReleases) _rejected.RemoveAt(0);
-        if (_rejected.Count < _o.RecenterReleases) return;
-
-        float cx = MedianOf(_rejected, 0, 0, 0);
-        float cy = MedianOf(_rejected, 1, 0, 0);
-        foreach (var r in _rejected)
-            if (Dist(r.X - cx, r.Y - cy) > _o.RecenterClusterRadius) return;
-        if (Dist(cx - _centerX, cy - _centerY) > _o.RecenterMaxJump || Dist(cx, cy) > _o.MaxDrift) return;
-
-        _centerX = cx;
-        _centerY = cy;
-        _spread = MedianOf(_rejected, 2, cx, cy);
-        _noise += (jitter - _noise) * _o.NoiseRate;
-        _releases++;
-        _restSamples += samples;
-        _rejected.Clear();
         AfterCenterMoved();
     }
 

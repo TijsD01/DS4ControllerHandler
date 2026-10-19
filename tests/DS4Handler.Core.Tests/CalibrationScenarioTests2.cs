@@ -303,21 +303,28 @@ public class CalibrationScenarioTests2
     }
 
     [Fact]
-    public void Drift_that_jumps_suddenly_after_many_releases_is_learned()
+    public void Drift_that_jumps_suddenly_after_many_releases_needs_guided_centering()
     {
         var rng = new Random(201);
         var s = new Stick(new StickCalibrator(), rng);
         for (int i = 0; i < 50; i++) s.FlickAndRelease();
         Assert.Equal(1.0, ZeroRate(s, rng));
 
-        // Dropped controller / dust: drift jumps to (0.1, 0).
+        // Dropped controller / dust: drift jumps to (0.1, 0). Releases outside the deadzone are ignored,
+        // so normal learning does not follow.
         s.DriftX = 0.10;
         for (int i = 0; i < 60; i++) s.FlickAndRelease();
+        Assert.InRange(s.C.CenterX, -0.02f, 0.02f);
+        Assert.True(ZeroRate(s, rng) < 0.5);
+
+        // Guided centering picks up the new spot.
+        s.C.StartGuidedCenter();
+        for (int i = 0; i < 300; i++) s.Feed(s.DriftX, s.DriftY);
         Assert.True(ZeroRate(s, rng) > 0.98, $"released stick drifts: center ({s.C.CenterX:F3},{s.C.CenterY:F3}) dz {s.C.Deadzone:F3}");
     }
 
     [Fact]
-    public void Drift_that_appeared_between_sessions_is_learned_after_import()
+    public void Drift_that_appeared_between_sessions_needs_guided_centering_after_import()
     {
         var rng = new Random(202);
         var s = new Stick(new StickCalibrator(), rng);
@@ -327,6 +334,10 @@ public class CalibrationScenarioTests2
         var next = new Stick(new StickCalibrator(), rng, dx: -0.06, dy: 0.07);
         next.C.Import(saved);
         for (int i = 0; i < 60; i++) next.FlickAndRelease();
+        Assert.InRange(next.C.CenterX, -0.02f, 0.02f);
+
+        next.C.StartGuidedCenter();
+        for (int i = 0; i < 300; i++) next.Feed(next.DriftX, next.DriftY);
         Assert.True(ZeroRate(next, rng) > 0.98, $"center ({next.C.CenterX:F3},{next.C.CenterY:F3}) dz {next.C.Deadzone:F3}");
     }
 

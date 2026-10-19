@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:DS4Handler.App.Controls"
              xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
+             xmlns:v="clr-namespace:DS4Handler.App.Views"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:ControllerViewModel}">
 
@@ -92,72 +93,6 @@
             </StackPanel>
         </DataTemplate>
 
-        <!-- One slider row of the Afstellen section: label, slider, value text. -->
-        <DataTemplate x:Key="TuneSliderRow" DataType="{x:Type vm:TuningSlider}">
-            <Grid Margin="0,0,0,6" ToolTip="{Binding Tip}" Background="Transparent">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="112" />
-                    <ColumnDefinition Width="*" MinWidth="80" />
-                    <ColumnDefinition Width="96" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="{Binding Label}" Style="{StaticResource Dim}" VerticalAlignment="Center" />
-                <Slider Grid.Column="1" Style="{StaticResource Slider}" Margin="6,0" VerticalAlignment="Center"
-                        Value="{Binding Position, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBlock Grid.Column="2" Text="{Binding Text}" Style="{StaticResource Dim}" FontFamily="Consolas"
-                           HorizontalAlignment="Right" VerticalAlignment="Center" />
-            </Grid>
-        </DataTemplate>
-
-        <!-- Afstellen: one stick. -->
-        <DataTemplate x:Key="TuneStick" DataType="{x:Type vm:StickTuningSection}">
-            <StackPanel>
-                <DockPanel Margin="0,0,0,10">
-                    <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Standaard" Padding="10,4"
-                            Command="{Binding ResetCommand}" ToolTip="{x:Static vm:Tips.TuneResetSection}" />
-                    <TextBlock Text="{Binding Title}" Style="{StaticResource H2}" FontSize="14" VerticalAlignment="Center" />
-                </DockPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,10" ToolTip="{x:Static vm:Tips.TuneShape}" Background="Transparent">
-                    <TextBlock Text="Vorm" Style="{StaticResource Dim}" VerticalAlignment="Center" Width="112" />
-                    <Border Style="{StaticResource SegmentHost}">
-                        <StackPanel Orientation="Horizontal">
-                            <RadioButton Style="{StaticResource Segment}" Content="Rond" IsChecked="{Binding ShapeRadial}"
-                                         GroupName="{Binding Group}" ToolTip="{x:Static vm:Tips.TuneShapeRadial}" />
-                            <RadioButton Style="{StaticResource Segment}" Content="Vierkant" IsChecked="{Binding ShapeSquare}"
-                                         GroupName="{Binding Group}" ToolTip="{x:Static vm:Tips.TuneShapeSquare}" />
-                            <RadioButton Style="{StaticResource Segment}" Content="Kruis" IsChecked="{Binding ShapeAxial}"
-                                         GroupName="{Binding Group}" ToolTip="{x:Static vm:Tips.TuneShapeAxial}" />
-                        </StackPanel>
-                    </Border>
-                </StackPanel>
-                <ItemsControl ItemsSource="{Binding Sliders}" ItemTemplate="{StaticResource TuneSliderRow}" Focusable="False" />
-                <WrapPanel Margin="0,6,0,0">
-                    <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding SquareOutput}" Margin="0,0,20,6"
-                              ToolTip="{x:Static vm:Tips.TuneSquareOutput}">
-                        <TextBlock Text="Vierkante uitvoer" />
-                    </CheckBox>
-                    <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding InvertX}" Margin="0,0,20,6"
-                              ToolTip="{x:Static vm:Tips.TuneInvertX}">
-                        <TextBlock Text="X omdraaien" />
-                    </CheckBox>
-                    <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding InvertY}" Margin="0,0,0,6"
-                              ToolTip="{x:Static vm:Tips.TuneInvertY}">
-                        <TextBlock Text="Y omdraaien" />
-                    </CheckBox>
-                </WrapPanel>
-            </StackPanel>
-        </DataTemplate>
-
-        <!-- Afstellen: one trigger. -->
-        <DataTemplate x:Key="TuneTrigger" DataType="{x:Type vm:TriggerTuningSection}">
-            <StackPanel>
-                <DockPanel Margin="0,0,0,10">
-                    <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Standaard" Padding="10,4"
-                            Command="{Binding ResetCommand}" ToolTip="{x:Static vm:Tips.TuneResetSection}" />
-                    <TextBlock Text="{Binding Title}" Style="{StaticResource H2}" FontSize="14" VerticalAlignment="Center" />
-                </DockPanel>
-                <ItemsControl ItemsSource="{Binding Sliders}" ItemTemplate="{StaticResource TuneSliderRow}" Focusable="False" />
-            </StackPanel>
-        </DataTemplate>
     </UserControl.Resources>
 
     <Border Style="{StaticResource Card}" Margin="0,0,0,18">
@@ -336,49 +271,7 @@
             <!-- ===== Afstellen (collapsed by default) ===== -->
             <Border Grid.Row="4" Style="{StaticResource Panel}" Margin="0,18,0,0"
                     Visibility="{Binding TuningExpanded, Converter={StaticResource BoolVis}}">
-                <StackPanel DataContext="{Binding Tuning}">
-                    <DockPanel Margin="0,0,0,12">
-                        <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Alles op standaard"
-                                Command="{Binding ResetAllCommand}" ToolTip="{x:Static vm:Tips.TuneResetAll}" />
-                        <StackPanel Orientation="Horizontal" ToolTip="{x:Static vm:Tips.TuneSection}" Background="Transparent">
-                            <TextBlock Text="Afstellen" Style="{StaticResource H2}" />
-                            <TextBlock Style="{StaticResource Icon}" FontSize="13" Text="&#xE946;" Foreground="{StaticResource TextMutedBrush}" Margin="8,2,0,0" Cursor="Help" />
-                        </StackPanel>
-                    </DockPanel>
-                    <TextBlock Text="{Binding SaveNote}" Style="{StaticResource Body}" Foreground="{StaticResource WarningBrush}"
-                               TextWrapping="Wrap" Margin="0,0,0,12"
-                               Visibility="{Binding SaveNote, Converter={StaticResource TextVis}}" />
-                    <UniformGrid Columns="2">
-                        <ContentPresenter Content="{Binding Left}" ContentTemplate="{StaticResource TuneStick}" Margin="0,0,14,18" />
-                        <ContentPresenter Content="{Binding Right}" ContentTemplate="{StaticResource TuneStick}" Margin="14,0,0,18" />
-                        <ContentPresenter Content="{Binding L2}" ContentTemplate="{StaticResource TuneTrigger}" Margin="0,0,14,18" />
-                        <ContentPresenter Content="{Binding R2}" ContentTemplate="{StaticResource TuneTrigger}" Margin="14,0,0,18" />
-                    </UniformGrid>
-                    <DockPanel Margin="0,0,0,10">
-                        <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Content="Standaard" Padding="10,4"
-                                Command="{Binding ResetSpeedCommand}" ToolTip="{x:Static vm:Tips.TuneResetSection}" />
-                        <TextBlock Text="Snelheid" Style="{StaticResource H2}" FontSize="14" VerticalAlignment="Center" />
-                    </DockPanel>
-                    <WrapPanel>
-                        <StackPanel Margin="0,0,24,8" MinWidth="220">
-                            <TextBlock Text="Meten via Bluetooth (DualShock 4)" Style="{StaticResource Dim}" Margin="0,0,0,4"
-                                       ToolTip="{x:Static vm:Tips.TunePoll}" Cursor="Help" />
-                            <ComboBox Style="{StaticResource Combo}" ItemsSource="{x:Static vm:TuningViewModel.PollChoices}"
-                                      SelectedItem="{Binding SelectedPoll, Mode=TwoWay}" DisplayMemberPath="Label"
-                                      IsEnabled="{Binding SupportsPoll}" ToolTip="{x:Static vm:Tips.TunePoll}" />
-                            <TextBlock Text="{Binding PollNote}" Style="{StaticResource Caption}" TextWrapping="Wrap" MaxWidth="320" Margin="0,4,0,0"
-                                       ToolTip="{x:Static vm:Tips.TunePollUnavailable}"
-                                       Visibility="{Binding PollNote, Converter={StaticResource TextVis}}" />
-                        </StackPanel>
-                        <StackPanel Margin="0,0,0,8" MinWidth="220">
-                            <TextBlock Text="Naar de game sturen" Style="{StaticResource Dim}" Margin="0,0,0,4"
-                                       ToolTip="{x:Static vm:Tips.TuneOutputRate}" Cursor="Help" />
-                            <ComboBox Style="{StaticResource Combo}" ItemsSource="{x:Static vm:TuningViewModel.OutputChoices}"
-                                      SelectedItem="{Binding SelectedOutputRate, Mode=TwoWay}" DisplayMemberPath="Label"
-                                      ToolTip="{x:Static vm:Tips.TuneOutputRate}" />
-                        </StackPanel>
-                    </WrapPanel>
-                </StackPanel>
+                <v:TuningPanel DataContext="{Binding Tuning}" />
             </Border>
         </Grid>
     </Border>

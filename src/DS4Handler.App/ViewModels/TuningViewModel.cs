@@ -16,7 +16,8 @@ public sealed record TuningChoice(int Value, string Label);
 /// </summary>
 public sealed class TuningSlider : ObservableObject
 {
-    private readonly double _min, _max, _step;
+    private readonly double _min, _step;
+    private double _max;
     private readonly Func<double, string> _format;
     private readonly Action _changed;
     private double _value, _position;
@@ -66,6 +67,23 @@ public sealed class TuningSlider : ObservableObject
         _position = _max > _min ? (_value - _min) / (_max - _min) : 0;
         OnPropertyChanged(nameof(Position));
         OnPropertyChanged(nameof(Text));
+    }
+
+    /// <summary>
+    /// Changes the upper limit (the slider still runs 0..1, so the thumb moves). A value above the new
+    /// limit is clamped down. Never raises a change itself: returns true when the value was clamped.
+    /// </summary>
+    public bool SetMax(double max)
+    {
+        max = Math.Max(max, _min);
+        if (Math.Abs(max - _max) < 1e-9) return false;
+        _max = max;
+        bool clamped = _value > _max + 1e-9;
+        if (clamped) _value = _max;
+        _position = _max > _min ? (_value - _min) / (_max - _min) : 0;
+        OnPropertyChanged(nameof(Position));
+        OnPropertyChanged(nameof(Text));
+        return clamped;
     }
 
     private double Snap(double v) => Math.Clamp(Math.Round(v / _step) * _step, _min, _max);
@@ -121,8 +139,8 @@ public sealed class StickTuningSection : TuningSection
 
     public StickTuningSection(string title, string group, Action changed) : base(title, group, changed)
     {
-        Inner = new TuningSlider("Extra deadzone", Tips.TuneInner, 0, 0.9, 0.01, Pct, ChangedCallback);
-        Outer = new TuningSlider("Eindpunt", Tips.TuneOuter, 0, 0.5, 0.01, Pct, ChangedCallback);
+        Inner = new TuningSlider("Extra deadzone", Tips.TuneInner, 0, InputShaper.MaxStickInnerDeadzone, 0.01, Pct, ChangedCallback);
+        Outer = new TuningSlider("Eindpunt", Tips.TuneOuter, 0, 0.5, 0.01, Pct, OuterChanged);
         Anti = new TuningSlider("Anti-deadzone", Tips.TuneAnti, 0, 0.9, 0.01, Pct, ChangedCallback);
         Curve = new TuningSlider("Curve", Tips.TuneCurve, 0.2, 5, 0.05, CurveText, ChangedCallback);
         Sensitivity = new TuningSlider("Gevoeligheid", Tips.TuneSensitivity, 0.1, 3, 0.05, Times, ChangedCallback);
@@ -145,10 +163,24 @@ public sealed class StickTuningSection : TuningSection
     public bool InvertX { get => _invertX; set { if (SetField(ref _invertX, value)) Notify(); } }
     public bool InvertY { get => _invertY; set { if (SetField(ref _invertY, value)) Notify(); } }
 
+    private void OuterChanged()
+    {
+        UpdateInnerMax();
+        Notify();
+    }
+
+    /// <summary>Inner deadzone limit follows shape and outer deadzone (see <see cref="InputShaper.MaxInnerDeadzone"/>).</summary>
+    private void UpdateInnerMax()
+    {
+        double max = InputShaper.MaxInnerDeadzone(_shape, (float)Outer.Value);
+        Inner.SetMax(Math.Floor(max * 100 + 1e-4) / 100);
+    }
+
     private void SetShape(DeadzoneShape shape)
     {
         if (_shape == shape) return;
         _shape = shape;
+        UpdateInnerMax();
         OnPropertyChanged(nameof(ShapeRadial));
         OnPropertyChanged(nameof(ShapeSquare));
         OnPropertyChanged(nameof(ShapeAxial));
@@ -166,8 +198,9 @@ public sealed class StickTuningSection : TuningSection
             OnPropertyChanged(nameof(ShapeRadial));
             OnPropertyChanged(nameof(ShapeSquare));
             OnPropertyChanged(nameof(ShapeAxial));
-            Inner.Load(t.InnerDeadzone);
             Outer.Load(t.OuterDeadzone);
+            UpdateInnerMax();
+            Inner.Load(t.InnerDeadzone);
             Anti.Load(t.AntiDeadzone);
             Curve.Load(t.Curve);
             Sensitivity.Load(t.Sensitivity);
@@ -284,12 +317,12 @@ public sealed class TuningViewModel : ObservableObject
         R2 = new TriggerTuningSection("R2", "tune-r2-" + session.Id, Changed);
         ResetAllCommand = new RelayCommand(() =>
         {
-            Load(InputTuning.Default);
+            Load(InputTuning.Default with { BluetoothPollIntervalMs = StoredPoll });
             Changed();
         });
         ResetSpeedCommand = new RelayCommand(() =>
         {
-            SetSpeed(InputTuning.Default);
+            SetSpeed(InputTuning.Default with { BluetoothPollIntervalMs = StoredPoll });
             Changed();
         });
 
@@ -352,6 +385,9 @@ public sealed class TuningViewModel : ObservableObject
         _generation = _session.TuningGeneration;
         Load(_session.Tuning);
     }
+
+    /// <summary>Poll interval a reset must keep: the stored one when this pad cannot change it.</summary>
+    private int StoredPoll => SupportsPoll ? InputTuning.Default.BluetoothPollIntervalMs : _current.BluetoothPollIntervalMs;
 
     private void UpdateFlags()
     {

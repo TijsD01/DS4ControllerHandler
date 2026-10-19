@@ -170,21 +170,21 @@ public static class Tips
     public const string TuneShapeRadial =
         "Rond: de stick moet eerst uit een cirkel om het midden voordat er iets gebeurt. Voelt in alle richtingen hetzelfde. Dit is de normale keuze.";
     public const string TuneShapeSquare =
-        "Vierkant: er gebeurt pas iets als je ver genoeg opzij of omhoog gaat, op beide assen. Handig in Rocket League voor rechte lijnen en diagonalen: een lichte wobbel op de ene as sluipt niet in de andere.";
+        "Vierkant: de stick telt pas als je op minstens één as ver genoeg duwt; kleine schuine bewegingen rond het midden worden genegeerd. Veel Rocket League-spelers gebruiken dit voor rustig en recht sturen.";
     public const string TuneShapeAxial =
-        "Kruis: elke richting (links-rechts en omhoog-omlaag) heeft zijn eigen deadzone. Recht omhoog duwen blijft dus echt recht, ook als je duim een tikje opzij zit. Diagonalen voelen wel wat hoekiger.";
+        "Kruis: elke richting (links-rechts en omhoog-omlaag) heeft zijn eigen deadzone, zodat een klein zijwaarts wobbeltje niet doorlekt in een rechte duw. Ook anti-deadzone en gevoeligheid werken dan per as. Diagonalen voelen wel wat hoekiger.";
     public const string TuneInner =
-        "Extra deadzone: de stick moet eerst zo ver bewegen voordat de game iets merkt. Komt bovenop de deadzone die de app zelf heeft geleerd. Handig als je personage of camera nog licht beweegt zonder dat je iets doet, of als je kleine wiebels wilt negeren.";
+        "Extra deadzone: de stick moet eerst zo ver bewegen voordat de game iets merkt. Komt bovenop de deadzone die de app zelf heeft geleerd. Handig als je personage of camera nog licht beweegt zonder dat je iets doet. Bij Vierkant en Kruis kan hij minder groot, en hoe hoger het eindpunt, hoe lager het maximum, zodat je altijd een werkend bereik overhoudt.";
     public const string TuneOuter =
         "Eindpunt: de stick geeft al volle kracht voordat hij tegen de rand zit. Handig als de rand van de stick moeilijk te halen is, bijvoorbeeld door een dikke stickdop of een versleten stick.";
     public const string TuneAnti =
-        "Anti-deadzone: zodra de stick de deadzone verlaat springt de uitvoer meteen naar minstens dit percentage. Gebruik dit als de game zelf een deadzone heeft: dan reageert je stick meteen, in plaats van dat je eerst een stuk moet duwen. Begin klein, ongeveer 10%.";
+        "Anti-deadzone: zodra de stick de deadzone verlaat springt de uitvoer meteen naar minstens dit percentage. Gebruik dit als de game zelf een deadzone heeft: dan reageert je stick meteen, in plaats van dat je eerst een stuk moet duwen. Begin klein, ongeveer 10%. Bij Kruis geldt dit per as.";
     public const string TuneCurve =
         "Curve: hoe de stick reageert tussen midden en rand. Lineair is gewoon 1 op 1. Hoger dan 1 is rustiger rond het midden (precies richten) en heftiger aan de rand. Lager dan 1 is juist snel bij kleine bewegingen.";
     public const string TuneSensitivity =
-        "Gevoeligheid: vermenigvuldigt de uitslag van de stick. Boven 1× haal je volle uitslag al voordat de stick de rand raakt; onder 1× haal je nooit helemaal vol. De uitkomst gaat nooit boven 100%.";
+        "Gevoeligheid: vermenigvuldigt de uitslag van de stick. Boven 1× haal je volle uitslag al voordat de stick de rand raakt; onder 1× haal je nooit helemaal vol. De uitkomst gaat nooit boven 100%. Bij Kruis werkt dit per as.";
     public const string TuneSquareOutput =
-        "Vierkante uitvoer: schuin duwen geeft op beide assen volle kracht, in plaats van maximaal ongeveer 70% per as. Handig voor games waar je diagonaal volle snelheid wilt, zoals Rocket League. Zet dit niet aan als een game zelf al een vierkant bereik gebruikt.";
+        "Vierkante uitvoer: schuin duwen geeft op beide assen 100%, in plaats van maximaal ongeveer 70% per as. Handig voor games waar je diagonaal volle snelheid wilt. Zet dit niet aan als een game zelf al een vierkant bereik gebruikt.";
     public const string TuneInvertX = "Draait links en rechts om voor deze stick.";
     public const string TuneInvertY = "Draait omhoog en omlaag om voor deze stick. Handig voor vliegen of de camera 'omgekeerd'.";
     public const string TuneTriggerInner =

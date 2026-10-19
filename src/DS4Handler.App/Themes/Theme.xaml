@@ -499,7 +499,7 @@
         </Style.Triggers>
     </Style>
 
-    <!-- ===== Slider (always 0..1; the view model maps it to real values) ===== -->
+    <!-- ===== Slider for the Afstellen panel (own section at the end of the file; always 0..1, the view model maps it to real values) ===== -->
     <Style x:Key="SliderFill" TargetType="RepeatButton">
         <Setter Property="Focusable" Value="False" />
         <Setter Property="IsTabStop" Value="False" />

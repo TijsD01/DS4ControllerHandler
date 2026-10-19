@@ -1,5 +1,6 @@
 using DS4Handler.Core.Input;
 using DS4Handler.Core.Profiles;
+using DS4Handler.Core.Tuning;
 
 namespace DS4Handler.Core.Calibration;
 
@@ -34,6 +35,12 @@ public sealed class ControllerCalibration
     public StickCalibrator RightStick { get; }
     public TriggerCalibrator L2 { get; }
     public TriggerCalibrator R2 { get; }
+
+    /// <summary>
+    /// User tuning applied after calibration (see <see cref="InputTuning"/>). Part of the profile;
+    /// <see cref="Reset"/> keeps it. TODO(senior): apply in Process, export/import, sanitize.
+    /// </summary>
+    public InputTuning Tuning { get; set; } = InputTuning.Default;
 
     /// <summary>Turns learning on or off for all four inputs at once.</summary>
     public bool LearningEnabled

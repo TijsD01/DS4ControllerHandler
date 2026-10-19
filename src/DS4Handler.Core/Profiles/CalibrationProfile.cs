@@ -1,5 +1,6 @@
 using DS4Handler.Core.Calibration;
 using DS4Handler.Core.Input;
+using DS4Handler.Core.Tuning;
 
 namespace DS4Handler.Core.Profiles;
 
@@ -17,6 +18,9 @@ public sealed record CalibrationProfile
     public StickCalibrationData RightStick { get; init; } = new();
     public TriggerCalibrationData L2 { get; init; } = new();
     public TriggerCalibrationData R2 { get; init; } = new();
+
+    /// <summary>User settings (deadzone shape, curves, trigger ranges, poll rate). Missing in older files: defaults.</summary>
+    public InputTuning Tuning { get; init; } = new();
 
     public DateTime UpdatedUtc { get; init; }
 }

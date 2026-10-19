@@ -4,6 +4,7 @@ using DS4Handler.Core.Calibration;
 using DS4Handler.Core.Input;
 using DS4Handler.Core.Output;
 using DS4Handler.Core.Profiles;
+using DS4Handler.Core.Tuning;
 using HidSharp;
 using Nefarius.ViGEm.Client;
 using Nefarius.ViGEm.Client.Targets;
@@ -163,6 +164,28 @@ public sealed class ControllerSession : IDisposable
     {
         get { lock (_sync) return _calibration?.JitterFilterEnabled ?? true; }
         set { lock (_sync) if (_calibration != null) _calibration.JitterFilterEnabled = value; }
+    }
+
+    /// <summary>The user tuning currently in effect (from the profile). Thread-safe snapshot.</summary>
+    public InputTuning Tuning
+    {
+        get { lock (_sync) return _calibration?.Tuning ?? InputTuning.Default; }
+    }
+
+    /// <summary>True when the poll rate of the controller itself can be set (DualShock 4 over Bluetooth).</summary>
+    public bool SupportsBluetoothPollRate => Model == ControllerModel.DualShock4 && Connection == ConnectionType.Bluetooth;
+
+    /// <summary>False when changes are used live but not saved (profile in use elsewhere, or unreadable).</summary>
+    public bool CanSaveTuning => _profileLoaded && !ProfileBlocked;
+
+    /// <summary>
+    /// Uses new tuning at once and saves it into the profile. Safe to call from the UI thread
+    /// (TODO(senior): saving and the Bluetooth poll-rate write must not block the caller).
+    /// </summary>
+    public void ApplyTuning(InputTuning tuning)
+    {
+        ArgumentNullException.ThrowIfNull(tuning);
+        lock (_sync) if (_calibration != null) _calibration.Tuning = tuning;
     }
 
     /// <summary>

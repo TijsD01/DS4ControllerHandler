@@ -7,6 +7,8 @@
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <!-- AppLinked/: HidHideUninstall.cs uses the Windows registry (guarded by try/catch); fine in tests. -->
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +20,13 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+  </ItemGroup>
+
+  <!-- App-only logic that runs without Windows/WPF, compiled in from the app's source (with small stubs in
+       AppLinked/ for Log and OutputMode). If one of these files starts using more of the app, add a stub or drop it here. -->
+  <ItemGroup>
+    <Compile Include="..\..\src\DS4Handler.App\Services\AppSettings.cs" Link="AppLinked\Source\AppSettings.cs" />
+    <Compile Include="..\..\src\DS4Handler.App\Services\HidHideUninstall.cs" Link="AppLinked\Source\HidHideUninstall.cs" />
   </ItemGroup>
 
   <ItemGroup>

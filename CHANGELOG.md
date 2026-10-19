@@ -3,6 +3,14 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
+## 1.2.1
+
+- Verwijderen maakt je controllers nu ook weer zichtbaar als de app voor alle gebruikers is geïnstalleerd: de lijst met verborgen controllers van elke gebruiker wordt daarvoor gelezen.
+- Bij het verwijderen haalt de app zichzelf ook weer van de toegestane programma's van HidHide af, en zet HidHide weer uit als de app het zelf had aangezet en er niets anders meer verborgen is.
+- Het verwijderprogramma vraagt een nog draaiende app eerst om af te sluiten en schrijft eerlijk in het logboek of het weer zichtbaar maken is gelukt.
+- Een instellingenbestand dat niet te lezen is, kost je lijst met verborgen controllers niet meer: die wordt hersteld, er komt alleen een reservekopie als die echt gelukt is, en het bestand wordt niet overschreven als het alleen even vergrendeld is.
+- De app start niet meer met een foutmelding als er al een kopie met beheerdersrechten draait.
+
 ## 1.2.0
 
 - Nieuw ontwerp: rustiger en strakker, met dezelfde duidelijke kleuren. Je controllers staan links in een lijst; klik er een aan om hem te bekijken.

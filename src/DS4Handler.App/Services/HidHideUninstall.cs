@@ -53,9 +53,9 @@ public static class HidHideUninstall
         if (!work.Wait(timeout)) report = new UninstallReport(UninstallOutcome.TimedOut, owned.Count);
         else report = work.Result;
 
-        if (report.Cleanup is { } done)
+        if (report.Cleanup is { } done && store.ExistedAtStartup)
         {
-            // Only our own file: other users' settings are read, never written (they go with the app).
+            // Only our own file, and only if it exists (never create settings.json for a user who never ran the app): other users' settings are read, never written (they go with the app).
             store.Update(s =>
             {
                 foreach (var id in done.Unhidden.Concat(done.AlreadyVisible))

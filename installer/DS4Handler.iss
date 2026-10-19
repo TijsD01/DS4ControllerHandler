@@ -11,7 +11,9 @@
 ; Updating: a newer setup with the same AppId installs over the old version in the same folder
 ; (it closes a running DS4 Handler first), so there is always one version installed. Profiles,
 ; calibration and settings live in %APPDATA%\DS4ControllerHandler, outside the install folder;
-; installing, updating and uninstalling never touch them.
+; installing and updating never touch them. Uninstalling only changes the uninstalling account's
+; settings.json (hidden-controller list, HidHideActivatedByApp) and appends to log.txt, via --unhide;
+; an all-users uninstall only reads other users' files.
 ; Uninstalling stops the app and runs DS4Handler.exe --unhide, so controllers HidHide hid stay usable.
 ; The app starts the setup itself with /SILENT /CLOSEAPPLICATIONS /UPDATE=1 for one-click updates;
 ; /UPDATE=1 skips the driver choices (the app warns itself when a driver is missing) and starts the

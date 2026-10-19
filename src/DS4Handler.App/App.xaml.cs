@@ -43,12 +43,14 @@ public partial class App : Application
             return;
         }
 
-        _mutex = new Mutex(true, MutexName, out bool first);
+        bool first;
+        try { _mutex = new Mutex(true, MutexName, out first); }
+        catch (UnauthorizedAccessException) { first = false; } // an elevated instance owns it: same as "already running"
         if (!first)
         {
             // Already running: bring that window to the front instead of starting twice.
             try { EventWaitHandle.OpenExisting(ShowEventName).Set(); } catch { }
-            _mutex.Dispose();
+            _mutex?.Dispose();
             _mutex = null;
             Shutdown();
             return;

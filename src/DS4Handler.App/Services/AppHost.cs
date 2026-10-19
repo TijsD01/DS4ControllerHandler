@@ -2,6 +2,7 @@ using System.Diagnostics;
 using DS4Handler.App.Engine;
 using DS4Handler.App.Infrastructure;
 using DS4Handler.Core.Profiles;
+using DS4Handler.Core.Tuning;
 
 namespace DS4Handler.App.Services;
 
@@ -51,6 +52,9 @@ public sealed class AppHost : IDisposable
         session.JitterFilterEnabled = enabled;
         SettingsStore.Update(s => s.For(session.Id).JitterFilterEnabled = enabled);
     }
+
+    /// <summary>Uses new user tuning at once and saves it in the controller's profile (done by the session).</summary>
+    public void SetTuning(ControllerSession session, InputTuning tuning) => session.ApplyTuning(tuning);
 
     /// <summary>Learning on/off for every connected controller (tray menu).</summary>
     public void SetLearningAll(bool enabled)

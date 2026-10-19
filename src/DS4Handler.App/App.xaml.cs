@@ -33,6 +33,19 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        if (e.Args.Contains("--unhide", StringComparer.OrdinalIgnoreCase))
+        {
+            // Started by the uninstaller after it killed the app: the normal exit never ran, so give back
+            // the controllers this app hid. Runs before the single-instance check; no window, no tray.
+            var store = new SettingsStore();
+            try { new HidHideService(store).UnhideAllAsync().Wait(TimeSpan.FromSeconds(10)); }
+            catch (Exception ex) { Log.Warn("Controllers zichtbaar maken (verwijderen) mislukt", ex); }
+            store.Save();
+            Log.Info("Controllers zichtbaar gemaakt (verwijderen).");
+            Shutdown();
+            return;
+        }
+
         _mutex = new Mutex(true, MutexName, out bool first);
         if (!first)
         {

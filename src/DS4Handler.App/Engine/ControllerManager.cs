@@ -402,11 +402,6 @@ public sealed class ControllerManager : IDisposable
         if (freed.Count > 0) Bump();
     }
 
-    public void SaveAll()
-    {
-        foreach (var s in Sessions) s.SaveProfile();
-    }
-
     /// <summary>Saves all profiles, unplugs the virtual controllers and stops watching.</summary>
     public void Dispose()
     {

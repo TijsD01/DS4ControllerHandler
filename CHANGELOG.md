@@ -15,6 +15,8 @@ De bovenste sectie komt automatisch in de release op GitHub en de app laat hem n
 - Snelheid: hoe vaak een DualShock 4 via Bluetooth zijn standen doorgeeft (van 62 tot 1000 per seconde) en hoe vaak de virtuele controller wordt bijgewerkt voor games.
 - Elk onderdeel heeft een knop "Standaard", en er is een knop om alles terug te zetten. De kalibratie blijft daarbij staan.
 - Je afstelling gaat mee met het profiel: bij een gekoppeld of geëxporteerd profiel, en blijft staan bij "Kalibratie resetten".
+- Verwijder je de app, dan worden je controllers weer zichtbaar voor games. Voorheen bleven ze door HidHide verborgen.
+- Kan het instellingenbestand niet worden gelezen, dan bewaart de app het als settings.json.bad in plaats van het te overschrijven.
 
 ## 1.1.0
 

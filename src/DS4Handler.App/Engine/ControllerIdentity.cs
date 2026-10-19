@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using DS4Handler.App.Infrastructure;
 using DS4Handler.Core.Input;
+using DS4Handler.Core.Profiles;
 using HidSharp;
 
 namespace DS4Handler.App.Engine;
@@ -36,24 +37,12 @@ internal static class ControllerIdentity
             mac = MacFromSerial(device) ?? MacFromFeature(device, stream, 0x12, 16);
         }
 
-        if (mac != null) return new Result($"{prefix}-{mac}", FormatMac(mac), true);
+        if (mac != null) return new Result($"{prefix}-{mac}", ControllerIds.FormatMac(mac), true);
 
         // Last resort: tied to the USB port / pairing, so the pad may get a different profile elsewhere.
         var hash = SHA256.HashData(Encoding.UTF8.GetBytes(device.DevicePath.ToLowerInvariant()));
         Log.Warn($"Geen MAC-adres gevonden voor {device.DevicePath}; profiel hangt aan deze poort.");
         return new Result($"{prefix}-path-{Convert.ToHexString(hash, 0, 8).ToLowerInvariant()}", null, false);
-    }
-
-    /// <summary>"a4538512abcd" → "A4:53:85:12:AB:CD".</summary>
-    public static string FormatMac(string hex12)
-    {
-        var sb = new StringBuilder(17);
-        for (int i = 0; i < 12; i += 2)
-        {
-            if (i > 0) sb.Append(':');
-            sb.Append(char.ToUpperInvariant(hex12[i])).Append(char.ToUpperInvariant(hex12[i + 1]));
-        }
-        return sb.ToString();
     }
 
     private static string? MacFromFeature(HidDevice device, HidStream stream, byte reportId, int exactLength)

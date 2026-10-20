@@ -77,6 +77,31 @@ public partial class RemapPanel : UserControl
         if (_vm.HandleKey(key)) e.Handled = true;
     }
 
+    /// <summary>
+    /// Arrow keys on a closed drop-down open the list instead of changing the target one step at a time,
+    /// so arrowing past "Toetsenbord…" never starts listening for a key (and "Uit" stays reachable).
+    /// </summary>
+    private void OnTargetKeyDown(object sender, KeyEventArgs e)
+    {
+        if (sender is not ComboBox { IsDropDownOpen: false } box) return;
+        if (e.Key is Key.Up or Key.Down or Key.PageUp or Key.PageDown or Key.Home or Key.End)
+        {
+            box.IsDropDownOpen = true;
+            e.Handled = true;
+        }
+    }
+
+    private void OnTargetOpened(object? sender, EventArgs e)
+    {
+        if (sender is ComboBox { DataContext: RemapRow row }) row.IsListOpen = true;
+    }
+
+    private void OnTargetClosed(object? sender, EventArgs e)
+    {
+        if (sender is ComboBox { DataContext: RemapRow row })
+            Dispatcher.BeginInvoke(() => row.IsListOpen = false, DispatcherPriority.Input);
+    }
+
     private void OnRowFound(RemapRow row)
     {
         if (FindRow(row) is not { } element) return;

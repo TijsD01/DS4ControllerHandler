@@ -111,6 +111,12 @@ public sealed class RemapRow : ObservableObject
     public ICommand ResetCommand { get; }
     public ICommand CancelCaptureCommand { get; }
 
+    /// <summary>
+    /// The drop-down list is open (set by the view). Cleared only after the close has been handled, because
+    /// the ComboBox may close the list before it commits the pick (Enter).
+    /// </summary>
+    public bool IsListOpen { get; set; }
+
     public string AutomationName => $"{Name}: wat de game krijgt";
 
     /// <summary>Differs from the default: accent marker and a "Standaard" link.</summary>
@@ -139,7 +145,9 @@ public sealed class RemapRow : ObservableObject
             if (value == null || value == _selected) return;
             if (value.PicksKey)
             {
-                _owner.StartCapture(this);
+                // Only a choice made in the open list listens for a key; a closed box that lands on it
+                // (text search) must never map the next key by accident.
+                if (IsListOpen) _owner.StartCapture(this);
                 RevertSelection();
                 return;
             }

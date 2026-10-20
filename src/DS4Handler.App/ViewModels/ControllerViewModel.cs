@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows.Input;
+using DS4Handler.App.Controls;
 using DS4Handler.App.Engine;
 using DS4Handler.App.Services;
 using DS4Handler.Core.Calibration;
@@ -256,6 +257,9 @@ public sealed class ControllerViewModel : ObservableObject
     private int _selectedTab;
     private string _sticksLevel = Level.Learning;
     private OutputMode _output;
+    private bool _showOutput;
+    private Buttons _rawButtons;
+    private Buttons _outButtons;
 
     public ControllerViewModel(ControllerSession session, AppHost host, Func<string, string, string, bool> confirm)
     {
@@ -388,9 +392,29 @@ public sealed class ControllerViewModel : ObservableObject
         _output = mode;
         OnPropertyChanged(nameof(OutputXbox));
         OnPropertyChanged(nameof(OutputDs4));
+        OnPropertyChanged(nameof(OutputKind));
         _host.SetOutputMode(Session, mode);
         _tick = 0; // refresh the status pill soon
     }
+
+    /// <summary>View state of the KNOPPEN card: false shows the real controller, true what the game gets. Not saved.</summary>
+    public bool ShowOutput
+    {
+        get => _showOutput;
+        set { if (SetField(ref _showOutput, value)) OnPropertyChanged(nameof(ShowInput)); }
+    }
+
+    /// <summary>Inverse of <see cref="ShowOutput"/>, for the "Controller" segment.</summary>
+    public bool ShowInput
+    {
+        get => !_showOutput;
+        set => ShowOutput = !value;
+    }
+
+    public PadKind InputKind => Session.Model == ControllerModel.DualShock4 ? PadKind.DualShock4 : PadKind.DualSense;
+    public PadKind OutputKind => OutputXbox ? PadKind.Xbox360 : PadKind.DualShock4;
+    public Buttons RawButtons { get => _rawButtons; private set => SetField(ref _rawButtons, value); }
+    public Buttons OutButtons { get => _outButtons; private set => SetField(ref _outButtons, value); }
 
     public bool HideFromGames
     {
@@ -413,6 +437,8 @@ public sealed class ControllerViewModel : ObservableObject
         Right.Update(raw.RightX, raw.RightY, output.RightX, output.RightY, _snap.Right);
         L2.Update(raw.L2, output.L2, _snap.L2);
         R2.Update(raw.R2, output.R2, _snap.R2);
+        RawButtons = raw.Buttons;
+        OutButtons = output.Buttons;
         SticksGuided = _snap.Left.GuidedInProgress || _snap.Right.GuidedInProgress;
 
         // Slower things: twice per second.

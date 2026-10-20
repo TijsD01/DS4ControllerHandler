@@ -60,6 +60,11 @@ public static class Tips
     public const string LegendRaw = "Grijs: de echte stand van de controller, zonder correctie.";
     public const string LegendOutput = "Blauw: wat de game krijgt, na de correctie voor drift en slijtage.";
     public const string LegendDeadzone = "Oranje: het rustpunt en eindpunt die de app voor deze trigger geleerd heeft.";
+    public const string Pad = "Welke knoppen nu ingedrukt zijn. Kies of je je echte controller ziet of de virtuele controller die de game krijgt.";
+    public const string PadInput = "Wat je nu op je controller indrukt, zonder correctie.";
+    public const string PadOutput =
+        "Wat de game nu krijgt van de virtuele controller.\n" +
+        "Bij Xbox 360 bestaan de touchpadklik en de Mute-knop niet; die komen dus nooit bij de game aan.";
 
     // ----- Calibration -----
     public const string CalibrationSection =

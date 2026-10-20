@@ -91,7 +91,7 @@ public sealed class InputTuningJsonConverter : JsonConverter<InputTuning>
                 }
                 else if (Get(p.Value, "Key") is { ValueKind: JsonValueKind.Number } keyElem
                     && keyElem.TryGetInt32(out int scanCode)
-                    && scanCode is >= 1 and <= 0xE0FF)
+                    && RemapTarget.IsSendableScanCode(scanCode))
                 {
                     target = RemapTarget.ToKey((ushort)scanCode);
                 }

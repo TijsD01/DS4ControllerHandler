@@ -542,7 +542,7 @@ internal static class KeyNames
     {
         uint scan = MapVirtualKeyW((uint)vk, MapvkVkToVscEx);
         // Only plain and 0xE0-extended codes (1..0xE0FF); e.g. Pause (0xE11D) cannot be sent as one scan code.
-        return (scan & 0xFF) != 0 && (scan >> 8) is 0 or 0xE0 ? (ushort)scan : (ushort)0;
+        return RemapTarget.IsSendableScanCode((int)scan) ? (ushort)scan : (ushort)0;
     }
 
     /// <summary>"Spatiebalk", "W", "Rechter Ctrl"; a hex code when Windows has no name.</summary>

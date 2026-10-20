@@ -185,8 +185,8 @@ public sealed class SettingsStoreTests : IDisposable
 }
 
 /// <summary>
-/// HidHideUninstall (compiled in). On Linux the HidHide driver is "not installed", which exercises the paths that do
-/// not touch the driver: the report, the exit-code rule and what happens to settings.json.
+/// HidHideUninstall (compiled in). A fake cleanUp throws NotInstalled, so these tests never touch the real HidHide driver.
+/// They exercise the paths that do not touch the driver: the report, the exit-code rule and what happens to settings.json.
 /// </summary>
 public sealed class HidHideUninstallTests : IDisposable
 {

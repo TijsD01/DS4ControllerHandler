@@ -14,6 +14,9 @@ public readonly record struct RemapTarget(RemapKind Kind, PadControl Output = de
     public static RemapTarget Disabled => new(RemapKind.None);
     public static RemapTarget ToPad(PadControl c) => new(RemapKind.Pad, c);
     public static RemapTarget ToKey(ushort scanCode) => new(RemapKind.Key, default, scanCode);
+
+    /// <summary>Plain (1..0xFF) or 0xE0-extended scan code; the only shapes one key event can send.</summary>
+    public static bool IsSendableScanCode(int code) => (code & 0xFF) != 0 && (code >> 8) is 0 or 0xE0;
 }
 
 /// <summary>Immutable per-source button remap plus a stick swap. Value-equal.</summary>

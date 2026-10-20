@@ -182,7 +182,7 @@
             </Border>
         </WrapPanel>
 
-        <!-- ===== Live | Kalibratie | Afstellen ===== -->
+        <!-- ===== Live | Kalibratie | Afstellen | Knoppen ===== -->
         <TabControl Style="{StaticResource Tabs}" Margin="0,14,0,0" SelectedIndex="{Binding SelectedTab}"
                     AutomationProperties.Name="Onderdelen van deze controller">
 
@@ -393,6 +393,11 @@
             <!-- ===== Afstellen ===== -->
             <TabItem Style="{StaticResource Tab}" Header="Afstellen" ToolTip="{x:Static vm:Tips.TabAdjust}">
                 <v:TuningPanel DataContext="{Binding Tuning}" />
+            </TabItem>
+
+            <!-- ===== Knoppen ===== -->
+            <TabItem Style="{StaticResource Tab}" Header="Knoppen" ToolTip="{x:Static vm:Tips.TabButtons}">
+                <v:RemapPanel DataContext="{Binding Remap}" />
             </TabItem>
         </TabControl>
     </StackPanel>

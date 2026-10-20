@@ -1,0 +1,253 @@
+<UserControl x:Class="DS4Handler.App.Views.RemapPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:c="clr-namespace:DS4Handler.App.Controls"
+             xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:RemapViewModel}">
+
+    <UserControl.Resources>
+        <!-- One drop-down item: target name, plus a quiet "standaard" on the button's own target (in the list only;
+             the closed box stays short, the accent bar already marks changed rows). -->
+        <DataTemplate x:Key="OptionItem" DataType="{x:Type vm:RemapOption}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="Default" Text=" · standaard" Foreground="{StaticResource TextMutedBrush}"
+                           Visibility="{Binding IsDefault, Converter={StaticResource BoolVis}}" />
+            </StackPanel>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ComboBoxItem}, FallbackValue={x:Null}}" Value="{x:Null}">
+                    <Setter TargetName="Default" Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <!-- One row: [changed bar] badge  name  →  target drop-down | Standaard -->
+        <DataTemplate x:Key="RemapRowTemplate" DataType="{x:Type vm:RemapRow}">
+            <Grid Tag="row" Background="Transparent">
+                <!-- Highlight after pressing the physical button ("press to find"). -->
+                <Border x:Name="Flash" Background="{StaticResource InfoStripBrush}" Opacity="0" IsHitTestVisible="False" />
+                <!-- Accent bar on the card edge: this button does something else than printed on it. -->
+                <Border Width="3" HorizontalAlignment="Left" Margin="0,12" CornerRadius="0,2,2,0" Background="{StaticResource AccentBrush}"
+                        ToolTip="{x:Static vm:Tips.RemapChanged}"
+                        Visibility="{Binding IsChanged, Converter={StaticResource BoolVis}}" />
+                <Border Style="{StaticResource SettingRow}" Padding="20,8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" MinWidth="90" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="92" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Source: badge + name, always the PlayStation button you hold. -->
+                        <Border Style="{StaticResource Inset}" Width="38" Height="28" Padding="0" Margin="0,0,12,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Badge}" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+                                        <Setter Property="FontSize" Value="12" />
+                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding BadgeIsSymbol}" Value="True">
+                                                <Setter Property="FontFamily" Value="Segoe UI Symbol" />
+                                                <Setter Property="FontSize" Value="15" />
+                                                <Setter Property="FontWeight" Value="Normal" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="{Binding Name}" Style="{StaticResource Body}" VerticalAlignment="Center"
+                                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="0,0,12,0"
+                                   ToolTip="{Binding Tip}" />
+                        <Path Grid.Column="2" Data="{StaticResource ArrowRightGeometry}" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.6"
+                              Width="16" Height="16" VerticalAlignment="Center" Margin="0,0,14,0" />
+
+                        <!-- Target: drop-down, or the "press a key" box while listening. -->
+                        <ComboBox x:Name="Target" Grid.Column="3" Style="{StaticResource Combo}" ItemsSource="{Binding Options}"
+                                  SelectedItem="{Binding SelectedOption, Mode=TwoWay}" ItemTemplate="{StaticResource OptionItem}"
+                                  MaxDropDownHeight="440" ToolTip="{Binding Tip}" AutomationProperties.Name="{Binding AutomationName}"
+                                  Visibility="{Binding IsCapturing, Converter={StaticResource BoolVis}, ConverterParameter=invert}">
+                            <ComboBox.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <TextBlock x:Name="Head" Text="{Binding Name}" Style="{StaticResource SectionLabel}" Margin="10,10,10,4" />
+                                                <Border x:Name="Line" Height="1" Background="{StaticResource PopupBorderBrush}" Margin="6,6" Visibility="Collapsed" />
+                                            </Grid>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding Name}" Value="">
+                                                    <Setter TargetName="Head" Property="Visibility" Value="Collapsed" />
+                                                    <Setter TargetName="Line" Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                </GroupStyle>
+                            </ComboBox.GroupStyle>
+                        </ComboBox>
+                        <Border Grid.Column="3" Tag="capture" Focusable="True" FocusVisualStyle="{x:Null}" MinHeight="36"
+                                Background="{StaticResource InfoStripBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="2"
+                                CornerRadius="{StaticResource ControlRadius}" Padding="12,0" ToolTip="{x:Static vm:Tips.RemapCapture}"
+                                AutomationProperties.Name="{Binding Name, StringFormat='Druk op een toets voor {0}'}"
+                                Visibility="{Binding IsCapturing, Converter={StaticResource BoolVis}}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Ellipse x:Name="Pulse" Style="{StaticResource Dot}" Fill="{StaticResource LinkBrush}" Margin="0,0,10,0">
+                                    <Ellipse.Triggers>
+                                        <EventTrigger RoutedEvent="Loaded">
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.25" Duration="0:0:0.7"
+                                                                     AutoReverse="True" RepeatBehavior="Forever" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Ellipse.Triggers>
+                                </Ellipse>
+                                <TextBlock Text="Druk op een toets…" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource InfoStripTextBrush}" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Standaard (only when changed; keeps its place so the drop-downs line up) / Annuleren while listening. -->
+                        <Button Grid.Column="4" Content="Standaard" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Command="{Binding ResetCommand}" ToolTip="{x:Static vm:Tips.RemapResetRow}"
+                                AutomationProperties.Name="{Binding Name, StringFormat='{}{0} op standaard'}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource LinkButton}">
+                                    <Setter Property="Visibility" Value="Hidden" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsChanged}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsCapturing}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Grid.Column="4" Style="{StaticResource LinkButton}" Content="Annuleren" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Command="{Binding CancelCaptureCommand}" ToolTip="{x:Static vm:Tips.RemapCapture}"
+                                Visibility="{Binding IsCapturing, Converter={StaticResource BoolVis}}" />
+
+                        <!-- How to stop, or why the key was refused. -->
+                        <TextBlock Grid.Row="1" Grid.Column="3" Grid.ColumnSpan="2" Text="{Binding CaptureNote}" Margin="0,6,0,2"
+                                   Visibility="{Binding CaptureNote, Converter={StaticResource TextVis}}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CaptureRefused}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource WarnBrush}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Border>
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsFound}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Flash" Storyboard.TargetProperty="Opacity">
+                                    <LinearDoubleKeyFrame KeyTime="0:0:0.12" Value="1" />
+                                    <LinearDoubleKeyFrame KeyTime="0:0:1.4" Value="1" />
+                                    <LinearDoubleKeyFrame KeyTime="0:0:2.2" Value="0" />
+                                </DoubleAnimationUsingKeyFrames>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <!-- A titled block of rows inside the list card. -->
+        <DataTemplate x:Key="RemapGroupTemplate" DataType="{x:Type vm:RemapGroup}">
+            <StackPanel>
+                <Border x:Name="Head" Style="{StaticResource CardHeader}" Padding="20,16,20,10"
+                        BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,1,0,0">
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource SectionLabel}" />
+                </Border>
+                <ItemsControl ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource RemapRowTemplate}" Focusable="False" />
+            </StackPanel>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding (ItemsControl.AlternationIndex), RelativeSource={RelativeSource AncestorType=ContentPresenter}}" Value="0">
+                    <Setter TargetName="Head" Property="BorderThickness" Value="0" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <StackPanel Margin="0,20,0,0">
+        <!-- Swap sticks | what changed, saved at once | reset everything -->
+        <Grid Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding SwapSticks}" Content="Sticks wisselen"
+                      ToolTip="{x:Static vm:Tips.RemapSwapSticks}" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="24,0,20,0" Cursor="Help"
+                       ToolTip="{x:Static vm:Tips.TuneSaved}">
+                <Run Text="{Binding ChangedText, Mode=OneWay}" />
+                <Run Text="Wijzigingen worden meteen opgeslagen." />
+            </TextBlock>
+            <Button Grid.Column="2" Content="Alles op standaard" Command="{Binding ResetAllCommand}" ToolTip="{x:Static vm:Tips.RemapResetAll}"
+                    VerticalAlignment="Center" />
+        </Grid>
+        <TextBlock Text="{Binding SaveNote}" Style="{StaticResource Body}" Foreground="{StaticResource WarnBrush}" Margin="0,0,0,16"
+                   ToolTip="{x:Static vm:Tips.TuneSection}" Visibility="{Binding SaveNote, Converter={StaticResource TextVis}}" />
+
+        <!-- Picture (stays in sight while the list scrolls, see code-behind) | list of buttons -->
+        <Grid x:Name="Columns">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border x:Name="PictureCard" Style="{StaticResource Card}" VerticalAlignment="Top">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="PictureShift" />
+                </Border.RenderTransform>
+                <StackPanel>
+                    <TextBlock Text="JOUW CONTROLLER" Style="{StaticResource SectionLabel}" />
+                    <c:ControllerView Height="190" Margin="0,14,0,0"
+                                      Kind="{Binding Pad.InputKind, Mode=OneWay}" Buttons="{Binding Pad.RawButtons}"
+                                      LeftX="{Binding Pad.Left.RawX}" LeftY="{Binding Pad.Left.RawY}"
+                                      RightX="{Binding Pad.Right.RawX}" RightY="{Binding Pad.Right.RawY}"
+                                      L2="{Binding Pad.L2.Raw}" R2="{Binding Pad.R2.Raw}"
+                                      ToolTip="{x:Static vm:Tips.RemapPicture}"
+                                      AutomationProperties.Name="Ingedrukte knoppen op je controller"
+                                      AutomationProperties.HelpText="{Binding Pad.RawButtons, Mode=OneWay}" />
+                    <Border Style="{StaticResource GuidedNote}" HorizontalAlignment="Stretch" Margin="0,16,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Style="{StaticResource Dot}" Fill="{StaticResource LinkBrush}" Margin="0,0,10,0" />
+                            <TextBlock Text="Druk een knop in om hem te vinden." FontSize="13" Foreground="{StaticResource InfoStripTextBrush}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                    <TextBlock Text="{Binding OutputHint}" Style="{StaticResource Caption}" Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
+
+            <Border x:Name="ListCard" Grid.Column="2" Style="{StaticResource Card}" Padding="0,0,0,4">
+                <ItemsControl ItemsSource="{Binding Groups}" ItemTemplate="{StaticResource RemapGroupTemplate}" AlternationCount="100"
+                              Focusable="False" AutomationProperties.Name="Knoppen en wat de game krijgt" />
+            </Border>
+        </Grid>
+    </StackPanel>
+</UserControl>

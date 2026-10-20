@@ -3,6 +3,10 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
+## Unreleased
+
+- Nieuw tabblad "Knoppen" bij elke controller: kies per knop wat de game krijgt (een andere knop, een toets op je toetsenbord of niets) en wissel desgewenst de sticks. Druk een knop in en je ziet meteen welke regel erbij hoort. Wordt bewaard in het profiel van de controller.
+
 ## 2.0.0
 
 - Helemaal nieuw ontwerp, opnieuw opgebouwd vanaf nul. Je controllers staan nu als tabbladen bovenin, met naast elkaar de status van de stuurprogramma's, Profielen en Instellingen.

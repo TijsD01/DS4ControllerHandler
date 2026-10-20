@@ -516,6 +516,7 @@ public sealed class TuningViewModel : ObservableObject
             // Only the Bluetooth DualShock 4 can change its poll rate; otherwise keep what the profile has.
             BluetoothPollIntervalMs = SupportsPoll ? _poll.Value : _current.BluetoothPollIntervalMs,
             OutputRateHz = _outputRate.Value,
+            Remap = _session.Tuning.Remap, // the Knoppen tab owns this; keep what is live
         };
         if (!_host.SetTuning(_session, tuning, _generation))
         {

@@ -912,6 +912,7 @@ public sealed class ControllerSession : IDisposable
             // Records hash all their fields, sections included.
             h.Add(t.LeftStick); h.Add(t.RightStick); h.Add(t.L2); h.Add(t.R2);
             h.Add(t.BluetoothPollIntervalMs); h.Add(t.OutputRateHz);
+            h.Add(t.Remap);
         }
     }
 

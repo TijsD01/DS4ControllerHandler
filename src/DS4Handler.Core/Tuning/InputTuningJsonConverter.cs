@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using DS4Handler.Core.Mapping;
 
 namespace DS4Handler.Core.Tuning;
 
@@ -26,6 +27,7 @@ public sealed class InputTuningJsonConverter : JsonConverter<InputTuning>
             R2 = ReadTrigger(Get(root, nameof(InputTuning.R2))),
             BluetoothPollIntervalMs = Int(Get(root, nameof(InputTuning.BluetoothPollIntervalMs)), d.BluetoothPollIntervalMs),
             OutputRateHz = Int(Get(root, nameof(InputTuning.OutputRateHz)), d.OutputRateHz),
+            Remap = ReadRemap(Get(root, nameof(InputTuning.Remap))),
         };
     }
 
@@ -58,6 +60,50 @@ public sealed class InputTuningJsonConverter : JsonConverter<InputTuning>
             AntiDeadzone = Float(Get(o, nameof(TriggerTuning.AntiDeadzone)), d.AntiDeadzone),
             Curve = Float(Get(o, nameof(TriggerTuning.Curve)), d.Curve),
         };
+    }
+
+    private static ButtonRemap ReadRemap(JsonElement? e)
+    {
+        if (e is not { ValueKind: JsonValueKind.Object } o) return ButtonRemap.Identity;
+        var remap = ButtonRemap.Identity;
+        if (Bool(Get(o, nameof(ButtonRemap.SwapSticks)))) remap = remap.WithSwapSticks(true);
+        if (Get(o, "Map") is not { ValueKind: JsonValueKind.Object } map) return remap;
+        foreach (var p in map.EnumerateObject())
+        {
+            if (p.Name.Length == 0 || char.IsDigit(p.Name[0]) || p.Name[0] == '-') continue;
+            if (!Enum.TryParse<PadControl>(p.Name, ignoreCase: true, out var src) || !Enum.IsDefined(src)) continue;
+
+            RemapTarget? target = null;
+            if (p.Value.ValueKind == JsonValueKind.String &&
+                string.Equals(p.Value.GetString(), "None", StringComparison.OrdinalIgnoreCase))
+            {
+                target = RemapTarget.Disabled;
+            }
+            else if (p.Value.ValueKind == JsonValueKind.Object)
+            {
+                if (Get(p.Value, "Pad") is { ValueKind: JsonValueKind.String } padElem
+                    && padElem.GetString() is { } padName
+                    && !padName.Any(c => char.IsDigit(c) || c == '-')
+                    && Enum.TryParse<PadControl>(padName, ignoreCase: true, out var dstPad)
+                    && Enum.IsDefined(dstPad))
+                {
+                    target = RemapTarget.ToPad(dstPad);
+                }
+                else if (Get(p.Value, "Key") is { ValueKind: JsonValueKind.Number } keyElem
+                    && keyElem.TryGetInt32(out int scanCode)
+                    && scanCode is >= 1 and <= 0xE0FF)
+                {
+                    target = RemapTarget.ToKey((ushort)scanCode);
+                }
+            }
+
+            if (target is { } t)
+            {
+                try { remap = remap.With(src, t); }
+                catch (ArgumentException) { }
+            }
+        }
+        return remap;
     }
 
     private static JsonElement? Get(JsonElement obj, string name)
@@ -105,7 +151,44 @@ public sealed class InputTuningJsonConverter : JsonConverter<InputTuning>
         WriteTrigger(writer, value.R2 ?? new TriggerTuning());
         writer.WriteNumber(nameof(InputTuning.BluetoothPollIntervalMs), value.BluetoothPollIntervalMs);
         writer.WriteNumber(nameof(InputTuning.OutputRateHz), value.OutputRateHz);
+        if (value.Remap is { IsIdentity: false } remap)
+        {
+            writer.WritePropertyName(nameof(InputTuning.Remap));
+            WriteRemap(writer, remap);
+        }
         writer.WriteEndObject();
+    }
+
+    private static void WriteRemap(Utf8JsonWriter w, ButtonRemap remap)
+    {
+        w.WriteStartObject();
+        if (remap.SwapSticks) w.WriteBoolean(nameof(ButtonRemap.SwapSticks), true);
+        w.WriteStartObject("Map");
+        for (int i = 0; i < ButtonRemap.Count; i++)
+        {
+            var src = (PadControl)i;
+            var target = remap[src];
+            if (target.Kind == RemapKind.Same) continue;
+            w.WritePropertyName(src.ToString());
+            switch (target.Kind)
+            {
+                case RemapKind.Pad:
+                    w.WriteStartObject();
+                    w.WriteString("Pad", target.Output.ToString());
+                    w.WriteEndObject();
+                    break;
+                case RemapKind.Key:
+                    w.WriteStartObject();
+                    w.WriteNumber("Key", target.ScanCode);
+                    w.WriteEndObject();
+                    break;
+                case RemapKind.None:
+                    w.WriteStringValue("None");
+                    break;
+            }
+        }
+        w.WriteEndObject();
+        w.WriteEndObject();
     }
 
     private static void WriteStick(Utf8JsonWriter w, StickTuning t)

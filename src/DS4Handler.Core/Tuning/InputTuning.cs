@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using DS4Handler.Core.Mapping;
 
 namespace DS4Handler.Core.Tuning;
 
@@ -89,6 +90,8 @@ public sealed record InputTuning
     /// limit, lowest latency). Allowed: 0, 125, 250, 500, 1000.
     /// </summary>
     public int OutputRateHz { get; init; }
+
+    public ButtonRemap Remap { get; init; } = ButtonRemap.Identity;
 
     public static InputTuning Default { get; } = new();
 }

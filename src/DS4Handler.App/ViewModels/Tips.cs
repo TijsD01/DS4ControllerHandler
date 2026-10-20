@@ -28,6 +28,8 @@ public static class Tips
         "Wat de app geleerd heeft over drift en slijtage, sticks centreren en triggers meten.";
     public const string TabAdjust =
         "Stel zelf in hoe deze controller reageert: deadzones, curves, triggers en snelheid. Wijzigingen worden meteen opgeslagen in het profiel van de controller.";
+    public const string TabButtons =
+        "Kies per knop wat de game krijgt: een andere knop, een toets op je toetsenbord of niets. Je kunt ook de sticks wisselen. Wijzigingen worden meteen opgeslagen in het profiel van de controller.";
     public const string CalibrationSummary =
         "Kort wat de app over deze controller geleerd heeft. Klik om Kalibratie te openen en alles te zien.";
 
@@ -60,6 +62,11 @@ public static class Tips
     public const string LegendRaw = "Grijs: de echte stand van de controller, zonder correctie.";
     public const string LegendOutput = "Blauw: wat de game krijgt, na de correctie voor drift en slijtage.";
     public const string LegendDeadzone = "Oranje: het rustpunt en eindpunt die de app voor deze trigger geleerd heeft.";
+    public const string Pad = "Welke knoppen nu ingedrukt zijn. Kies of je je echte controller ziet of de virtuele controller die de game krijgt.";
+    public const string PadInput = "Wat je nu op je controller indrukt, zonder correctie.";
+    public const string PadOutput =
+        "Wat de game nu krijgt van de virtuele controller.\n" +
+        "Bij Xbox 360 bestaan de touchpadklik en de Mute-knop niet; die komen dus nooit bij de game aan.";
 
     // ----- Calibration -----
     public const string CalibrationSection =
@@ -230,4 +237,20 @@ public static class Tips
     public const string TuneOutputRate =
         "Hoe vaak per seconde de virtuele controller wordt bijgewerkt voor games.\n" +
         "'Elke meting' is het snelst en voor bijna iedereen goed. Beperken is alleen nodig bij een trage pc of een game die zich verslikt in heel veel updates.";
+
+    // ----- Knoppen -----
+    public const string RemapPicture =
+        "Je controller, live. Druk een knop in: de regel van die knop licht op in de lijst, zodat je hem meteen vindt.";
+    public const string RemapTarget =
+        "Wat de game krijgt als je deze knop indrukt. Kies een andere knop, 'Toetsenbord…' voor een toets (bijvoorbeeld voor een spraak- of chattoets), of 'Uit' om de knop te negeren. Twee knoppen mogen hetzelfde doel hebben.";
+    public const string RemapTriggerTarget =
+        "Een knop op een trigger geeft die trigger helemaal ingedrukt. Een trigger op de andere trigger blijft traploos (L2 en R2 wisselen). Een trigger op een knop telt vanaf half ingedrukt.";
+    public const string RemapResetRow = "Deze knop doet weer wat erop staat.";
+    public const string RemapResetAll =
+        "Zet alle knoppen en de sticks voor deze controller terug naar standaard. Afstellen en kalibratie blijven zoals ze zijn.";
+    public const string RemapSwapSticks =
+        "Wisselt linker en rechter stick: wat je met links doet, krijgt de game als rechts, en andersom. Je instellingen bij Afstellen blijven bij je echte stick. L3 en R3 wisselen niet mee; die kies je hieronder per knop.";
+    public const string RemapCapture =
+        "Druk op de toets die de game moet krijgen als je deze knop indrukt. Esc stopt zonder iets te wijzigen.";
+    public const string RemapChanged = "Deze knop doet iets anders dan wat erop staat.";
 }

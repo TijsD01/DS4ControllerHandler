@@ -182,7 +182,7 @@
             </Border>
         </WrapPanel>
 
-        <!-- ===== Live | Kalibratie | Afstellen ===== -->
+        <!-- ===== Live | Kalibratie | Afstellen | Knoppen ===== -->
         <TabControl Style="{StaticResource Tabs}" Margin="0,14,0,0" SelectedIndex="{Binding SelectedTab}"
                     AutomationProperties.Name="Onderdelen van deze controller">
 
@@ -241,6 +241,40 @@
                             </DockPanel>
                         </Border>
                     </Grid>
+
+                    <!-- Pressed buttons: the real controller or the virtual one the game sees. -->
+                    <Border Style="{StaticResource Card}" Margin="0,20,0,0">
+                        <StackPanel>
+                            <DockPanel>
+                                <Border DockPanel.Dock="Right" Style="{StaticResource SegmentHost}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <RadioButton Style="{StaticResource Segment}" Content="Controller" IsChecked="{Binding ShowInput}"
+                                                     GroupName="{Binding Session.Id, StringFormat=pad-{0}}" ToolTip="{x:Static vm:Tips.PadInput}" />
+                                        <RadioButton Style="{StaticResource Segment}" Content="Naar de game" IsChecked="{Binding ShowOutput}"
+                                                     GroupName="{Binding Session.Id, StringFormat=pad-{0}}" ToolTip="{x:Static vm:Tips.PadOutput}" />
+                                    </StackPanel>
+                                </Border>
+                                <TextBlock Text="KNOPPEN" Style="{StaticResource SectionLabel}" VerticalAlignment="Center" Cursor="Help"
+                                           ToolTip="{x:Static vm:Tips.Pad}" />
+                            </DockPanel>
+                            <Grid Margin="0,16,0,0">
+                                <c:ControllerView Height="260" MaxWidth="520"
+                                                  Kind="{Binding InputKind, Mode=OneWay}" Buttons="{Binding RawButtons}"
+                                                  LeftX="{Binding Left.RawX}" LeftY="{Binding Left.RawY}"
+                                                  RightX="{Binding Right.RawX}" RightY="{Binding Right.RawY}"
+                                                  L2="{Binding L2.Raw}" R2="{Binding R2.Raw}"
+                                                  AutomationProperties.Name="Ingedrukte knoppen op je controller" AutomationProperties.HelpText="{Binding RawButtons, Mode=OneWay}" ToolTip="{x:Static vm:Tips.PadInput}"
+                                                  Visibility="{Binding ShowOutput, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
+                                <c:ControllerView Height="260" MaxWidth="520"
+                                                  Kind="{Binding OutputKind, Mode=OneWay}" Buttons="{Binding OutButtons}"
+                                                  LeftX="{Binding Left.OutX}" LeftY="{Binding Left.OutY}"
+                                                  RightX="{Binding Right.OutX}" RightY="{Binding Right.OutY}"
+                                                  L2="{Binding L2.Output}" R2="{Binding R2.Output}"
+                                                  AutomationProperties.Name="Ingedrukte knoppen zoals de game ze ziet" AutomationProperties.HelpText="{Binding OutButtons, Mode=OneWay}" ToolTip="{x:Static vm:Tips.PadOutput}"
+                                                  Visibility="{Binding ShowOutput, Converter={StaticResource BoolVis}}" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
 
                     <!-- Compact Kalibratie summary; opens the Kalibratie tab. -->
                     <Button Style="{StaticResource CardButton}" Margin="0,20,0,0" Command="{Binding ShowCalibrationCommand}"
@@ -359,6 +393,11 @@
             <!-- ===== Afstellen ===== -->
             <TabItem Style="{StaticResource Tab}" Header="Afstellen" ToolTip="{x:Static vm:Tips.TabAdjust}">
                 <v:TuningPanel DataContext="{Binding Tuning}" />
+            </TabItem>
+
+            <!-- ===== Knoppen ===== -->
+            <TabItem Style="{StaticResource Tab}" Header="Knoppen" ToolTip="{x:Static vm:Tips.TabButtons}">
+                <v:RemapPanel DataContext="{Binding Remap}" />
             </TabItem>
         </TabControl>
     </StackPanel>

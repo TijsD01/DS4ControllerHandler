@@ -2,6 +2,7 @@ using System.Diagnostics;
 using DS4Handler.App.Infrastructure;
 using DS4Handler.Core.Calibration;
 using DS4Handler.Core.Input;
+using DS4Handler.Core.Mapping;
 using DS4Handler.Core.Output;
 using DS4Handler.Core.Profiles;
 using DS4Handler.Core.Tuning;
@@ -53,6 +54,9 @@ public sealed class ControllerSession : IDisposable
     private readonly HidDevice _device;
     private readonly object _sync = new();          // guards the calibration and the snapshot fields
     private readonly CancellationTokenSource _cts = new();
+    private static readonly Action<ushort> PressKey = KeyboardOutput.Press;     // cached: no delegate per report
+    private static readonly Action<ushort> ReleaseKey = KeyboardOutput.Release;
+    private readonly KeyEdgeTracker _keys = new();  // read thread only, or after it stopped
 
     private HidStream? _stream;
     private Thread? _readThread;
@@ -681,7 +685,10 @@ public sealed class ControllerSession : IDisposable
                 }
                 catch (TimeoutException)
                 {
-                    continue; // a pad always streams; a quiet second is not an error
+                    // A pad always streams; a quiet second is not an error, but no key may stay down meanwhile
+                    // (also covers a remap / profile change that no report diffed yet).
+                    _keys.ReleaseAll(ReleaseKey);
+                    continue;
                 }
                 if (read <= 0) continue;
 
@@ -689,6 +696,7 @@ public sealed class ControllerSession : IDisposable
                 {
                     // A Bluetooth pad that keeps sending reduced reports missed the full-mode switch: ask again now and then.
                     if (connection == ConnectionType.Bluetooth && ++unparsed % 500 == 0) RequestFullReports();
+                    _keys.ReleaseAll(ReleaseKey); // no buttons to read, so no key may stay down meanwhile
                     continue;
                 }
 
@@ -702,10 +710,13 @@ public sealed class ControllerSession : IDisposable
 
                 CalibratedState output;
                 int outputRate;
+                ButtonRemap remap;
+                uint heldKeys;
                 lock (_sync)
                 {
                     var calibration = _calibration!;
-                    output = calibration.Process(raw, interval);
+                    remap = calibration.Tuning.Remap;
+                    output = ButtonRemapper.Apply(calibration.Process(raw, interval), remap, out heldKeys);
                     outputRate = calibration.Tuning.OutputRateHz;
                     _raw = raw;
                     _output = output;
@@ -715,6 +726,8 @@ public sealed class ControllerSession : IDisposable
                 }
 
                 SubmitVirtual(output, arrival, outputRate);
+                // Diffed against the remap in effect now, so a remap or profile change releases the old key.
+                _keys.Update(heldKeys, remap, PressKey, ReleaseKey);
             }
         }
         catch (Exception ex) when (ex is IOException or ObjectDisposedException or InvalidOperationException or OperationCanceledException)
@@ -727,6 +740,7 @@ public sealed class ControllerSession : IDisposable
         }
         finally
         {
+            _keys.ReleaseAll(ReleaseKey);
             if (Volatile.Read(ref _disposed) == 0)
             {
                 try { Ended?.Invoke(this, EventArgs.Empty); } catch (Exception ex) { Log.Error("Ended-handler faalde", ex); }
@@ -912,6 +926,7 @@ public sealed class ControllerSession : IDisposable
             // Records hash all their fields, sections included.
             h.Add(t.LeftStick); h.Add(t.RightStick); h.Add(t.L2); h.Add(t.R2);
             h.Add(t.BluetoothPollIntervalMs); h.Add(t.OutputRateHz);
+            h.Add(t.Remap);
         }
     }
 
@@ -931,6 +946,8 @@ public sealed class ControllerSession : IDisposable
 
         SaveProfile();
 
+        // The loop's finally already released them; a read thread still alive releases them itself when it exits.
+        if (_readThread is not { IsAlive: true } || _readThread == Thread.CurrentThread) _keys.ReleaseAll(ReleaseKey);
         lock (_padLock) DisconnectVirtualPad();
 
         _rumbleSignal.Dispose();

@@ -1,3 +1,4 @@
+using DS4Handler.Core.Mapping;
 using DS4Handler.Core.Output;
 
 namespace DS4Handler.Core.Tuning;
@@ -260,6 +261,7 @@ public static class InputShaper
             R2 = Sanitize(tuning.R2),
             BluetoothPollIntervalMs = Math.Clamp(tuning.BluetoothPollIntervalMs, MinBluetoothPollIntervalMs, MaxBluetoothPollIntervalMs),
             OutputRateHz = SnapOutputRate(tuning.OutputRateHz),
+            Remap = tuning.Remap ?? ButtonRemap.Identity,
         };
         return result == tuning ? tuning : result;
     }

@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows.Input;
+using DS4Handler.App.Controls;
 using DS4Handler.App.Engine;
 using DS4Handler.App.Services;
 using DS4Handler.Core.Calibration;
@@ -256,6 +257,9 @@ public sealed class ControllerViewModel : ObservableObject
     private int _selectedTab;
     private string _sticksLevel = Level.Learning;
     private OutputMode _output;
+    private bool _showOutput;
+    private Buttons _rawButtons;
+    private Buttons _outButtons;
 
     public ControllerViewModel(ControllerSession session, AppHost host, Func<string, string, string, bool> confirm)
     {
@@ -273,13 +277,14 @@ public sealed class ControllerViewModel : ObservableObject
         _tabMeta = IsBluetooth ? "BT" : "USB";
 
         Tuning = new TuningViewModel(session, host);
+        Remap = new RemapViewModel(session, host, this, _output == OutputMode.Xbox360, confirm);
         ResetCommand = new RelayCommand(Reset);
         RecenterCommand = new RelayCommand(() => Session.StartGuidedCenter());
         CancelRecenterCommand = new RelayCommand(() => Session.CancelGuidedCenter());
         ShowCalibrationCommand = new RelayCommand(() => SelectedTab = TabCalibration);
     }
 
-    private const int TabCalibration = 1;
+    private const int TabCalibration = 1, TabButtons = 3;
 
     public ControllerSession Session { get; }
     public StickViewModel Left { get; }
@@ -290,6 +295,9 @@ public sealed class ControllerViewModel : ObservableObject
     /// <summary>The "Afstellen" tab (deadzone shapes, curves, poll rate, ...).</summary>
     public TuningViewModel Tuning { get; }
 
+    /// <summary>The "Knoppen" tab (button remapping, keyboard keys, swapping the sticks).</summary>
+    public RemapViewModel Remap { get; }
+
     public ICommand ResetCommand { get; }
     public ICommand RecenterCommand { get; }
     public ICommand CancelRecenterCommand { get; }
@@ -297,8 +305,16 @@ public sealed class ControllerViewModel : ObservableObject
     /// <summary>Switches the page to the Kalibratie tab (the summary row on Live).</summary>
     public ICommand ShowCalibrationCommand { get; }
 
-    /// <summary>View state: the tab shown on this controller's page (0 Live, 1 Kalibratie, 2 Afstellen). Not saved.</summary>
-    public int SelectedTab { get => _selectedTab; set => SetField(ref _selectedTab, Math.Clamp(value, 0, 2)); }
+    /// <summary>View state: the tab shown on this controller's page (0 Live, 1 Kalibratie, 2 Afstellen, 3 Knoppen). Not saved.</summary>
+    public int SelectedTab
+    {
+        get => _selectedTab;
+        set
+        {
+            if (SetField(ref _selectedTab, Math.Clamp(value, 0, TabButtons)) && _selectedTab != TabButtons)
+                Remap.CancelCapture(); // stop listening for a key once the tab is left
+        }
+    }
 
     /// <summary>Both sticks together, for the Kalibratie summary on Live: the least healthy of the two.</summary>
     public string SticksLevel { get => _sticksLevel; private set { if (SetField(ref _sticksLevel, value)) OnPropertyChanged(nameof(SticksStatus)); } }
@@ -388,9 +404,30 @@ public sealed class ControllerViewModel : ObservableObject
         _output = mode;
         OnPropertyChanged(nameof(OutputXbox));
         OnPropertyChanged(nameof(OutputDs4));
+        OnPropertyChanged(nameof(OutputKind));
+        Remap.SetOutputXbox(mode == OutputMode.Xbox360);
         _host.SetOutputMode(Session, mode);
         _tick = 0; // refresh the status pill soon
     }
+
+    /// <summary>View state of the KNOPPEN card: false shows the real controller, true what the game gets. Not saved.</summary>
+    public bool ShowOutput
+    {
+        get => _showOutput;
+        set { if (SetField(ref _showOutput, value)) OnPropertyChanged(nameof(ShowInput)); }
+    }
+
+    /// <summary>Inverse of <see cref="ShowOutput"/>, for the "Controller" segment.</summary>
+    public bool ShowInput
+    {
+        get => !_showOutput;
+        set => ShowOutput = !value;
+    }
+
+    public PadKind InputKind => Session.Model == ControllerModel.DualShock4 ? PadKind.DualShock4 : PadKind.DualSense;
+    public PadKind OutputKind => OutputXbox ? PadKind.Xbox360 : PadKind.DualShock4;
+    public Buttons RawButtons { get => _rawButtons; private set => SetField(ref _rawButtons, value); }
+    public Buttons OutButtons { get => _outButtons; private set => SetField(ref _outButtons, value); }
 
     public bool HideFromGames
     {
@@ -413,6 +450,9 @@ public sealed class ControllerViewModel : ObservableObject
         Right.Update(raw.RightX, raw.RightY, output.RightX, output.RightY, _snap.Right);
         L2.Update(raw.L2, output.L2, _snap.L2);
         R2.Update(raw.R2, output.R2, _snap.R2);
+        RawButtons = raw.Buttons;
+        OutButtons = output.Buttons;
+        Remap.Update(raw.Buttons, raw.L2, raw.R2, _selectedTab == TabButtons && _isShown);
         SticksGuided = _snap.Left.GuidedInProgress || _snap.Right.GuidedInProgress;
 
         // Slower things: twice per second.
@@ -424,6 +464,7 @@ public sealed class ControllerViewModel : ObservableObject
         UpdateHide();
         UpdateProfile();
         Tuning.Refresh(); // picks up a profile switch without applying it back
+        Remap.Refresh();
         if (Session.GetSummary() is { } summary)
         {
             Left.UpdateSummary(summary.Left, _snap.Left.GuidedInProgress);

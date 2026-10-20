@@ -61,6 +61,17 @@ Op elke controllerkaart staat een knop **Afstellen** (standaard dicht). Alles da
 
 De afstelling wordt in het profiel van de controller bewaard, dus ze gaat mee met gekoppelde en geëxporteerde profielen en blijft staan bij *Kalibratie resetten*. Is het profiel in gebruik door een andere controller, dan werken wijzigingen wel maar worden ze niet bewaard; de kaart zegt dat erbij. Een tooltip bij elke instelling legt uit wat ze doet.
 
+## Knoppen
+
+Op het tabblad **Knoppen** kies je per knop wat de game krijgt: een andere controllerknop, een toets op je toetsenbord of niets (*Uit*). Links staat je controller live; druk een knop in en de regel van die knop licht op in de lijst. Doelnamen volgen wat de game ziet: Xbox-namen (A, B, LB, Start…) als de game een Xbox 360-controller ziet, PlayStation-namen (✕, ○, L1, Options…) bij een DualShock 4.
+
+- **Toetsenbord…** wacht op de volgende toets die je indrukt (Esc stopt). Zo leg je bijvoorbeeld een spraak- of chattoets onder een knop. Een knop op een toets houdt die toets ingedrukt zolang je de knop vasthoudt.
+- **Triggers:** een knop op L2/R2 geeft de trigger helemaal ingedrukt; L2 en R2 op elkaar blijven traploos; een trigger op een knop telt vanaf half ingedrukt.
+- **Sticks wisselen** ruilt linker en rechter stick; de afstelling blijft bij je echte stick.
+- Aangepaste knoppen krijgen een blauw streepje en een eigen *Standaard*; *Alles op standaard* zet alles terug (na bevestiging).
+
+Net als Afstellen werkt alles meteen en wordt het in het profiel van de controller bewaard.
+
 ## Projectstructuur
 
 | Map | Wat |

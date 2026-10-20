@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using DS4Handler.App.Services;
+using DS4Handler.HidHide;
 
 namespace DS4Handler.Core.Tests.AppLinked;
 
@@ -192,6 +193,10 @@ public sealed class HidHideUninstallTests : IDisposable
     private readonly string _dir = Path.Combine(Path.GetTempPath(), "DS4HandlerUninstallTests", Guid.NewGuid().ToString("N"));
     private string FilePath => Path.Combine(_dir, "settings.json");
 
+    // Never touch the real HidHide driver (installed on dev PCs).
+    private static HidHideCleanupResult NotInstalled(IEnumerable<string> ids, string? exe, bool act)
+        => throw new HidHideException(HidHideErrorKind.NotInstalled, "test");
+
     public HidHideUninstallTests() => Directory.CreateDirectory(_dir);
 
     public void Dispose()
@@ -221,7 +226,7 @@ public sealed class HidHideUninstallTests : IDisposable
     public void NoSettingsFile_IsNotCreated()
     {
         var store = new SettingsStore(FilePath);
-        var report = HidHideUninstall.Run(store, allUsers: false, TimeSpan.FromSeconds(5));
+        var report = HidHideUninstall.Run(store, allUsers: false, TimeSpan.FromSeconds(5), NotInstalled);
         Assert.Equal(UninstallOutcome.NotInstalled, report.Outcome);
         Assert.True(report.Complete);
         Assert.False(File.Exists(FilePath));
@@ -234,7 +239,7 @@ public sealed class HidHideUninstallTests : IDisposable
         var json = "{\"HiddenInstanceIds\": [\"HID\\\\A\", \"HID\\\\B\"], \"HidHideActivatedByApp\": true}";
         File.WriteAllText(FilePath, json);
         var store = new SettingsStore(FilePath);
-        var report = HidHideUninstall.Run(store, allUsers: false, TimeSpan.FromSeconds(5));
+        var report = HidHideUninstall.Run(store, allUsers: false, TimeSpan.FromSeconds(5), NotInstalled);
         Assert.Equal(UninstallOutcome.NotInstalled, report.Outcome);
         Assert.Equal(2, report.Owned);
         Assert.False(report.Complete);
@@ -246,7 +251,7 @@ public sealed class HidHideUninstallTests : IDisposable
     public void AllUsers_WithoutAProfileRegistry_DoesNotThrow()
     {
         var store = new SettingsStore(FilePath);
-        var report = HidHideUninstall.Run(store, allUsers: true, TimeSpan.FromSeconds(5));
+        var report = HidHideUninstall.Run(store, allUsers: true, TimeSpan.FromSeconds(5), NotInstalled);
         Assert.Equal(UninstallOutcome.NotInstalled, report.Outcome);
         Assert.False(File.Exists(FilePath));
     }

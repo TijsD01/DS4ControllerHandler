@@ -88,7 +88,7 @@ public sealed class ControllerSession : IDisposable
     private bool _hasSubmitted;
     private long _lastSubmitTimestamp;              // Stopwatch ticks of the last submit, for the output rate limit
     private int _desiredMode;                       // OutputMode the user wants; applied by a worker
-    private volatile bool _reconnectAttempted;      // one automatic retry after the driver refused input
+    private volatile bool _reconnectAttempted;      // one automatic retry per failure, re-armed after a submit works again
 
     // Snapshot fields (under _sync).
     private RawControllerState _raw;
@@ -778,6 +778,7 @@ public sealed class ControllerSession : IDisposable
                     _lastXbox = r;
                     _hasSubmitted = true;
                     _lastSubmitTimestamp = arrival;
+                    if (_reconnectAttempted) _reconnectAttempted = false;
                 }
                 else if (_ds4 is { } ds4)
                 {
@@ -798,6 +799,7 @@ public sealed class ControllerSession : IDisposable
                     _lastDs4 = r;
                     _hasSubmitted = true;
                     _lastSubmitTimestamp = arrival;
+                    if (_reconnectAttempted) _reconnectAttempted = false;
                 }
             }
             catch (Exception ex)

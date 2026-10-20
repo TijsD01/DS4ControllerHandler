@@ -35,7 +35,8 @@ public static class HidHideUninstall
 {
     private static readonly TimeSpan BusyRetry = TimeSpan.FromSeconds(5);
 
-    public static UninstallReport Run(SettingsStore store, bool allUsers, TimeSpan timeout)
+    public static UninstallReport Run(SettingsStore store, bool allUsers, TimeSpan timeout,
+        Func<IEnumerable<string>, string?, bool, HidHideCleanupResult>? cleanUp = null)
     {
         var owned = new List<string>(store.Read(s => s.HiddenInstanceIds.ToArray()));
         bool activatedByApp = store.Read(s => s.HidHideActivatedByApp);
@@ -51,7 +52,7 @@ public static class HidHideUninstall
             }
         }
 
-        var work = Task.Run(() => CleanUp(owned, activatedByApp));
+        var work = Task.Run(() => CleanUp(owned, activatedByApp, cleanUp ?? ((ids, exe, act) => new HidHideClient().CleanUp(ids, exe, act))));
         UninstallReport report;
         if (!work.Wait(timeout)) report = new UninstallReport(UninstallOutcome.TimedOut, owned.Count);
         else report = work.Result;
@@ -74,14 +75,15 @@ public static class HidHideUninstall
         return report;
     }
 
-    private static UninstallReport CleanUp(List<string> owned, bool activatedByApp)
+    private static UninstallReport CleanUp(List<string> owned, bool activatedByApp,
+        Func<IEnumerable<string>, string?, bool, HidHideCleanupResult> cleanUp)
     {
         var deadline = DateTime.UtcNow + BusyRetry;
         while (true)
         {
             try
             {
-                var result = new HidHideClient().CleanUp(owned, Environment.ProcessPath, activatedByApp);
+                var result = cleanUp(owned, Environment.ProcessPath, activatedByApp);
                 return new UninstallReport(UninstallOutcome.Done, owned.Count, result);
             }
             catch (HidHideException ex) when (ex.Kind == HidHideErrorKind.Busy && DateTime.UtcNow < deadline)

@@ -28,6 +28,8 @@
     <Compile Include="..\..\src\DS4Handler.App\Services\AppSettings.cs" Link="AppLinked\Source\AppSettings.cs" />
     <Compile Include="..\..\src\DS4Handler.App\Services\HidHideUninstall.cs" Link="AppLinked\Source\HidHideUninstall.cs" />
     <Compile Include="..\..\src\DS4Handler.App\Engine\KeyboardOutput.cs" Link="AppLinked\Source\KeyboardOutput.cs" />
+    <Compile Include="..\..\src\DS4Handler.App\Engine\OutputReports.cs" Link="AppLinked\Source\OutputReports.cs" />
+    <Compile Include="..\..\src\DS4Handler.App\Engine\Crc32.cs" Link="AppLinked\Source\Crc32.cs" />
   </ItemGroup>
 
   <ItemGroup>

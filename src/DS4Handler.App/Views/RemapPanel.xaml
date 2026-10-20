@@ -76,7 +76,7 @@
                         <ComboBox x:Name="Target" Grid.Column="3" Style="{StaticResource Combo}" ItemsSource="{Binding Options}"
                                   SelectedItem="{Binding SelectedOption, Mode=TwoWay}" ItemTemplate="{StaticResource OptionItem}"
                                   DropDownOpened="OnTargetOpened" DropDownClosed="OnTargetClosed" PreviewKeyDown="OnTargetKeyDown"
-                                  MaxDropDownHeight="440" ToolTip="{Binding Tip}" AutomationProperties.Name="{Binding AutomationName}"
+                                  MaxDropDownHeight="440" IsTextSearchEnabled="False" ToolTip="{Binding Tip}" AutomationProperties.Name="{Binding AutomationName}"
                                   Visibility="{Binding IsCapturing, Converter={StaticResource BoolVis}, ConverterParameter=invert}">
                             <ComboBox.GroupStyle>
                                 <GroupStyle>

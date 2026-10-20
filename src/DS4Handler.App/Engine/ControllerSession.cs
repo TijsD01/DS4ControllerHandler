@@ -696,6 +696,7 @@ public sealed class ControllerSession : IDisposable
                 {
                     // A Bluetooth pad that keeps sending reduced reports missed the full-mode switch: ask again now and then.
                     if (connection == ConnectionType.Bluetooth && ++unparsed % 500 == 0) RequestFullReports();
+                    _keys.ReleaseAll(ReleaseKey); // no buttons to read, so no key may stay down meanwhile
                     continue;
                 }
 

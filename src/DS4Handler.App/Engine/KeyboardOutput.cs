@@ -11,6 +11,12 @@ internal static class KeyboardOutput
     private const uint KeyeventfScanCode = 0x0008;
     private static readonly int InputSize = Marshal.SizeOf<Input>();
 
+    /// <summary>Tag in every key this app sends ("DS4H"), so the app can ignore its own keys when it has focus.</summary>
+    public static readonly IntPtr Marker = (IntPtr)0x44533448;
+
+    /// <summary>True when <paramref name="extraInfo"/> (GetMessageExtraInfo of a key message) marks a key sent by this app.</summary>
+    public static bool IsOwnKey(IntPtr extraInfo) => extraInfo == Marker;
+
     public static void Press(ushort scanCode) => Send(scanCode, 0);
 
     public static void Release(ushort scanCode) => Send(scanCode, KeyeventfKeyUp);
@@ -22,7 +28,7 @@ internal static class KeyboardOutput
         var input = new Input
         {
             Type = InputKeyboard,
-            Keyboard = new KeybdInput { Scan = (ushort)(scanCode & 0xFF), Flags = flags },
+            Keyboard = new KeybdInput { Scan = (ushort)(scanCode & 0xFF), Flags = flags, ExtraInfo = Marker },
         };
         SendInput(1, ref input, InputSize); // best effort: a blocked input (UIPI) is not worth stopping the pad for
     }

@@ -1,5 +1,8 @@
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Threading;
+using DS4Handler.App.Engine;
 using DS4Handler.App.Infrastructure;
 using DS4Handler.App.Services;
 using DS4Handler.App.ViewModels;
@@ -68,6 +71,8 @@ public partial class App : Application
                 Quit();
             }), null, Timeout.Infinite, executeOnlyOnce: true);
 
+        // Subscribed before any window exists, so it runs first: GetMessageExtraInfo still belongs to this MSG.
+        ComponentDispatcher.ThreadFilterMessage += SwallowOwnKeys;
         DispatcherUnhandledException += OnUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
             Log.Error("Onverwachte fout (achtergrond)", args.ExceptionObject as Exception);
@@ -107,6 +112,21 @@ public partial class App : Application
                            || e.Args.Contains("--minimized", StringComparer.OrdinalIgnoreCase);
         if (!startHidden) ShowWindow();
     }
+
+    /// <summary>
+    /// Drops keys this app sent itself (remapped buttons) before WPF sees them: with the window in front they would
+    /// otherwise type into it, e.g. pick another target on the Knoppen tab or be captured as the new key.
+    /// Handled here skips TranslateMessage/DispatchMessage, so no key or text event is raised anywhere in the app.
+    /// </summary>
+    private static void SwallowOwnKeys(ref MSG msg, ref bool handled)
+    {
+        const int WmKeyDown = 0x0100, WmKeyUp = 0x0101, WmSysKeyDown = 0x0104, WmSysKeyUp = 0x0105;
+        if (handled || msg.message is not (WmKeyDown or WmKeyUp or WmSysKeyDown or WmSysKeyUp)) return;
+        if (KeyboardOutput.IsOwnKey(GetMessageExtraInfo())) handled = true;
+    }
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetMessageExtraInfo();
 
     /// <summary>
     /// DS4Handler.exe --unhide, started by the uninstaller after taskkill: the normal exit never ran, so give back

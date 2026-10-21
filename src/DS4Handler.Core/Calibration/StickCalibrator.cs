@@ -275,6 +275,7 @@ public sealed class StickCalibrator
     private int _jRecentIndex, _jRecentCount;
     private readonly StickJitterFilter _filter;
     private bool _filterEnabled = true;
+    private float _filterResponse;
 
     public StickCalibrator(StickCalibrationOptions? options = null)
     {
@@ -333,6 +334,16 @@ public sealed class StickCalibrator
         }
     }
 
+    /// <summary>
+    /// Jitter filter trade-off 0..1: 0 = calm (the learned default), 1 = fastest response with less
+    /// smoothing (see <see cref="StickJitterFilter.Filter"/>). Set from the user tuning.
+    /// </summary>
+    public float FilterResponse
+    {
+        get => _filterResponse;
+        set => _filterResponse = float.IsFinite(value) ? Math.Clamp(value, 0f, 1f) : 0f;
+    }
+
     /// <summary>True while a guided centering started with <see cref="StartGuidedCenter"/> is waiting for a still stick.</summary>
     public bool GuidedInProgress => _guided;
 
@@ -373,7 +384,7 @@ public sealed class StickCalibrator
         var m = Map(rawX, rawY);
         if (!_filterEnabled) return m;
 
-        return _filter.Filter(m.X, m.Y, _jitter * OutputScale, _filter.StrengthFor(_jitter), (float)dt);
+        return _filter.Filter(m.X, m.Y, _jitter * OutputScale, _filter.StrengthFor(_jitter), (float)dt, _filterResponse);
     }
 
     /// <summary>Approximate scale from raw distance to output distance outside the deadzone.</summary>

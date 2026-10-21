@@ -60,8 +60,14 @@ public sealed class StickJitterFilter
     /// <param name="jitter">Learned jitter in output units (per axis std).</param>
     /// <param name="strength">Filter strength 0..1, see <see cref="StrengthFor"/>.</param>
     /// <param name="dt">Seconds since the previous sample.</param>
-    public (float X, float Y) Filter(float x, float y, float jitter, float strength, float dt)
+    /// <param name="response">
+    /// User choice 0..1 between calm and fast (see <see cref="Tuning.StickTuning.FilterResponse"/>). 0 is the
+    /// learned default; 1 raises the cutoff 5×, makes it follow speed 4× sooner, halves the motion threshold
+    /// and drops the moving deadband (slow aiming on a worn stick: about 4 ms lag instead of 16 ms).
+    /// </param>
+    public (float X, float Y) Filter(float x, float y, float jitter, float strength, float dt, float response = 0f)
     {
+        response = float.IsFinite(response) ? Math.Clamp(response, 0f, 1f) : 0f;
         if (x == 0f && y == 0f)
         {
             // Inside the deadzone: exactly zero, and start fresh from zero.
@@ -98,7 +104,8 @@ public sealed class StickJitterFilter
 
         // A jump well outside the jitter is real motion: react on this very sample.
         float err = MathF.Sqrt(ex * ex + ey * ey);
-        if (err > _o.JitterMotionFactor * jitter + _o.JitterMotionMargin && err / dt > speed)
+        float motionFactor = _o.JitterMotionFactor * (1f - 0.5f * response);
+        if (err > motionFactor * jitter + _o.JitterMotionMargin && err / dt > speed)
         {
             // Remember it, so the rest of the move is followed closely too.
             _vx = rawVx;
@@ -109,14 +116,14 @@ public sealed class StickJitterFilter
 
         // One Euro: cutoff = min cutoff + beta * speed. A weak filter has a very high min cutoff.
         float s2 = Math.Max(strength * strength, 1e-4f);
-        float cutoff = _o.JitterMinCutoffHz / s2 + _o.JitterBeta * speed;
+        float cutoff = _o.JitterMinCutoffHz * (1f + 4f * response) / s2 + _o.JitterBeta * (1f + 3f * response) * speed;
         float a = Alpha(cutoff, dt);
         _fx += ex * a;
         _fy += ey * a;
 
         // Moving deadband while slow: the output only follows once the filtered position moves
         // further than the jitter; it fades out as the stick speeds up.
-        float band = _o.JitterDeadbandFactor * jitter * strength
+        float band = _o.JitterDeadbandFactor * jitter * strength * (1f - response)
                      * Math.Clamp(1f - speed / _o.JitterSlowSpeed, 0f, 1f);
         float dx = _fx - _ox, dy = _fy - _oy;
         float d = MathF.Sqrt(dx * dx + dy * dy);

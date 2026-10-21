@@ -46,6 +46,9 @@ public static class Tips
         "Draadloos verbonden via Bluetooth. Merk je vertraging? Gebruik dan een kabel of zet de controller dichter bij je pc.";
     public const string ReportRate =
         "Hoe vaak per seconde de controller zijn standen doorgeeft. Hoger is vloeiender; 250 of meer is prima.";
+    public const string Latency =
+        "Hoe lang de app nodig heeft van een meting van de controller tot de virtuele controller voor games is bijgewerkt. Onder 0,1 ms is uitstekend; boven 1 ms wijst op een drukke pc.\n" +
+        "De langste pauze laat zien of de verbinding hapert: via USB hoort die rond 4 ms te zitten, via Bluetooth rond je ingestelde meetsnelheid. Veel hoger betekent storing of een zwak Bluetooth-signaal.";
 
     // ----- Live view -----
     public const string StickView =
@@ -221,6 +224,8 @@ public static class Tips
         "Curve: hoe de stick of trigger reageert tussen begin en eind. 1,00 is recht: 1 op 1. Hoger dan 1 is rustiger in het begin (precies richten) en heftiger aan het eind. Lager dan 1 is juist snel bij kleine bewegingen.";
     public const string TuneSensitivity =
         "Gevoeligheid: vermenigvuldigt de uitslag van de stick. Boven 1× haal je volle uitslag al voordat de stick de rand raakt; onder 1× haal je nooit helemaal vol. De uitkomst gaat nooit boven 100%. Bij Kruis werkt dit per as.";
+    public const string TuneFilterResponse =
+        "Reactie: de app filtert trillen van een versleten stick weg. Rustig (links) haalt het meeste trillen weg, maar bij langzaam richten loopt de stick een fractie achter. Snel (rechts) volgt je duim vrijwel meteen, maar er komt meer trillen door. Heeft alleen effect als de app trillen heeft gemeten op deze stick; een nieuwe stick merkt er niets van.";
     public const string TuneSquareOutput =
         "Vierkante uitvoer: schuin duwen geeft op beide assen 100%, in plaats van maximaal ongeveer 70% per as. Handig voor games waar je diagonaal volle snelheid wilt. Zet dit niet aan als een game zelf al een vierkant bereik gebruikt.";
     public const string TuneInvertX = "Draait links en rechts om voor deze stick.";

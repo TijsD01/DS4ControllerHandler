@@ -84,6 +84,7 @@ public partial class App : Application
 
         ConfigureToolTips();
         Log.Info("Gestart.");
+        SchedulingBoost.ApplyToProcess();
 
         _host = new AppHost();
         _viewModel = new MainViewModel(_host, new Dialogs(() => _window));

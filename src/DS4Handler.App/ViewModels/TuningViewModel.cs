@@ -163,7 +163,8 @@ public sealed class StickTuningSection : TuningSection
         Anti = new TuningSlider("Anti-deadzone", Tips.TuneAnti, 0, 0.9, 0.01, Pct, ChangedCallback);
         Curve = new TuningSlider("Curve", Tips.TuneCurve, 0.2, 5, 0.05, CurveText, ChangedCallback);
         Sensitivity = new TuningSlider("Gevoeligheid", Tips.TuneSensitivity, 0.1, 3, 0.05, Times, ChangedCallback);
-        Sliders = new[] { Inner, Outer, Anti, Curve, Sensitivity };
+        Response = new TuningSlider("Reactie", Tips.TuneFilterResponse, 0, 1, 0.05, ResponseText, ChangedCallback);
+        Sliders = new[] { Inner, Outer, Anti, Curve, Sensitivity, Response };
         WatchCurve(Curve);
         LoadDefaults();
     }
@@ -175,7 +176,12 @@ public sealed class StickTuningSection : TuningSection
     public TuningSlider Anti { get; }
     public TuningSlider Curve { get; }
     public TuningSlider Sensitivity { get; }
+
+    /// <summary>Jitter filter: calm (0) to fast (1), see <see cref="StickTuning.FilterResponse"/>.</summary>
+    public TuningSlider Response { get; }
     public IReadOnlyList<TuningSlider> Sliders { get; }
+
+    private static string ResponseText(double v) => v < 0.025 ? "rustig" : v > 0.975 ? "snel" : Fmt.Pct(v);
 
     public bool ShapeRadial { get => _shape == DeadzoneShape.Radial; set { if (value) SetShape(DeadzoneShape.Radial); } }
     public bool ShapeSquare { get => _shape == DeadzoneShape.Square; set { if (value) SetShape(DeadzoneShape.Square); } }
@@ -226,6 +232,7 @@ public sealed class StickTuningSection : TuningSection
             Anti.Load(t.AntiDeadzone);
             Curve.Load(t.Curve);
             Sensitivity.Load(t.Sensitivity);
+            Response.Load(t.FilterResponse);
             SquareOutput = t.SquareOutput;
             InvertX = t.InvertX;
             InvertY = t.InvertY;
@@ -241,6 +248,7 @@ public sealed class StickTuningSection : TuningSection
         AntiDeadzone = F(Anti.Value),
         Curve = F(Curve.Value),
         Sensitivity = F(Sensitivity.Value),
+        FilterResponse = F(Response.Value),
         SquareOutput = _square,
         InvertX = _invertX,
         InvertY = _invertY,

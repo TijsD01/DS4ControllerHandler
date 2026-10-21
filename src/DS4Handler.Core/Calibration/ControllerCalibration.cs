@@ -45,7 +45,12 @@ public sealed class ControllerCalibration
     public InputTuning Tuning
     {
         get => _tuning;
-        set => _tuning = InputShaper.Sanitize(value);
+        set
+        {
+            _tuning = InputShaper.Sanitize(value);
+            LeftStick.FilterResponse = _tuning.LeftStick.FilterResponse;
+            RightStick.FilterResponse = _tuning.RightStick.FilterResponse;
+        }
     }
 
     /// <summary>Turns learning on or off for all four inputs at once.</summary>

@@ -280,6 +280,7 @@ public static class InputShaper
             AntiDeadzone = Clamp(t.AntiDeadzone, 0f, 0f, MaxAntiDeadzone),
             Curve = Clamp(t.Curve, 1f, MinCurve, MaxCurve),
             Sensitivity = Clamp(t.Sensitivity, 1f, MinSensitivity, MaxSensitivity),
+            FilterResponse = Clamp(t.FilterResponse, 0f, 0f, 1f),
         };
         return result == t ? t : result;
     }

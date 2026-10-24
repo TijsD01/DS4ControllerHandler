@@ -35,6 +35,14 @@ public struct TriggerLive
 }
 
 /// <summary>
+/// How fast the app handled reports during the last full second (zero until the first second is in).
+/// </summary>
+/// <param name="ProcessAvgMicros">Average time from "report read" to "virtual controller updated", in microseconds.</param>
+/// <param name="ProcessMaxMicros">Slowest single report in that second, in microseconds.</param>
+/// <param name="GapMaxMs">Longest pause between two reports from the controller, in milliseconds.</param>
+public readonly record struct LatencyStats(float ProcessAvgMicros, float ProcessMaxMicros, float GapMaxMs);
+
+/// <summary>
 /// Everything the UI needs about one controller at a point in time. A plain struct the UI copies
 /// with <see cref="ControllerSession.CopySnapshot"/>, so polling never allocates.
 /// </summary>
@@ -50,6 +58,9 @@ public struct ControllerSnapshot
 
     /// <summary><see cref="System.Diagnostics.Stopwatch"/> timestamp of the latest report.</summary>
     public long LastReportTimestamp;
+
+    /// <summary>Processing time and report gaps over the last second.</summary>
+    public LatencyStats Latency;
 
     public bool LearningEnabled;
     public StickLive Left, Right;

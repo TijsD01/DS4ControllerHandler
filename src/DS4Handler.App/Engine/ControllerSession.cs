@@ -96,6 +96,7 @@ public sealed class ControllerSession : IDisposable
     private bool _hasInput;
     private long _reports;
     private long _lastReportTimestamp;
+    private LatencyStats _latency;                  // last full second, published by the read thread
 
     private int _disposed;
 
@@ -306,6 +307,7 @@ public sealed class ControllerSession : IDisposable
             s.Connection = Connection;
             s.Reports = _reports;
             s.LastReportTimestamp = _lastReportTimestamp;
+            s.Latency = _latency;
             var c = _calibration;
             if (c == null) return;
             s.LearningEnabled = c.LearningEnabled;
@@ -673,6 +675,14 @@ public sealed class ControllerSession : IDisposable
         long previousArrival = 0;
         double interval = 1.0 / 250;
         double tickSeconds = 1.0 / Stopwatch.Frequency;
+        // Latency figures, gathered per second and published under _sync (see LatencyStats).
+        long bucketStart = 0, procSum = 0, procMax = 0, gapMax = 0;
+        int procCount = 0;
+        long maxGapTicks = Stopwatch.Frequency / 2; // longer pauses are a quiet pad, not a hiccup
+
+        // Ask Windows for game-grade scheduling on this thread (MMCSS); undone in finally.
+        var mmcss = SchedulingBoost.EnterGamesThread();
+        if (mmcss == IntPtr.Zero) Log.Info($"{Id}: Windows-voorrang (MMCSS) geweigerd; lezen werkt op normale prioriteit.");
 
         try
         {
@@ -691,6 +701,7 @@ public sealed class ControllerSession : IDisposable
                     continue;
                 }
                 if (read <= 0) continue;
+                long arrival = Stopwatch.GetTimestamp(); // straight after the read: the processing time below starts here
 
                 if (!ReportParser.TryParse(model, new ReadOnlySpan<byte>(buffer, 0, read), out var raw, out _, connection))
                 {
@@ -700,11 +711,12 @@ public sealed class ControllerSession : IDisposable
                     continue;
                 }
 
-                long arrival = Stopwatch.GetTimestamp();
                 if (previousArrival != 0)
                 {
-                    double seconds = (arrival - previousArrival) * tickSeconds;
+                    long gap = arrival - previousArrival;
+                    double seconds = gap * tickSeconds;
                     if (seconds > 0 && seconds < 0.05) interval += (seconds - interval) * 0.02;
+                    if (gap < maxGapTicks && gap > gapMax) gapMax = gap;
                 }
                 previousArrival = arrival;
 
@@ -728,6 +740,24 @@ public sealed class ControllerSession : IDisposable
                 SubmitVirtual(output, arrival, outputRate);
                 // Diffed against the remap in effect now, so a remap or profile change releases the old key.
                 _keys.Update(heldKeys, remap, PressKey, ReleaseKey);
+
+                long done = Stopwatch.GetTimestamp();
+                long proc = done - arrival;
+                procSum += proc;
+                procCount++;
+                if (proc > procMax) procMax = proc;
+                if (bucketStart == 0) bucketStart = arrival;
+                else if (done - bucketStart >= Stopwatch.Frequency)
+                {
+                    var stats = new LatencyStats(
+                        (float)(procSum * tickSeconds * 1e6 / procCount),
+                        (float)(procMax * tickSeconds * 1e6),
+                        (float)(gapMax * tickSeconds * 1e3));
+                    lock (_sync) _latency = stats;
+                    bucketStart = done;
+                    procSum = procMax = gapMax = 0;
+                    procCount = 0;
+                }
             }
         }
         catch (Exception ex) when (ex is IOException or ObjectDisposedException or InvalidOperationException or OperationCanceledException)
@@ -740,6 +770,7 @@ public sealed class ControllerSession : IDisposable
         }
         finally
         {
+            SchedulingBoost.LeaveGamesThread(mmcss);
             _keys.ReleaseAll(ReleaseKey);
             if (Volatile.Read(ref _disposed) == 0)
             {

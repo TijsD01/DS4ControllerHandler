@@ -3,6 +3,12 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
+## 2.2.0
+
+- Minder vertraging: de app vraagt Windows nu om voorrang voor het lezen van je controller. Ook als de app in het systeemvak zit en een game de focus heeft, wordt hij niet meer in de spaarstand gezet.
+- Nieuw schuifje "Reactie" per stick bij Afstellen: kies tussen rustig (meeste trillen weggefilterd) en snel (stick volgt je duim vrijwel meteen). Bij een versleten stick gaat de vertraging bij langzaam richten van ongeveer 16 ms naar 4 ms. Een nieuwe stick merkt er niets van.
+- Bovenaan elke controller zie je nu hoe snel de app een meting verwerkt en, als je er met de muis op staat, hoe lang de langste pauze van de controller was. Zo zie je meteen of je pc of de Bluetooth-verbinding hapert.
+
 ## 2.1.0
 
 - Nieuw tabblad "Knoppen" bij elke controller: kies per knop wat de game krijgt (een andere knop, een toets op je toetsenbord of niets) en wissel desgewenst de sticks. Druk een knop in en je ziet meteen welke regel erbij hoort. Wordt bewaard in het profiel van de controller.

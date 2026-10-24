@@ -250,6 +250,7 @@ public sealed class ControllerViewModel : ObservableObject
     private string _hideLevel = Level.Off;
     private string _hideStatusTip = "";
     private string _rate = "";
+    private string _latencyText = "", _latencyTip = "";
     private bool _sticksGuided;
     private bool _anyInput;
     private bool _isShown;
@@ -357,6 +358,12 @@ public sealed class ControllerViewModel : ObservableObject
     /// <summary>Tooltip of the "Verborgen voor games" chip: what the switch does, plus the current state.</summary>
     public string HideChipTip => string.IsNullOrEmpty(HideStatusTip) ? HideTip : HideTip + "\n\nNu: " + HideStatusTip;
     public string ReportRateText { get => _rate; private set => SetField(ref _rate, value); }
+
+    /// <summary>"verwerking 0,04 ms" for the header; empty until the first second of reports is measured.</summary>
+    public string LatencyText { get => _latencyText; private set => SetField(ref _latencyText, value); }
+
+    /// <summary>Tooltip with the details behind <see cref="LatencyText"/>.</summary>
+    public string LatencyTip { get => _latencyTip; private set => SetField(ref _latencyTip, value); }
     public bool SticksGuided { get => _sticksGuided; private set => SetField(ref _sticksGuided, value); }
     public bool HasInput { get => _anyInput; private set => SetField(ref _anyInput, value); }
 
@@ -491,9 +498,26 @@ public sealed class ControllerViewModel : ObservableObject
             double rate = seconds > 0 ? (_snap.Reports - _lastReports) / seconds : 0;
             ReportRateText = $"{rate:0} Hz";
         }
+        var l = _snap.Latency;
+        bool recent = _snap.LastReportTimestamp != 0 &&
+                      now - _snap.LastReportTimestamp < 2 * System.Diagnostics.Stopwatch.Frequency;
+        if (l.ProcessAvgMicros > 0 && _snap.HasInput && recent)
+        {
+            LatencyText = $"verwerking {Ms(l.ProcessAvgMicros / 1000)} ms";
+            LatencyTip = Tips.Latency + "\n\n" +
+                $"Nu: gemiddeld {Ms(l.ProcessAvgMicros / 1000)} ms, traagste {Ms(l.ProcessMaxMicros / 1000)} ms. " +
+                $"Langste pauze van de controller: {l.GapMaxMs.ToString("0.0", Fmt.Nl)} ms.";
+        }
+        else
+        {
+            LatencyText = "";
+            LatencyTip = "";
+        }
         _lastRateTimestamp = now;
         _lastReports = _snap.Reports;
     }
+
+    private static string Ms(float ms) => ms.ToString(ms < 1 ? "0.00" : "0.0", Fmt.Nl);
 
     private void UpdateBattery(byte? percent)
     {

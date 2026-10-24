@@ -46,6 +46,7 @@ public sealed class InputTuningJsonConverter : JsonConverter<InputTuning>
             SquareOutput = Bool(Get(o, nameof(StickTuning.SquareOutput))),
             InvertX = Bool(Get(o, nameof(StickTuning.InvertX))),
             InvertY = Bool(Get(o, nameof(StickTuning.InvertY))),
+            FilterResponse = Float(Get(o, nameof(StickTuning.FilterResponse)), d.FilterResponse),
         };
     }
 
@@ -204,6 +205,7 @@ public sealed class InputTuningJsonConverter : JsonConverter<InputTuning>
         w.WriteBoolean(nameof(StickTuning.SquareOutput), t.SquareOutput);
         w.WriteBoolean(nameof(StickTuning.InvertX), t.InvertX);
         w.WriteBoolean(nameof(StickTuning.InvertY), t.InvertY);
+        WriteFloat(w, nameof(StickTuning.FilterResponse), t.FilterResponse, d.FilterResponse);
         w.WriteEndObject();
     }
 

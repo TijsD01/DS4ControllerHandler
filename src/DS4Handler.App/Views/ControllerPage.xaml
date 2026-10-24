@@ -125,6 +125,8 @@
                     <TextBlock Style="{StaticResource Mono}" Text="{Binding ConnectionText, StringFormat='{} · {0}', Mode=OneWay}" ToolTip="{Binding ConnectionTip}" />
                     <TextBlock Style="{StaticResource Mono}" Text="{Binding ReportRateText, StringFormat='{} · {0}'}" ToolTip="{x:Static vm:Tips.ReportRate}"
                                Visibility="{Binding ReportRateText, Converter={StaticResource TextVis}}" />
+                    <TextBlock Style="{StaticResource Mono}" Text="{Binding LatencyText, StringFormat='{} · {0}'}" ToolTip="{Binding LatencyTip}" Cursor="Help"
+                               Visibility="{Binding LatencyText, Converter={StaticResource TextVis}}" />
                     <TextBlock Style="{StaticResource Mono}" Text="{Binding BatteryText, StringFormat='{} · batterij {0}'}" ToolTip="{Binding BatteryTip}"
                                Visibility="{Binding HasBattery, Converter={StaticResource BoolVis}}" />
                     <TextBlock Style="{StaticResource Mono}" Text="{Binding IdText, StringFormat='{} · {0}', Mode=OneWay}" ToolTip="{Binding IdTip}" Cursor="Help" />

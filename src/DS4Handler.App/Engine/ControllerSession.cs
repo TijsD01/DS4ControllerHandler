@@ -682,6 +682,7 @@ public sealed class ControllerSession : IDisposable
 
         // Ask Windows for game-grade scheduling on this thread (MMCSS); undone in finally.
         var mmcss = SchedulingBoost.EnterGamesThread();
+        if (mmcss == IntPtr.Zero) Log.Info($"{Id}: Windows-voorrang (MMCSS) geweigerd; lezen werkt op normale prioriteit.");
 
         try
         {

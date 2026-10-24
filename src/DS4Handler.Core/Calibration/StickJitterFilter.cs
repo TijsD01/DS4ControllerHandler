@@ -61,13 +61,12 @@ public sealed class StickJitterFilter
     /// <param name="strength">Filter strength 0..1, see <see cref="StrengthFor"/>.</param>
     /// <param name="dt">Seconds since the previous sample.</param>
     /// <param name="response">
-    /// User choice 0..1 between calm and fast (see <see cref="Tuning.StickTuning.FilterResponse"/>). 0 is the
+    /// User choice 0..1, already clamped by the caller, between calm and fast (see <see cref="Tuning.StickTuning.FilterResponse"/>). 0 is the
     /// learned default; 1 raises the cutoff 5×, makes it follow speed 4× sooner, halves the motion threshold
     /// and drops the moving deadband (slow aiming on a worn stick: about 4 ms lag instead of 16 ms).
     /// </param>
     public (float X, float Y) Filter(float x, float y, float jitter, float strength, float dt, float response = 0f)
     {
-        response = float.IsFinite(response) ? Math.Clamp(response, 0f, 1f) : 0f;
         if (x == 0f && y == 0f)
         {
             // Inside the deadzone: exactly zero, and start fresh from zero.

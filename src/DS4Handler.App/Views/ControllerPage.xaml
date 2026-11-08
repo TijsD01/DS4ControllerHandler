@@ -150,10 +150,19 @@
 
         <!-- ===== Fact chips: virtual controller, hidden for games, profile ===== -->
         <WrapPanel Margin="0,14,0,0">
-            <Border Style="{StaticResource FactChip}" ToolTip="{Binding StatusTip}">
+            <!-- Mark + fixed label; the state ("Virtuele Xbox 360 actief") and its explanation show on hover. -->
+            <Border Style="{StaticResource FactChip}" AutomationProperties.Name="{Binding StatusText}">
+                <Border.ToolTip>
+                    <ToolTip>
+                        <StackPanel MaxWidth="380">
+                            <TextBlock Text="{Binding StatusText}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding StatusTip}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </ToolTip>
+                </Border.ToolTip>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Ellipse Style="{StaticResource Dot}" Margin="0,0,8,0" Fill="{Binding StatusLevel, Converter={StaticResource LevelBrush}}" />
-                    <TextBlock Text="{Binding StatusText}" FontSize="13" VerticalAlignment="Center" />
+                    <c:StatusMark Level="{Binding StatusLevel}" Margin="0,0,8,0" />
+                    <TextBlock Text="Virtuele controller" FontSize="13" VerticalAlignment="Center" />
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource FactChip}" Padding="8,4,12,4" ToolTip="{Binding HideChipTip}">

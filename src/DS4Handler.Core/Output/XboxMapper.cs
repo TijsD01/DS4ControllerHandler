@@ -21,7 +21,7 @@ public static class XboxMapper
     /// </summary>
     public static XboxButtons MapButtons(Buttons buttons)
     {
-        uint b = (uint)buttons;
+        uint b = (uint)buttons; // bit positions are hard-coded: HotPathEquivalenceTests guards them if Buttons/XboxButtons change
         uint x = ((b & 0xF) << 12)          // Cross, Circle, Square, Triangle → A, B, X, Y
                | (((b >> 4) & 0x3) << 8)    // L1, R1 → LeftShoulder, RightShoulder
                | (((b >> 8) & 0x1) << 5)    // Share → Back

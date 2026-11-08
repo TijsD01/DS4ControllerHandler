@@ -45,6 +45,7 @@ public enum VirtualPadState
 /// </remarks>
 public sealed class ControllerSession : IDisposable
 {
+    private static int _queueWarned;
     private static readonly TimeSpan SaveInterval = TimeSpan.FromSeconds(30);
     private const int ReadTimeoutMs = 1000;
     private const int WriteTimeoutMs = 200;
@@ -240,7 +241,8 @@ public sealed class ControllerSession : IDisposable
         _stream = stream;
         stream.ReadTimeout = ReadTimeoutMs;
         stream.WriteTimeout = WriteTimeoutMs;
-        if (!HidInputQueue.Shorten(stream)) Log.Info($"{DisplayName}: invoerwachtrij niet ingekort; na een hapering kan oude invoer even naijlen.");
+        if (HidInputQueue.Shorten(stream) is { } why && Interlocked.Exchange(ref _queueWarned, 1) == 0) // once per process, not per reconnect
+            Log.Info($"{DisplayName}: invoerwachtrij niet ingekort ({why}); na een hapering kan oude invoer even naijlen.");
 
         var identity = ControllerIdentity.Read(_device, stream, Model, Connection);
         Id = identity.Id;

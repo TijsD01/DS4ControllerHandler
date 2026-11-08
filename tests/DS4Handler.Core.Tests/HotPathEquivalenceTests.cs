@@ -43,21 +43,22 @@ public class HotPathEquivalenceTests
 
     // ---- Reference logic: the readable versions the fast code replaced. ----
 
+    private static readonly (Buttons From, XboxButtons To)[] XboxMap =
+    {
+        (Buttons.Cross, XboxButtons.A), (Buttons.Circle, XboxButtons.B),
+        (Buttons.Square, XboxButtons.X), (Buttons.Triangle, XboxButtons.Y),
+        (Buttons.L1, XboxButtons.LeftShoulder), (Buttons.R1, XboxButtons.RightShoulder),
+        (Buttons.L3, XboxButtons.LeftThumb), (Buttons.R3, XboxButtons.RightThumb),
+        (Buttons.Share, XboxButtons.Back), (Buttons.Options, XboxButtons.Start),
+        (Buttons.PS, XboxButtons.Guide),
+        (Buttons.DpadUp, XboxButtons.Up), (Buttons.DpadDown, XboxButtons.Down),
+        (Buttons.DpadLeft, XboxButtons.Left), (Buttons.DpadRight, XboxButtons.Right),
+    };
+
     private static XboxButtons ReferenceXboxButtons(Buttons b)
     {
-        (Buttons From, XboxButtons To)[] map =
-        {
-            (Buttons.Cross, XboxButtons.A), (Buttons.Circle, XboxButtons.B),
-            (Buttons.Square, XboxButtons.X), (Buttons.Triangle, XboxButtons.Y),
-            (Buttons.L1, XboxButtons.LeftShoulder), (Buttons.R1, XboxButtons.RightShoulder),
-            (Buttons.L3, XboxButtons.LeftThumb), (Buttons.R3, XboxButtons.RightThumb),
-            (Buttons.Share, XboxButtons.Back), (Buttons.Options, XboxButtons.Start),
-            (Buttons.PS, XboxButtons.Guide),
-            (Buttons.DpadUp, XboxButtons.Up), (Buttons.DpadDown, XboxButtons.Down),
-            (Buttons.DpadLeft, XboxButtons.Left), (Buttons.DpadRight, XboxButtons.Right),
-        };
         var result = XboxButtons.None;
-        foreach (var (from, to) in map)
+        foreach (var (from, to) in XboxMap)
             if ((b & from) != 0) result |= to;
         return result;
     }

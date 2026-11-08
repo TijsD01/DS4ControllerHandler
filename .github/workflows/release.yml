@@ -27,6 +27,7 @@ on:
       - '.github/workflows/release.yml'
       - 'installer/**'
       - 'src/DS4Handler.App/DS4Handler.App.csproj'
+      - 'Directory.Build.props'
 
 permissions:
   contents: write

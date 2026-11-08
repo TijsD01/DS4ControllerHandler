@@ -43,7 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="HidSharp" Version="2.6.4" />
+    <PackageReference Include="HidSharp" Version="$(HidSharpVersion)" />
     <PackageReference Include="Nefarius.ViGEm.Client" Version="1.21.256" />
   </ItemGroup>
 

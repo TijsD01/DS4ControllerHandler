@@ -10,7 +10,7 @@ public static class Ds4Mapper
 
     public static Ds4OutputReport Map(in CalibratedState s)
     {
-        uint b = (uint)s.Buttons;
+        uint b = (uint)s.Buttons; // bit positions are hard-coded: HotPathEquivalenceTests guards them if Buttons/Ds4OutputButtons change
         // Face buttons move to ViGEm's order; L1/R1, Share/Options and L3/R3 all shift up by 4 bits.
         uint face = ((b & 0x1) << 5)   // Cross → 32
                   | ((b & 0x2) << 5)   // Circle → 64

@@ -16,7 +16,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <!-- Same version as the app: HidInputQueueTests checks a private field of its Windows stream. -->
-    <PackageReference Include="HidSharp" Version="2.6.4" />
+    <PackageReference Include="HidSharp" Version="$(HidSharpVersion)" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
 

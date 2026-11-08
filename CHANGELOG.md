@@ -7,8 +7,8 @@ De bovenste sectie komt automatisch in de release op GitHub en de app laat hem n
 
 - Na een hapering van je pc loopt je controller niet meer achter: de game krijgt meteen de nieuwste stand, en geen knopdruk gaat verloren.
 - Trillen komt sneller aan.
-- ViGEmBus en HidHide tonen nu een groen bolletje met een vinkje als alles in orde is.
-- Titels en statuswoorden met een gewone hoofdletter, zoals "Kalibratie" en "In orde".
+- Statussen zijn nu bolletjes: een groen vinkje als alles in orde is. Klopt er iets niet, ga dan met je muis op het bolletje staan voor de uitleg.
+- Titels met een gewone hoofdletter, zoals "Kalibratie" in plaats van "KALIBRATIE".
 - Het pictogram in het systeemvak blijft scherp als je de schermschaal verandert.
 
 ## 2.2.0

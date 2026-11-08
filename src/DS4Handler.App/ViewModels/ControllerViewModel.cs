@@ -31,16 +31,6 @@ internal static class Fmt
 
 internal static class Words
 {
-    /// <summary>Status after a name in a short summary: "in orde", "leert nog", ...</summary>
-    public static string Short(string level) => level switch
-    {
-        Level.Ok => "in orde",
-        Level.Learning => "leert nog",
-        Level.Warn => "let op",
-        Level.Bad => "probleem",
-        _ => "uit",
-    };
-
     /// <summary>The least healthy of two levels (bad, warn, learning, ok, off).</summary>
     public static string Worst(string a, string b)
     {
@@ -162,7 +152,6 @@ public sealed class TriggerViewModel : ObservableObject
     public string CalibrateText => $"Kalibreer {Name}";
 
     /// <summary>Short status for the Kalibratie summary on Live: "L2 in orde", "R2 leert nog".</summary>
-    public string ShortStatus => $"{Name} {Words.Short(SummaryLevel)}";
     public ICommand StartGuidedCommand { get; }
     public ICommand CancelGuidedCommand { get; }
 
@@ -172,7 +161,7 @@ public sealed class TriggerViewModel : ObservableObject
     public double Rest { get => _rest; private set => SetNumber(ref _rest, value); }
     public string ValueText { get => _valueText; private set => SetField(ref _valueText, value); }
     public string Summary { get => _summary; private set => SetField(ref _summary, value); }
-    public string SummaryLevel { get => _summaryLevel; private set { if (SetField(ref _summaryLevel, value)) OnPropertyChanged(nameof(ShortStatus)); } }
+    public string SummaryLevel { get => _summaryLevel; private set => SetField(ref _summaryLevel, value); }
     public bool GuidedActive { get => _guided; private set => SetField(ref _guided, value); }
     public string GuidedText { get => _guidedText; private set => SetField(ref _guidedText, value); }
     public string BarTip { get => _barTip; private set => SetField(ref _barTip, value); }
@@ -318,8 +307,7 @@ public sealed class ControllerViewModel : ObservableObject
     }
 
     /// <summary>Both sticks together, for the Kalibratie summary on Live: the least healthy of the two.</summary>
-    public string SticksLevel { get => _sticksLevel; private set { if (SetField(ref _sticksLevel, value)) OnPropertyChanged(nameof(SticksStatus)); } }
-    public string SticksStatus => "Sticks " + Words.Short(SticksLevel);
+    public string SticksLevel { get => _sticksLevel; private set => SetField(ref _sticksLevel, value); }
 
     private string? _title;
     private string _profileText = "";

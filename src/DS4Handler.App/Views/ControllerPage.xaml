@@ -10,13 +10,14 @@
              d:DataContext="{d:DesignInstance Type=vm:ControllerViewModel}">
 
     <UserControl.Resources>
-        <!-- Status word at the end of a Kalibratie row ("in orde", "leert"), for a Stick- or TriggerViewModel. -->
-        <Style x:Key="SummaryWord" TargetType="TextBlock" BasedOn="{StaticResource StatusWord}">
-            <Setter Property="Text" Value="{Binding SummaryLevel, Converter={StaticResource LevelWord}}" />
-            <Setter Property="Foreground" Value="{Binding SummaryLevel, Converter={StaticResource LevelBrush}, ConverterParameter=text}" />
+        <!-- Status mark at the end of a Kalibratie row, for a Stick- or TriggerViewModel; the word shows on hover. -->
+        <Style x:Key="SummaryMark" TargetType="c:StatusMark">
+            <Setter Property="Level" Value="{Binding SummaryLevel}" />
+            <Setter Property="ToolTip" Value="{Binding SummaryLevel, Converter={StaticResource LevelWord}}" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding SummaryLevel, Converter={StaticResource LevelWord}}" />
         </Style>
 
-        <!-- One item of the Kalibratie summary on Live: dot + "L2 in orde". -->
+        <!-- One item of the Kalibratie summary on Live: mark + "L2"; the status word shows on hover. -->
         <Style x:Key="SummaryItem" TargetType="StackPanel">
             <Setter Property="Orientation" Value="Horizontal" />
             <Setter Property="Margin" Value="0,4,20,4" />
@@ -68,7 +69,7 @@
                     <TextBlock Text="{Binding Name}" Style="{StaticResource RowTitle}" VerticalAlignment="Center" Margin="0,0,20,0" />
                     <TextBlock Grid.Column="1" Text="{Binding Summary}" Style="{StaticResource Dim}" VerticalAlignment="Center"
                                Margin="0,0,20,0" ToolTip="{x:Static vm:Tips.StickSummary}" />
-                    <TextBlock Grid.Column="2" Style="{StaticResource SummaryWord}" />
+                    <c:StatusMark Grid.Column="2" Style="{StaticResource SummaryMark}" />
                 </Grid>
             </Border>
         </DataTemplate>
@@ -94,7 +95,7 @@
                         </Border>
                     </StackPanel>
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Style="{StaticResource SummaryWord}" Margin="0,0,14,0" />
+                        <c:StatusMark Style="{StaticResource SummaryMark}" Margin="0,0,14,0" />
                         <Grid>
                             <Button Content="Meten" Command="{Binding StartGuidedCommand}" MinWidth="96"
                                     AutomationProperties.Name="{Binding CalibrateText}" ToolTip="{x:Static vm:Tips.CalibrateTrigger}"
@@ -159,11 +160,11 @@
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding HideFromGames}" IsEnabled="{Binding HideAvailable}"
                               ToolTip="{Binding HideChipTip}" Content="Verborgen voor games" />
-                    <!-- Only when it is busy or did not work; "hidden" is what the switch already says. -->
-                    <TextBlock FontSize="13" Margin="10,0,0,0" VerticalAlignment="Center" Text="{Binding HideStatusText}"
-                               Foreground="{Binding HideLevel, Converter={StaticResource LevelBrush}, ConverterParameter=text}">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <!-- Only when it is busy or did not work ("hidden" is what the switch says); the reason shows on hover. -->
+                    <c:StatusMark Level="{Binding HideLevel}" Margin="10,0,0,0" ToolTip="{Binding HideStatusText}"
+                                  AutomationProperties.Name="{Binding HideStatusText}">
+                        <c:StatusMark.Style>
+                            <Style TargetType="c:StatusMark">
                                 <Setter Property="Visibility" Value="{Binding HideStatusText, Converter={StaticResource TextVis}}" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding HideLevel}" Value="ok">
@@ -171,8 +172,8 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </c:StatusMark.Style>
+                    </c:StatusMark>
                 </StackPanel>
             </Border>
             <Border Style="{StaticResource FactChip}" ToolTip="{Binding ProfileTip}"
@@ -289,17 +290,23 @@
                             </StackPanel>
                             <WrapPanel VerticalAlignment="Center">
                                 <TextBlock Text="Kalibratie" Style="{StaticResource SectionLabel}" Margin="0,4,20,4" />
-                                <StackPanel Style="{StaticResource SummaryItem}">
-                                    <Ellipse Style="{StaticResource Dot}" Margin="0,0,8,0" Fill="{Binding SticksLevel, Converter={StaticResource LevelBrush}}" />
-                                    <TextBlock Text="{Binding SticksStatus}" />
+                                <StackPanel Style="{StaticResource SummaryItem}" Background="Transparent"
+                                            ToolTip="{Binding SticksLevel, Converter={StaticResource LevelWord}}">
+                                    <c:StatusMark Level="{Binding SticksLevel}" Margin="0,0,8,0"
+                                                  AutomationProperties.Name="{Binding SticksLevel, Converter={StaticResource LevelWord}}" />
+                                    <TextBlock Text="Sticks" />
                                 </StackPanel>
-                                <StackPanel Style="{StaticResource SummaryItem}">
-                                    <Ellipse Style="{StaticResource Dot}" Margin="0,0,8,0" Fill="{Binding L2.SummaryLevel, Converter={StaticResource LevelBrush}}" />
-                                    <TextBlock Text="{Binding L2.ShortStatus}" />
+                                <StackPanel Style="{StaticResource SummaryItem}" Background="Transparent"
+                                            ToolTip="{Binding L2.SummaryLevel, Converter={StaticResource LevelWord}}">
+                                    <c:StatusMark Level="{Binding L2.SummaryLevel}" Margin="0,0,8,0"
+                                                  AutomationProperties.Name="{Binding L2.SummaryLevel, Converter={StaticResource LevelWord}}" />
+                                    <TextBlock Text="{Binding L2.Name}" />
                                 </StackPanel>
-                                <StackPanel Style="{StaticResource SummaryItem}">
-                                    <Ellipse Style="{StaticResource Dot}" Margin="0,0,8,0" Fill="{Binding R2.SummaryLevel, Converter={StaticResource LevelBrush}}" />
-                                    <TextBlock Text="{Binding R2.ShortStatus}" />
+                                <StackPanel Style="{StaticResource SummaryItem}" Background="Transparent"
+                                            ToolTip="{Binding R2.SummaryLevel, Converter={StaticResource LevelWord}}">
+                                    <c:StatusMark Level="{Binding R2.SummaryLevel}" Margin="0,0,8,0"
+                                                  AutomationProperties.Name="{Binding R2.SummaryLevel, Converter={StaticResource LevelWord}}" />
+                                    <TextBlock Text="{Binding R2.Name}" />
                                 </StackPanel>
                             </WrapPanel>
                         </DockPanel>

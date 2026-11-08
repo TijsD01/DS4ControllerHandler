@@ -122,8 +122,6 @@
                                             ToolTip="{Binding HidHideStatus}" Background="Transparent">
                                     <c:StatusMark Level="{Binding HidHideLevel}"
                                                   AutomationProperties.Name="{Binding HidHideLevel, Converter={StaticResource LevelWord}}" />
-                                    <TextBlock Text="{Binding HidHideWord}" Style="{StaticResource StatusWord}" Margin="8,0,0,0" Visibility="{Binding HidHideWord, Converter={StaticResource TextVis}}"
-                                               Foreground="{Binding HidHideLevel, Converter={StaticResource LevelBrush}, ConverterParameter=text}" />
                                 </StackPanel>
                                 <TextBlock Text="Verborgen voor games (HidHide)" Style="{StaticResource SectionLabel}" TextTrimming="CharacterEllipsis" />
                             </DockPanel>

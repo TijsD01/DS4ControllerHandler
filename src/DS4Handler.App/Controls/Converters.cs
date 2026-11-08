@@ -79,17 +79,17 @@ public sealed class TextVisibilityConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
 }
 
-/// <summary>Maps a <see cref="Level"/> string to a short Dutch status word ("in orde", "leert", ...).</summary>
+/// <summary>Maps a <see cref="Level"/> string to a short Dutch status word ("In orde", "Leert", ...).</summary>
 public sealed class LevelWordConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => (value as string) switch
     {
-        Level.Ok => "in orde",
-        Level.Warn => "let op",
-        Level.Bad => "probleem",
-        Level.Learning => "leert",
-        Level.Info => "info",
-        _ => "uit",
+        Level.Ok => "In orde",
+        Level.Warn => "Let op",
+        Level.Bad => "Probleem",
+        Level.Learning => "Leert",
+        Level.Info => "Info",
+        _ => "Uit",
     };
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;

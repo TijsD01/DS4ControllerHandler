@@ -225,7 +225,7 @@
                     <TranslateTransform x:Name="PictureShift" />
                 </Border.RenderTransform>
                 <StackPanel>
-                    <TextBlock Text="JOUW CONTROLLER" Style="{StaticResource SectionLabel}" />
+                    <TextBlock Text="Jouw controller" Style="{StaticResource SectionLabel}" />
                     <c:ControllerView Height="190" Margin="0,14,0,0"
                                       Kind="{Binding Pad.InputKind, Mode=OneWay}" Buttons="{Binding Pad.RawButtons}"
                                       LeftX="{Binding Pad.Left.RawX}" LeftY="{Binding Pad.Left.RawY}"

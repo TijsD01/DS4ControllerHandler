@@ -123,7 +123,7 @@
     <!-- Converters (the others live in App.xaml: LevelBrush, BoolVis, TextVis)               -->
     <!-- ===================================================================================== -->
 
-    <c:LevelWordConverter x:Key="LevelWord" />              <!-- Level → "in orde", "leert", ... -->
+    <c:LevelWordConverter x:Key="LevelWord" />              <!-- Level → "In orde", "Leert", ... -->
     <c:WidthToColumnsConverter x:Key="WidthToColumns" />    <!-- ActualWidth → 2 columns when ≥ ConverterParameter (px), else 1 -->
 
     <!-- ===================================================================================== -->
@@ -197,7 +197,7 @@
     </Style>
     <!-- 11 px semibold section label. Write the text in CAPITALS. -->
     <Style x:Key="SectionLabel" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontSize" Value="13" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />

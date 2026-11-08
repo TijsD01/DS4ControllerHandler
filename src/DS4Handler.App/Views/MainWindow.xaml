@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:v="clr-namespace:DS4Handler.App.Views"
         xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
+        xmlns:c="clr-namespace:DS4Handler.App.Controls"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         Title="DS4 Handler"
@@ -103,24 +104,24 @@
                                 <StackPanel>
                                     <TextBlock Text="{x:Static vm:Tips.DriversSection}" Margin="0,0,0,12" />
                                     <StackPanel Orientation="Horizontal">
-                                        <Ellipse Style="{StaticResource Dot}" Fill="{Binding DriverLevel, Converter={StaticResource LevelBrush}}" />
+                                        <c:StatusMark Level="{Binding DriverLevel}" AutomationProperties.Name="{Binding DriverLevel, Converter={StaticResource LevelWord}}" />
                                         <TextBlock Text="ViGEmBus" Style="{StaticResource DriverTipName}" />
-                                        <TextBlock Text="{Binding DriverWord}" Margin="8,0,0,0" VerticalAlignment="Center"
+                                        <TextBlock Text="{Binding DriverWord}" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" Visibility="{Binding DriverWord, Converter={StaticResource TextVis}}"
                                                    Foreground="{Binding DriverLevel, Converter={StaticResource LevelBrush}, ConverterParameter=text}" />
                                     </StackPanel>
-                                    <TextBlock Text="{Binding DriverTip}" Foreground="{StaticResource TextDimBrush}" Margin="16,2,0,12" />
+                                    <TextBlock Text="{Binding DriverTip}" Foreground="{StaticResource TextDimBrush}" Margin="24,2,0,12" />
                                     <StackPanel Orientation="Horizontal">
-                                        <Ellipse Style="{StaticResource Dot}" Fill="{Binding HidHideLevel, Converter={StaticResource LevelBrush}}" />
+                                        <c:StatusMark Level="{Binding HidHideLevel}" AutomationProperties.Name="{Binding HidHideLevel, Converter={StaticResource LevelWord}}" />
                                         <TextBlock Text="HidHide" Style="{StaticResource DriverTipName}" />
-                                        <TextBlock Text="{Binding HidHideWord}" Margin="8,0,0,0" VerticalAlignment="Center"
+                                        <TextBlock Text="{Binding HidHideWord}" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="SemiBold" Visibility="{Binding HidHideWord, Converter={StaticResource TextVis}}"
                                                    Foreground="{Binding HidHideLevel, Converter={StaticResource LevelBrush}, ConverterParameter=text}" />
                                     </StackPanel>
-                                    <TextBlock Text="{Binding HidHideTip}" Foreground="{StaticResource TextDimBrush}" Margin="16,2,0,0" />
+                                    <TextBlock Text="{Binding HidHideTip}" Foreground="{StaticResource TextDimBrush}" Margin="24,2,0,0" />
                                 </StackPanel>
                             </ToolTip>
                         </Button.ToolTip>
                         <StackPanel Orientation="Horizontal">
-                            <Ellipse Style="{StaticResource Dot}" Margin="0,0,8,0" Fill="{Binding DriversLevel, Converter={StaticResource LevelBrush}}" />
+                            <c:StatusMark Level="{Binding DriversLevel}" Width="14" Height="14" Margin="0,0,8,0" />
                             <TextBlock Text="{Binding DriversText}" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>

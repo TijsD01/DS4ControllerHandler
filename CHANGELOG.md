@@ -3,9 +3,15 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
-## 2.2.0
+## 2.3.0
 
 - Geen naijlende invoer meer na een hapering: liep je pc even vast, dan werkte de app eerst alle oude metingen af (tot een paar seconden). Nu kan de app na een hapering niet meer ver achterlopen met oude invoer: hooguit een kort moment, in plaats van seconden als de pc blijft haperen, en zonder dat knopdrukken verloren gaan. Trillen bereikt de controller ook sneller.
+- Bij de stuurprogramma's (ViGEmBus en HidHide) zie je nu een groen bolletje met een vinkje als alles in orde is. Is er iets mis, dan staat er een oranje of rood bolletje met een kort woord erbij.
+- Het pictogram in het systeemvak blijft scherp als je de schermschaal verandert of je laptop aan een ander scherm koppelt.
+- Titels en statuswoorden beginnen nu overal met een gewone hoofdletter ("Kalibratie", "In orde") in plaats van alles in hoofdletters of alles klein.
+
+## 2.2.0
+
 - Minder vertraging: de app vraagt Windows nu om voorrang voor het lezen van je controller. Ook als de app in het systeemvak zit en een game de focus heeft, wordt hij niet meer in de spaarstand gezet.
 - Nieuw schuifje "Reactie" per stick bij Afstellen: kies tussen rustig (meeste trillen weggefilterd) en snel (stick volgt je duim vrijwel meteen). Bij een versleten stick gaat de vertraging bij langzaam richten van ongeveer 16 ms naar 4 ms. Een nieuwe stick merkt er niets van.
 - Bovenaan elke controller zie je nu hoe snel de app een meting verwerkt en, als je er met de muis op staat, hoe lang de langste pauze van de controller was. Zo zie je meteen of je pc of de Bluetooth-verbinding hapert.

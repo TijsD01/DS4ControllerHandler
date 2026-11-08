@@ -204,7 +204,7 @@
                                 <DockPanel>
                                     <TextBlock DockPanel.Dock="Right" Text="{Binding ReportRateText}" Style="{StaticResource Mono}" Cursor="Help"
                                                ToolTip="{x:Static vm:Tips.ReportRate}" />
-                                    <TextBlock Text="STICKS" Style="{StaticResource SectionLabel}" />
+                                    <TextBlock Text="Sticks" Style="{StaticResource SectionLabel}" />
                                 </DockPanel>
                                 <Grid Margin="0,16,0,0">
                                     <Grid.ColumnDefinitions>
@@ -221,7 +221,7 @@
                         <!-- Triggers -->
                         <Border Grid.Column="2" Style="{StaticResource Card}">
                             <DockPanel>
-                                <TextBlock DockPanel.Dock="Top" Text="TRIGGERS" Style="{StaticResource SectionLabel}" />
+                                <TextBlock DockPanel.Dock="Top" Text="Triggers" Style="{StaticResource SectionLabel}" />
                                 <WrapPanel DockPanel.Dock="Bottom" Margin="0,20,0,0">
                                     <StackPanel Orientation="Horizontal" Margin="0,0,16,4" ToolTip="{x:Static vm:Tips.LegendRaw}" Background="Transparent">
                                         <Rectangle Width="14" Height="3" Fill="{StaticResource RawBrush}" Margin="0,0,6,0" VerticalAlignment="Center" />
@@ -256,7 +256,7 @@
                                                      GroupName="{Binding Session.Id, StringFormat=pad-{0}}" ToolTip="{x:Static vm:Tips.PadOutput}" />
                                     </StackPanel>
                                 </Border>
-                                <TextBlock Text="KNOPPEN" Style="{StaticResource SectionLabel}" VerticalAlignment="Center" Cursor="Help"
+                                <TextBlock Text="Knoppen" Style="{StaticResource SectionLabel}" VerticalAlignment="Center" Cursor="Help"
                                            ToolTip="{x:Static vm:Tips.Pad}" />
                             </DockPanel>
                             <Grid Margin="0,16,0,0">
@@ -288,7 +288,7 @@
                                       Width="16" Height="16" VerticalAlignment="Center" />
                             </StackPanel>
                             <WrapPanel VerticalAlignment="Center">
-                                <TextBlock Text="KALIBRATIE" Style="{StaticResource SectionLabel}" Margin="0,4,20,4" />
+                                <TextBlock Text="Kalibratie" Style="{StaticResource SectionLabel}" Margin="0,4,20,4" />
                                 <StackPanel Style="{StaticResource SummaryItem}">
                                     <Ellipse Style="{StaticResource Dot}" Margin="0,0,8,0" Fill="{Binding SticksLevel, Converter={StaticResource LevelBrush}}" />
                                     <TextBlock Text="{Binding SticksStatus}" />
@@ -328,7 +328,7 @@
                                                     ToolTip="{x:Static vm:Tips.CancelGuided}" />
                                         </StackPanel>
                                     </Grid>
-                                    <TextBlock Text="WAT DE APP GELEERD HEEFT" Style="{StaticResource SectionLabel}" Cursor="Help"
+                                    <TextBlock Text="Wat de app geleerd heeft" Style="{StaticResource SectionLabel}" Cursor="Help"
                                                ToolTip="{x:Static vm:Tips.CalibrationSection}" Margin="0,0,12,0" />
                                 </DockPanel>
                             </Border>
@@ -343,7 +343,7 @@
                     <Border Style="{StaticResource Card}" Padding="0" Margin="0,20,0,0">
                         <StackPanel>
                             <Border Style="{StaticResource CardHeader}">
-                                <TextBlock Text="LEREN" Style="{StaticResource SectionLabel}" />
+                                <TextBlock Text="Leren" Style="{StaticResource SectionLabel}" />
                             </Border>
                             <Border Style="{StaticResource SettingRow}" ToolTip="{x:Static vm:Tips.Learning}">
                                 <Grid>

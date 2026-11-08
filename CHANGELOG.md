@@ -5,10 +5,11 @@ De bovenste sectie komt automatisch in de release op GitHub en de app laat hem n
 
 ## 2.3.0
 
-- Geen naijlende invoer meer na een hapering: liep je pc even vast, dan werkte de app eerst alle oude metingen af (tot een paar seconden). Nu kan de app na een hapering niet meer ver achterlopen met oude invoer: hooguit een kort moment, in plaats van seconden als de pc blijft haperen, en zonder dat knopdrukken verloren gaan. Trillen bereikt de controller ook sneller.
-- Bij de stuurprogramma's (ViGEmBus en HidHide) zie je nu een groen bolletje met een vinkje als alles in orde is. Is er iets mis, dan staat er een oranje of rood bolletje met een kort woord erbij.
-- Het pictogram in het systeemvak blijft scherp als je de schermschaal verandert of je laptop aan een ander scherm koppelt.
-- Titels en statuswoorden beginnen nu overal met een gewone hoofdletter ("Kalibratie", "In orde") in plaats van alles in hoofdletters of alles klein.
+- Na een hapering van je pc loopt je controller niet meer achter: de game krijgt meteen de nieuwste stand, en geen knopdruk gaat verloren.
+- Trillen komt sneller aan.
+- ViGEmBus en HidHide tonen nu een groen bolletje met een vinkje als alles in orde is.
+- Titels en statuswoorden met een gewone hoofdletter, zoals "Kalibratie" en "In orde".
+- Het pictogram in het systeemvak blijft scherp als je de schermschaal verandert.
 
 ## 2.2.0
 

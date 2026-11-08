@@ -18,6 +18,10 @@ public sealed class NoticeViewModel
     public string? SecondaryText { get; init; }
     public ICommand? SecondaryCommand { get; init; }
     public string? SecondaryTip { get; init; }
+    /// <summary>Optional text link under the body, e.g. to the full changelog.</summary>
+    public string? LinkText { get; init; }
+    public ICommand? LinkCommand { get; init; }
+    public bool HasLink => LinkText != null;
     public bool HasPrimary => PrimaryText != null;
     public bool HasSecondary => SecondaryText != null;
 }

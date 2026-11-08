@@ -16,8 +16,8 @@ public sealed record ReleaseInfo(
 /// <summary>A newer version than the one running, with what changed since.</summary>
 public sealed record UpdateInfo(ReleaseInfo Latest, IReadOnlyList<(ReleaseVersion Version, IReadOnlyList<string> Notes)> Changes)
 {
-    /// <summary>All new features since the running version, newest version first.</summary>
-    public IReadOnlyList<string> AllNotes => Changes.SelectMany(c => c.Notes).Distinct().ToList();
+    /// <summary>What is new in the newest version only; older ones are in the changelog (<see cref="UpdateCheck.ChangelogUrl"/>).</summary>
+    public IReadOnlyList<string> LatestNotes => Changes[0].Notes;
 }
 
 /// <summary>Reads the GitHub releases list and decides whether there is something newer.</summary>
@@ -27,6 +27,7 @@ public static partial class UpdateCheck
     public const string Repo = "DS4ControllerHandler";
     public static readonly string ReleasesApiUrl = $"https://api.github.com/repos/{Owner}/{Repo}/releases?per_page=30";
     public static readonly string ReleasesPageUrl = $"https://github.com/{Owner}/{Repo}/releases/latest";
+    public static readonly string ChangelogUrl = $"https://github.com/{Owner}/{Repo}/blob/main/CHANGELOG.md";
 
     // The version comes from the setup's file name, so a tag like "realease1" works too.
     [GeneratedRegex(@"^DS4Handler-Setup-(.+)\.exe$", RegexOptions.IgnoreCase)]

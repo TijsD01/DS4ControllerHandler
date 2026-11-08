@@ -155,6 +155,8 @@ jobs:
 
           $nieuw
 
+          [Alle wijzigingen bekijken](https://github.com/$env:REPO/blob/main/CHANGELOG.md)
+
           ## Downloaden
 
           **[$setup](https://github.com/$env:REPO/releases/download/$env:TAG/$setup)** is de makkelijkste keuze: download, dubbelklik en volg de stappen. De installer zet ook ViGEmBus en HidHide op je pc als die nog ontbreken. .NET hoef je niet apart te installeren. Heb je DS4 Handler al? Dan installeert de setup over de oude versie heen en blijven je profielen en instellingen bewaard. De app meldt zelf als er een update is.

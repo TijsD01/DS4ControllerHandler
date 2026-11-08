@@ -14,6 +14,8 @@ public sealed class UpdateViewModel : ObservableObject
     private static readonly TimeSpan FirstCheckDelay = TimeSpan.FromSeconds(8);
     private static readonly TimeSpan CheckInterval = TimeSpan.FromHours(12);
     private const int MaxNotesInBanner = 6;
+    private const string ChangelogLink = "Alle wijzigingen bekijken";
+    private static readonly ICommand OpenChangelog = new RelayCommand(() => AppHost.OpenUrl(UpdateCheck.ChangelogUrl));
 
     private readonly AppHost _host;
     private readonly UpdateService _service = new();
@@ -73,6 +75,8 @@ public sealed class UpdateViewModel : ObservableObject
                 Text = done.Notes.Count > 0
                     ? "Nieuw in deze versie:\n" + Bullets(done.Notes) + "\nJe profielen en instellingen zijn bewaard gebleven."
                     : "Je profielen en instellingen zijn bewaard gebleven.",
+                LinkText = ChangelogLink,
+                LinkCommand = OpenChangelog,
                 PrimaryText = "Sluiten",
                 PrimaryCommand = new RelayCommand(() => { _justUpdated = null; Changed(); }),
                 PrimaryTip = "Verberg deze melding.",
@@ -81,8 +85,8 @@ public sealed class UpdateViewModel : ObservableObject
 
         if (_available is { } update && !_availableDismissed)
         {
-            var notes = update.AllNotes;
-            string whatsNew = notes.Count > 0 ? "\n\nNieuw:\n" + Bullets(notes) : "";
+            var notes = update.LatestNotes;
+            string whatsNew = notes.Count > 0 ? $"\n\nNieuw in {update.Latest.Version}:\n" + Bullets(notes) : "";
             if (_downloading)
             {
                 yield return new NoticeViewModel
@@ -107,6 +111,8 @@ public sealed class UpdateViewModel : ObservableObject
                     SecondaryText = "Later",
                     SecondaryCommand = new RelayCommand(() => { _availableDismissed = true; Changed(); }),
                     SecondaryTip = Tips.UpdateLater,
+                    LinkText = ChangelogLink,
+                    LinkCommand = OpenChangelog,
                 };
             }
             else
@@ -123,6 +129,8 @@ public sealed class UpdateViewModel : ObservableObject
                     SecondaryText = "Later",
                     SecondaryCommand = new RelayCommand(() => { _availableDismissed = true; Changed(); }),
                     SecondaryTip = Tips.UpdateLater,
+                    LinkText = ChangelogLink,
+                    LinkCommand = OpenChangelog,
                 };
             }
         }

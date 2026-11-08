@@ -8,6 +8,7 @@ De bovenste sectie komt automatisch in de release op GitHub en de app laat hem n
 - Minder vertraging: de app vraagt Windows nu om voorrang voor het lezen van je controller. Ook als de app in het systeemvak zit en een game de focus heeft, wordt hij niet meer in de spaarstand gezet.
 - Nieuw schuifje "Reactie" per stick bij Afstellen: kies tussen rustig (meeste trillen weggefilterd) en snel (stick volgt je duim vrijwel meteen). Bij een versleten stick gaat de vertraging bij langzaam richten van ongeveer 16 ms naar 4 ms. Een nieuwe stick merkt er niets van.
 - Bovenaan elke controller zie je nu hoe snel de app een meting verwerkt en, als je er met de muis op staat, hoe lang de langste pauze van de controller was. Zo zie je meteen of je pc of de Bluetooth-verbinding hapert.
+- Nieuw logo: een controller met de blauwe lichtbalk. Je ziet het nu ook op de taakbalk (ook als je de app vastpint), in Verkenner, op snelkoppelingen en in het installatieprogramma.
 
 ## 2.1.0
 

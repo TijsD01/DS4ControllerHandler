@@ -203,7 +203,7 @@ public sealed class RemapRow : ObservableObject
     }
 }
 
-/// <summary>A titled block of rows ("SYMBOOLKNOPPEN").</summary>
+/// <summary>A titled block of rows ("Symboolknoppen").</summary>
 public sealed record RemapGroup(string Title, IReadOnlyList<RemapRow> Rows);
 
 /// <summary>
@@ -236,13 +236,13 @@ public sealed class RemapViewModel : ObservableObject
         var groups = new List<RemapGroup>
         {
             new("SYMBOOLKNOPPEN", new[] { Row(PadControl.Cross), Row(PadControl.Circle), Row(PadControl.Square), Row(PadControl.Triangle) }),
-            new("SCHOUDERKNOPPEN EN TRIGGERS", new[] { Row(PadControl.L1), Row(PadControl.R1), Row(PadControl.L2), Row(PadControl.R2) }),
-            new("PIJLTJES", new[] { Row(PadControl.DpadUp), Row(PadControl.DpadDown), Row(PadControl.DpadLeft), Row(PadControl.DpadRight) }),
-            new("STICKS INDRUKKEN", new[] { Row(PadControl.L3), Row(PadControl.R3) }),
+            new("Schouderknoppen en triggers", new[] { Row(PadControl.L1), Row(PadControl.R1), Row(PadControl.L2), Row(PadControl.R2) }),
+            new("Pijltjes", new[] { Row(PadControl.DpadUp), Row(PadControl.DpadDown), Row(PadControl.DpadLeft), Row(PadControl.DpadRight) }),
+            new("Sticks indrukken", new[] { Row(PadControl.L3), Row(PadControl.R3) }),
         };
         var middle = new List<RemapRow> { Row(PadControl.Share), Row(PadControl.Options), Row(PadControl.PS), Row(PadControl.TouchpadClick) };
         if (dualSense) middle.Add(Row(PadControl.Mute)); // the DualShock 4 has no mute button
-        groups.Add(new("MIDDEN", middle));
+        groups.Add(new("Midden", middle));
         Groups = groups;
 
         _generation = session.TuningGeneration; // before Tuning, see ControllerSession.TuningGeneration

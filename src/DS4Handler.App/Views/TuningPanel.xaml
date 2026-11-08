@@ -155,7 +155,7 @@
                 <DockPanel Margin="0,0,0,14">
                     <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="Standaard"
                             Command="{Binding ResetSpeedCommand}" ToolTip="{x:Static vm:Tips.TuneResetSection}" />
-                    <TextBlock Text="SNELHEID" Style="{StaticResource SectionLabel}" ToolTip="{x:Static vm:Tips.TuneSpeed}" />
+                    <TextBlock Text="Snelheid" Style="{StaticResource SectionLabel}" ToolTip="{x:Static vm:Tips.TuneSpeed}" />
                 </DockPanel>
                 <WrapPanel>
                     <StackPanel Margin="0,0,40,8" Width="320">

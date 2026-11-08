@@ -9,7 +9,7 @@ namespace DS4Handler.App.Views;
 
 public partial class MainWindow : Window
 {
-    public MainWindow(MainViewModel viewModel, ImageSource icon)
+    public MainWindow(MainViewModel viewModel, ImageSource? icon)
     {
         InitializeComponent();
         DataContext = viewModel;

@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:v="clr-namespace:DS4Handler.App.Views"
         xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
+        xmlns:c="clr-namespace:DS4Handler.App.Controls"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         Title="DS4 Handler"
@@ -103,25 +104,21 @@
                                 <StackPanel>
                                     <TextBlock Text="{x:Static vm:Tips.DriversSection}" Margin="0,0,0,12" />
                                     <StackPanel Orientation="Horizontal">
-                                        <Ellipse Style="{StaticResource Dot}" Fill="{Binding DriverLevel, Converter={StaticResource LevelBrush}}" />
+                                        <c:StatusMark Level="{Binding DriverLevel}" AutomationProperties.Name="{Binding DriverLevel, Converter={StaticResource LevelWord}}" />
                                         <TextBlock Text="ViGEmBus" Style="{StaticResource DriverTipName}" />
-                                        <TextBlock Text="{Binding DriverWord}" Margin="8,0,0,0" VerticalAlignment="Center"
-                                                   Foreground="{Binding DriverLevel, Converter={StaticResource LevelBrush}, ConverterParameter=text}" />
                                     </StackPanel>
-                                    <TextBlock Text="{Binding DriverTip}" Foreground="{StaticResource TextDimBrush}" Margin="16,2,0,12" />
+                                    <TextBlock Text="{Binding DriverTip}" Foreground="{StaticResource TextDimBrush}" Margin="24,2,0,12" />
                                     <StackPanel Orientation="Horizontal">
-                                        <Ellipse Style="{StaticResource Dot}" Fill="{Binding HidHideLevel, Converter={StaticResource LevelBrush}}" />
+                                        <c:StatusMark Level="{Binding HidHideLevel}" AutomationProperties.Name="{Binding HidHideLevel, Converter={StaticResource LevelWord}}" />
                                         <TextBlock Text="HidHide" Style="{StaticResource DriverTipName}" />
-                                        <TextBlock Text="{Binding HidHideWord}" Margin="8,0,0,0" VerticalAlignment="Center"
-                                                   Foreground="{Binding HidHideLevel, Converter={StaticResource LevelBrush}, ConverterParameter=text}" />
                                     </StackPanel>
-                                    <TextBlock Text="{Binding HidHideTip}" Foreground="{StaticResource TextDimBrush}" Margin="16,2,0,0" />
+                                    <TextBlock Text="{Binding HidHideTip}" Foreground="{StaticResource TextDimBrush}" Margin="24,2,0,0" />
                                 </StackPanel>
                             </ToolTip>
                         </Button.ToolTip>
                         <StackPanel Orientation="Horizontal">
-                            <Ellipse Style="{StaticResource Dot}" Margin="0,0,8,0" Fill="{Binding DriversLevel, Converter={StaticResource LevelBrush}}" />
-                            <TextBlock Text="{Binding DriversText}" VerticalAlignment="Center" />
+                            <c:StatusMark Level="{Binding DriversLevel}" Width="14" Height="14" Margin="0,0,8,0" />
+                            <TextBlock Text="Stuurprogramma's" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
 
@@ -167,6 +164,9 @@
                                            Foreground="{StaticResource InfoStripTextBrush}" />
                                 <TextBlock x:Name="BodyText" Text="{Binding Text}" FontSize="13" TextWrapping="Wrap" Margin="0,2,0,0"
                                            Foreground="{StaticResource InfoStripTextBrush}" />
+                                <Button x:Name="Link" Style="{StaticResource LinkButton}" Content="{Binding LinkText}" Command="{Binding LinkCommand}"
+                                        HorizontalAlignment="Left" Padding="0" Margin="0,4,0,0" FontSize="13"
+                                        Visibility="{Binding HasLink, Converter={StaticResource BoolVis}}" />
                             </StackPanel>
                             <WrapPanel Grid.Column="2" VerticalAlignment="Center" MaxWidth="360">
                                 <Button x:Name="Secondary" Style="{StaticResource LinkButton}" Content="{Binding SecondaryText}"
@@ -186,6 +186,7 @@
                             <Setter TargetName="TitleText" Property="Foreground" Value="{StaticResource WarnStripTextBrush}" />
                             <Setter TargetName="BodyText" Property="Foreground" Value="{StaticResource WarnStripTextBrush}" />
                             <Setter TargetName="Secondary" Property="Foreground" Value="{StaticResource WarnStripLinkBrush}" />
+                            <Setter TargetName="Link" Property="Foreground" Value="{StaticResource WarnStripLinkBrush}" />
                             <Setter TargetName="Primary" Property="Style" Value="{StaticResource ButtonBase}" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Level}" Value="bad">
@@ -195,6 +196,7 @@
                             <Setter TargetName="TitleText" Property="Foreground" Value="{StaticResource BadStripTextBrush}" />
                             <Setter TargetName="BodyText" Property="Foreground" Value="{StaticResource BadStripTextBrush}" />
                             <Setter TargetName="Secondary" Property="Foreground" Value="{StaticResource BadStripLinkBrush}" />
+                            <Setter TargetName="Link" Property="Foreground" Value="{StaticResource BadStripLinkBrush}" />
                             <Setter TargetName="Primary" Property="Style" Value="{StaticResource ButtonBase}" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Level}" Value="ok">
@@ -204,6 +206,7 @@
                             <Setter TargetName="TitleText" Property="Foreground" Value="{StaticResource OkStripTextBrush}" />
                             <Setter TargetName="BodyText" Property="Foreground" Value="{StaticResource OkStripTextBrush}" />
                             <Setter TargetName="Secondary" Property="Foreground" Value="{StaticResource OkStripLinkBrush}" />
+                            <Setter TargetName="Link" Property="Foreground" Value="{StaticResource OkStripLinkBrush}" />
                             <Setter TargetName="Primary" Property="Style" Value="{StaticResource ButtonBase}" />
                         </DataTrigger>
                     </DataTemplate.Triggers>

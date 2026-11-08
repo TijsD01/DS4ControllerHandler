@@ -27,7 +27,7 @@
         <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,0,24" Visibility="{Binding HasConnected, Converter={StaticResource BoolVis}}">
             <StackPanel>
                 <Border Style="{StaticResource CardHeader}">
-                    <TextBlock Text="AANGESLOTEN NU" Style="{StaticResource SectionLabel}" Cursor="Help"
+                    <TextBlock Text="Nu aangesloten" Style="{StaticResource SectionLabel}" Cursor="Help"
                                ToolTip="{x:Static vm:Tips.ProfileChoose}" />
                 </Border>
                 <ItemsControl ItemsSource="{Binding Connected}">
@@ -66,7 +66,7 @@
                 <Border Style="{StaticResource CardHeader}">
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Right" Style="{StaticResource Mono}" Text="{Binding Profiles.Count, Mode=OneWay}" />
-                        <TextBlock Text="ALLE PROFIELEN" Style="{StaticResource SectionLabel}" />
+                        <TextBlock Text="Alle profielen" Style="{StaticResource SectionLabel}" />
                     </DockPanel>
                 </Border>
                 <Border Style="{StaticResource SettingRow}" Padding="20,14"

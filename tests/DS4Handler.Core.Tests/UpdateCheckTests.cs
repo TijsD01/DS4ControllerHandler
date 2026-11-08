@@ -168,7 +168,7 @@ public class UpdateCheckTests
         Assert.NotNull(update);
         Assert.Equal("1.1.0", update!.Latest.Version.ToString());
         Assert.Equal(new[] { "1.1.0", "1.0.5" }, update.Changes.Select(c => c.Version.ToString()));
-        Assert.Equal(new[] { "Updates vanuit de app", "Profielen blijven bewaard", "Kleine fix" }, update.AllNotes);
+        Assert.Equal(new[] { "Updates vanuit de app", "Profielen blijven bewaard" }, update.LatestNotes); // only the newest version
     }
 
     [Theory]

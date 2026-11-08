@@ -7,6 +7,8 @@ public sealed class TrayIcon : IDisposable
 {
     private readonly NotifyIcon _icon;
     private readonly ToolStripMenuItem _learning;
+    private int _iconSize;
+    private bool _disposed; // a display event queued before Dispose can still arrive after it
 
     public TrayIcon(Action show, Action<bool> setLearning, Func<bool> isLearning, Action quit)
     {
@@ -35,12 +37,28 @@ public sealed class TrayIcon : IDisposable
 
         _icon = new NotifyIcon
         {
-            Icon = AppIcon.CreateTrayIcon(),
+            Icon = AppIcon.CreateTrayIcon(_iconSize = AppIcon.TrayIconSize()),
             Text = "DS4 Handler",
             ContextMenuStrip = menu,
             Visible = true,
         };
         _icon.MouseClick += (_, e) => { if (e.Button == MouseButtons.Left) show(); };
+
+        // Scaling changes (WM_SETTINGCHANGE) and docking/monitor changes (WM_DISPLAYCHANGE) can change the tray DPI.
+        // SystemEvents raise these on this (UI) thread: they capture the subscriber's SynchronizationContext.
+        Microsoft.Win32.SystemEvents.DisplaySettingsChanged += OnDisplayChanged;
+        Microsoft.Win32.SystemEvents.UserPreferenceChanged += OnDisplayChanged;
+    }
+
+    private void OnDisplayChanged(object? sender, EventArgs e)
+    {
+        if (_disposed) return;
+        int size = AppIcon.TrayIconSize();
+        if (size == _iconSize) return;
+        _iconSize = size;
+        var old = _icon.Icon;
+        _icon.Icon = AppIcon.CreateTrayIcon(size);
+        old?.Dispose();
     }
 
     /// <summary>Hover text (Windows allows at most 63 characters).</summary>
@@ -59,6 +77,9 @@ public sealed class TrayIcon : IDisposable
 
     public void Dispose()
     {
+        _disposed = true;
+        Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= OnDisplayChanged;
+        Microsoft.Win32.SystemEvents.UserPreferenceChanged -= OnDisplayChanged;
         _icon.Visible = false;
         _icon.Icon?.Dispose();
         _icon.ContextMenuStrip?.Dispose();

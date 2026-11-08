@@ -3,6 +3,14 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
+## 2.3.0
+
+- Na een hapering van je pc loopt je controller niet meer achter: de game krijgt meteen de nieuwste stand, en geen knopdruk gaat verloren.
+- Trillen komt sneller aan.
+- Statussen zijn nu bolletjes: een groen vinkje als alles in orde is. Klopt er iets niet, ga dan met je muis op het bolletje staan voor de uitleg.
+- Titels met een gewone hoofdletter, zoals "Kalibratie" in plaats van "KALIBRATIE".
+- Het pictogram in het systeemvak blijft scherp als je de schermschaal verandert.
+
 ## 2.2.0
 
 - Minder vertraging: de app vraagt Windows nu om voorrang voor het lezen van je controller. Ook als de app in het systeemvak zit en een game de focus heeft, wordt hij niet meer in de spaarstand gezet.

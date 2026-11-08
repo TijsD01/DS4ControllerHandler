@@ -53,6 +53,7 @@ OutputBaseFilename=DS4Handler-Setup-{#AppVersion}
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile=..\src\DS4Handler.App\Assets\Logo\app.ico
 UninstallDisplayIcon={app}\DS4Handler.exe
 UninstallDisplayName=DS4 Handler
 CloseApplications=yes

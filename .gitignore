@@ -482,3 +482,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Icon preview sheet written by src/DS4Handler.App/Assets/Logo/make_icon.py
+src/DS4Handler.App/Assets/Logo/preview.png

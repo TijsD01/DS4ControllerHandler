@@ -88,7 +88,7 @@ public partial class App : Application
 
         _host = new AppHost();
         _viewModel = new MainViewModel(_host, new Dialogs(() => _window));
-        _window = new MainWindow(_viewModel, AppIcon.Render(64));
+        _window = new MainWindow(_viewModel, AppIcon.ForWindow());
         _window.QuitRequested += (_, _) => Quit();
         _window.HiddenToTray += (_, _) => OnHiddenToTray();
         _window.IsVisibleChanged += (_, _) => UpdateTimerSpeed();

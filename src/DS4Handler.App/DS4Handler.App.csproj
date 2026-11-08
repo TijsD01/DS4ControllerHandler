@@ -15,6 +15,8 @@
     <Description>PlayStation-controller als Xbox-controller, met zelflerende kalibratie.</Description>
     <SatelliteResourceLanguages>nl</SatelliteResourceLanguages>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Exe icon: shown on the taskbar (also when pinned), in Explorer and on shortcuts. -->
+    <ApplicationIcon>Assets\Logo\app.ico</ApplicationIcon>
     <!-- WFAC010 is a WinForms hint; this is a WPF app that sets its DPI awareness in the manifest. -->
     <NoWarn>$(NoWarn);WFAC010</NoWarn>
   </PropertyGroup>
@@ -36,6 +38,8 @@
     <Resource Include="Assets\Fonts\*.ttf" />
     <!-- Their SIL Open Font License texts ship next to the exe. -->
     <None Update="Assets\Fonts\OFL-*.txt" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Same icon for the window and the tray (Infrastructure/AppIcon.cs). -->
+    <Resource Include="Assets\Logo\app.ico" />
   </ItemGroup>
 
   <ItemGroup>

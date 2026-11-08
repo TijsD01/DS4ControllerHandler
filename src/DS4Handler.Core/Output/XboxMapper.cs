@@ -5,41 +5,31 @@ namespace DS4Handler.Core.Output;
 /// <summary>Maps calibrated PlayStation input to an Xbox 360 report.</summary>
 public static class XboxMapper
 {
-    private static readonly (Buttons From, XboxButtons To)[] ButtonMap =
-    {
-        (Buttons.Cross, XboxButtons.A),
-        (Buttons.Circle, XboxButtons.B),
-        (Buttons.Square, XboxButtons.X),
-        (Buttons.Triangle, XboxButtons.Y),
-        (Buttons.L1, XboxButtons.LeftShoulder),
-        (Buttons.R1, XboxButtons.RightShoulder),
-        (Buttons.L3, XboxButtons.LeftThumb),
-        (Buttons.R3, XboxButtons.RightThumb),
-        (Buttons.Share, XboxButtons.Back),
-        (Buttons.Options, XboxButtons.Start),
-        (Buttons.PS, XboxButtons.Guide),
-        (Buttons.DpadUp, XboxButtons.Up),
-        (Buttons.DpadDown, XboxButtons.Down),
-        (Buttons.DpadLeft, XboxButtons.Left),
-        (Buttons.DpadRight, XboxButtons.Right),
-    };
+    public static XboxReport Map(in CalibratedState s) => new(
+        StickToShort(s.LeftX),
+        StickToShort(s.LeftY),
+        StickToShort(s.RightX),
+        StickToShort(s.RightY),
+        TriggerToByte(s.L2),
+        TriggerToByte(s.R2),
+        MapButtons(s.Buttons));
 
-    public static XboxReport Map(CalibratedState s)
+    /// <summary>
+    /// PlayStation buttons to XUSB bits with shifts and masks, no loop (runs per report).
+    /// Cross/Circle/Square/Triangle → A/B/X/Y, L1/R1 → shoulders, Share → Back, Options → Start,
+    /// L3/R3 → thumbs, PS → Guide, d-pad → d-pad. L2/R2 digital, touchpad and mute have no bit.
+    /// </summary>
+    public static XboxButtons MapButtons(Buttons buttons)
     {
-        var buttons = XboxButtons.None;
-        foreach (var (from, to) in ButtonMap)
-        {
-            if ((s.Buttons & from) != 0) buttons |= to;
-        }
-
-        return new XboxReport(
-            StickToShort(s.LeftX),
-            StickToShort(s.LeftY),
-            StickToShort(s.RightX),
-            StickToShort(s.RightY),
-            TriggerToByte(s.L2),
-            TriggerToByte(s.R2),
-            buttons);
+        uint b = (uint)buttons;
+        uint x = ((b & 0xF) << 12)          // Cross, Circle, Square, Triangle → A, B, X, Y
+               | (((b >> 4) & 0x3) << 8)    // L1, R1 → LeftShoulder, RightShoulder
+               | (((b >> 8) & 0x1) << 5)    // Share → Back
+               | (((b >> 9) & 0x1) << 4)    // Options → Start
+               | (((b >> 10) & 0x3) << 6)   // L3, R3 → LeftThumb, RightThumb
+               | (((b >> 12) & 0x1) << 10)  // PS → Guide
+               | ((b >> 15) & 0xF);         // Up, Down, Left, Right
+        return (XboxButtons)x;
     }
 
     /// <summary>-1..1 to -32768..32767 (+1 → 32767, -1 → -32768, 0 → 0). NaN maps to 0.</summary>

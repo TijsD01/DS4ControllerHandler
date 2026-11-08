@@ -240,6 +240,7 @@ public sealed class ControllerSession : IDisposable
         _stream = stream;
         stream.ReadTimeout = ReadTimeoutMs;
         stream.WriteTimeout = WriteTimeoutMs;
+        if (!HidInputQueue.Shorten(stream)) Log.Info($"{DisplayName}: invoerwachtrij niet ingekort; na een hapering kan oude invoer even naijlen.");
 
         var identity = ControllerIdentity.Read(_device, stream, Model, Connection);
         Id = identity.Id;
@@ -283,7 +284,8 @@ public sealed class ControllerSession : IDisposable
 
         _saveTimer = new Timer(_ => SaveProfile(), null, SaveInterval, SaveInterval);
 
-        _rumbleThread = new Thread(RumbleLoop) { IsBackground = true, Name = $"Rumble {Id}" };
+        // Above normal: a game's rumble reaches the pad without waiting behind the game's own threads.
+        _rumbleThread = new Thread(RumbleLoop) { IsBackground = true, Name = $"Rumble {Id}", Priority = ThreadPriority.AboveNormal };
         _rumbleThread.Start();
         _rumbleSignal.Set(); // first write sets the DS4 light bar, so the user sees the pad is handled
 
@@ -797,14 +799,15 @@ public sealed class ControllerSession : IDisposable
                     var r = XboxMapper.Map(output);
                     if (_hasSubmitted && r == _lastXbox) return;
                     if (TooSoon(arrival, outputRate) && !ReportEdges.HasDigitalEdge(_lastXbox, r)) return;
-                    xbox.SetAxisValue(Xbox360Axis.LeftThumbX, r.LeftThumbX);
-                    xbox.SetAxisValue(Xbox360Axis.LeftThumbY, r.LeftThumbY);
-                    xbox.SetAxisValue(Xbox360Axis.RightThumbX, r.RightThumbX);
-                    xbox.SetAxisValue(Xbox360Axis.RightThumbY, r.RightThumbY);
-                    xbox.SetSliderValue(Xbox360Slider.LeftTrigger, r.LeftTrigger);
-                    xbox.SetSliderValue(Xbox360Slider.RightTrigger, r.RightTrigger);
+                    // The ref properties write straight into ViGEm's native report (no axis lookups), like the DS4 path.
+                    xbox.LeftThumbX = r.LeftThumbX;
+                    xbox.LeftThumbY = r.LeftThumbY;
+                    xbox.RightThumbX = r.RightThumbX;
+                    xbox.RightThumbY = r.RightThumbY;
+                    xbox.LeftTrigger = r.LeftTrigger;
+                    xbox.RightTrigger = r.RightTrigger;
                     // XboxButtons uses the native XUSB bit values, so the whole word is set at once.
-                    xbox.SetButtonsFull((ushort)r.Buttons);
+                    xbox.ButtonState = (ushort)r.Buttons;
                     xbox.SubmitReport();
                     _lastXbox = r;
                     _hasSubmitted = true;

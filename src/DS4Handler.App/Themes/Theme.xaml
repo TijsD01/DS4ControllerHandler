@@ -111,11 +111,8 @@
     <Thickness x:Key="PageMargin">32,24,32,40</Thickness>  <!-- around page content -->
     <sys:Double x:Key="PageMaxWidth">1180</sys:Double>     <!-- page content width -->
 
-    <!-- Motion: short, ease-out, transform/opacity only. App.OnStartup sets the durations to 0 when
-         Windows animations are off (reduced motion). Release is longer than press so it reads as settling. -->
-    <Duration x:Key="MotionPress">0:0:0.08</Duration>      <!-- button pressed down -->
-    <Duration x:Key="MotionRelease">0:0:0.15</Duration>    <!-- button springs back -->
-    <Duration x:Key="MotionEnter">0:0:0.18</Duration>      <!-- page or dialog appears -->
+    <!-- Motion: short, ease-out, transform/opacity only. Durations come from Controls/Motion.cs (x:Static),
+         which honours reduced motion. -->
     <CubicEase x:Key="EaseOut" EasingMode="EaseOut" po:Freeze="True" />
 
     <!-- Icons (24x24 stroke icons unless noted); draw with a Path, Stroke and StrokeThickness ~1.8, in a Viewbox. -->
@@ -356,9 +353,9 @@
                                 <BeginStoryboard>
                                     <Storyboard>
                                         <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="RenderTransform.ScaleX" To="0.97"
-                                                         Duration="{StaticResource MotionPress}" EasingFunction="{StaticResource EaseOut}" />
+                                                         Duration="{x:Static c:Motion.Press}" EasingFunction="{StaticResource EaseOut}" />
                                         <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="RenderTransform.ScaleY" To="0.97"
-                                                         Duration="{StaticResource MotionPress}" EasingFunction="{StaticResource EaseOut}" />
+                                                         Duration="{x:Static c:Motion.Press}" EasingFunction="{StaticResource EaseOut}" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
@@ -366,9 +363,9 @@
                                 <BeginStoryboard>
                                     <Storyboard>
                                         <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="RenderTransform.ScaleX" To="1"
-                                                         Duration="{StaticResource MotionRelease}" EasingFunction="{StaticResource EaseOut}" />
+                                                         Duration="{x:Static c:Motion.Release}" EasingFunction="{StaticResource EaseOut}" />
                                         <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="RenderTransform.ScaleY" To="1"
-                                                         Duration="{StaticResource MotionRelease}" EasingFunction="{StaticResource EaseOut}" />
+                                                         Duration="{x:Static c:Motion.Release}" EasingFunction="{StaticResource EaseOut}" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
@@ -481,15 +478,15 @@
         </Style.Triggers>
     </Style>
 
-    <!-- A page fades in each time it becomes visible (opacity only, so layout never shifts). -->
+    <!-- A page fades in each time it becomes visible (opacity only, so layout never shifts). Starts at 0.4, not 0, so a switch never shows a blank frame. -->
     <Style x:Key="PageFade" TargetType="FrameworkElement">
         <Style.Triggers>
             <Trigger Property="Visibility" Value="Visible">
                 <Trigger.EnterActions>
                     <BeginStoryboard>
                         <Storyboard>
-                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1"
-                                             Duration="{StaticResource MotionEnter}" EasingFunction="{StaticResource EaseOut}" />
+                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.4" To="1"
+                                             Duration="{x:Static c:Motion.Enter}" EasingFunction="{StaticResource EaseOut}" />
                         </Storyboard>
                     </BeginStoryboard>
                 </Trigger.EnterActions>

@@ -40,12 +40,6 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        // Reduced motion: "Show animations in Windows" is off, so motion snaps to its end state.
-        // Done before any window exists, so the theme's deferred styles pick up the zero durations.
-        if (!SystemParameters.ClientAreaAnimation)
-            foreach (var key in new[] { "MotionPress", "MotionRelease", "MotionEnter" })
-                Resources.MergedDictionaries[0][key] = new Duration(TimeSpan.Zero);
-
         if (e.Args.Contains("--unhide", StringComparer.OrdinalIgnoreCase))
         {
             Shutdown(RunUninstallCleanup(e.Args.Contains("--all-users", StringComparer.OrdinalIgnoreCase)));

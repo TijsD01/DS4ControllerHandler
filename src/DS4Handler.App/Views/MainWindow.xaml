@@ -218,7 +218,7 @@
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
             <Grid>
                 <!-- Controller page (the controller selected in the top bar) -->
-                <Grid Visibility="{Binding ShowControllers, Converter={StaticResource BoolVis}}">
+                <Grid Style="{StaticResource PageFade}" Visibility="{Binding ShowControllers, Converter={StaticResource BoolVis}}">
                     <ContentControl Content="{Binding SelectedController}" Focusable="False"
                                     Visibility="{Binding HasControllers, Converter={StaticResource BoolVis}}">
                         <ContentControl.ContentTemplate>
@@ -274,11 +274,11 @@
                 </Grid>
 
                 <!-- Profielen -->
-                <v:ProfilesPage DataContext="{Binding ProfilesPage}" MaxWidth="{StaticResource PageMaxWidth}" Margin="{StaticResource PageMargin}"
+                <v:ProfilesPage Style="{StaticResource PageFade}" DataContext="{Binding ProfilesPage}" MaxWidth="{StaticResource PageMaxWidth}" Margin="{StaticResource PageMargin}"
                                 Visibility="{Binding DataContext.ShowProfiles, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}" />
 
                 <!-- Instellingen (also holds "Afsluiten": SettingsViewModel.QuitCommand) -->
-                <v:SettingsPage DataContext="{Binding Settings}" MaxWidth="{StaticResource PageMaxWidth}" Margin="{StaticResource PageMargin}"
+                <v:SettingsPage Style="{StaticResource PageFade}" DataContext="{Binding Settings}" MaxWidth="{StaticResource PageMaxWidth}" Margin="{StaticResource PageMargin}"
                                 Visibility="{Binding DataContext.ShowSettings, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}" />
             </Grid>
         </ScrollViewer>

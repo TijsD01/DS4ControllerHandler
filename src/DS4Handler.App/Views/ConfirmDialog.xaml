@@ -5,7 +5,26 @@
         WindowStyle="None" ResizeMode="NoResize" AllowsTransparency="True" Background="Transparent"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
         FontFamily="{StaticResource UiFont}" Language="nl-NL">
-    <Border Background="{StaticResource PopupBrush}" BorderBrush="{StaticResource PopupBorderBrush}" BorderThickness="1" CornerRadius="{StaticResource CardRadius}" Padding="24" Margin="1">
+    <Border Background="{StaticResource PopupBrush}" BorderBrush="{StaticResource PopupBorderBrush}" BorderThickness="1" CornerRadius="{StaticResource CardRadius}" Padding="24" Margin="1"
+            RenderTransformOrigin="0.5,0.5">
+        <Border.RenderTransform>
+            <ScaleTransform />
+        </Border.RenderTransform>
+        <!-- Entrance: scale up from 0.95 while fading in. Closing stays instant (fast exit). -->
+        <Border.Triggers>
+            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                <BeginStoryboard>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1"
+                                         Duration="{StaticResource MotionEnter}" EasingFunction="{StaticResource EaseOut}" />
+                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" From="0.95" To="1"
+                                         Duration="{StaticResource MotionEnter}" EasingFunction="{StaticResource EaseOut}" />
+                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" From="0.95" To="1"
+                                         Duration="{StaticResource MotionEnter}" EasingFunction="{StaticResource EaseOut}" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Border.Triggers>
         <StackPanel>
             <TextBlock x:Name="TitleText" Style="{StaticResource H2}" Margin="0,0,0,10" />
             <TextBlock x:Name="MessageText" Style="{StaticResource Dim}" LineHeight="20" />

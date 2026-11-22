@@ -6,7 +6,7 @@ De bovenste sectie komt automatisch in de release op GitHub en de app laat hem n
 ## 2.3.1
 
 - Knoppen geven nu een klein, kort indrukeffect als je erop klikt.
-- Pagina's en meldingen verschijnen met een korte, rustige overgang in plaats van in één keer.
+- Pagina's en vragen in een apart venster verschijnen met een korte, rustige overgang in plaats van in één keer.
 - Staan animaties in Windows uit, dan doet de app ook geen animaties.
 
 ## 2.3.0

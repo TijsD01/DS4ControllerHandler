@@ -3,6 +3,12 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
+## 2.3.1
+
+- Knoppen geven nu een klein, kort indrukeffect als je erop klikt.
+- Pagina's en vragen in een apart venster verschijnen met een korte, rustige overgang in plaats van in één keer.
+- Staan animaties in Windows uit, dan doet de app ook geen animaties.
+
 ## 2.3.0
 
 - Na een hapering van je pc loopt je controller niet meer achter: de game krijgt meteen de nieuwste stand, en geen knopdruk gaat verloren.

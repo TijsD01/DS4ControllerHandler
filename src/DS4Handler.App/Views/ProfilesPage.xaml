@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
+             xmlns:l="clr-namespace:DS4Handler.App.Lang"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:ProfilesViewModel}">
     <StackPanel>
@@ -11,15 +12,15 @@
         <!-- Intro + import -->
         <DockPanel Margin="0,0,0,24" LastChildFill="True">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="24,0,0,0">
-                <Button Content="Profielmap openen" Command="{Binding OpenFolderCommand}" Margin="0,0,8,0"
+                <Button Content="{l:Loc Common_OpenProfileFolder}" Command="{Binding OpenFolderCommand}" Margin="0,0,8,0"
                         ToolTip="{x:Static vm:Tips.OpenProfileFolder}" />
-                <Button Style="{StaticResource AccentButton}" Content="Importeren…" Command="{Binding ImportCommand}"
+                <Button Style="{StaticResource AccentButton}" Content="{l:Loc Profiles_Import}" Command="{Binding ImportCommand}"
                         ToolTip="{x:Static vm:Tips.ProfileImport}" />
             </StackPanel>
             <StackPanel MaxWidth="640" HorizontalAlignment="Left" ToolTip="{x:Static vm:Tips.ProfilesIntro}" Background="Transparent">
-                <TextBlock Text="Profielen" Style="{StaticResource H1}" />
+                <TextBlock Text="{l:Loc Common_Profiles}" Style="{StaticResource H1}" />
                 <TextBlock Style="{StaticResource Dim}" Margin="0,6,0,0"
-                           Text="Elke controller krijgt een eigen profiel, herkend aan zijn MAC-adres. Neem het profiel van een vriend mee met Importeren." />
+                           Text="{l:Loc Profiles_Intro}" />
             </StackPanel>
         </DockPanel>
 
@@ -27,7 +28,7 @@
         <Border Style="{StaticResource Card}" Padding="0" Margin="0,0,0,24" Visibility="{Binding HasConnected, Converter={StaticResource BoolVis}}">
             <StackPanel>
                 <Border Style="{StaticResource CardHeader}">
-                    <TextBlock Text="Nu aangesloten" Style="{StaticResource SectionLabel}" Cursor="Help"
+                    <TextBlock Text="{l:Loc Profiles_Connected}" Style="{StaticResource SectionLabel}" Cursor="Help"
                                ToolTip="{x:Static vm:Tips.ProfileChoose}" />
                 </Border>
                 <ItemsControl ItemsSource="{Binding Connected}">
@@ -51,7 +52,7 @@
                                     <ComboBox Grid.Column="3" Style="{StaticResource Combo}" VerticalAlignment="Center"
                                               ItemsSource="{Binding Choices}" SelectedItem="{Binding Selected}"
                                               DisplayMemberPath="Label" ToolTip="{x:Static vm:Tips.ProfileChoose}"
-                                              AutomationProperties.Name="Profiel voor deze controller" />
+                                              AutomationProperties.Name="{l:Loc Profiles_ProfileForController}" />
                                 </Grid>
                             </Border>
                         </DataTemplate>
@@ -66,12 +67,12 @@
                 <Border Style="{StaticResource CardHeader}">
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Right" Style="{StaticResource Mono}" Text="{Binding Profiles.Count, Mode=OneWay}" />
-                        <TextBlock Text="Alle profielen" Style="{StaticResource SectionLabel}" />
+                        <TextBlock Text="{l:Loc Profiles_All}" Style="{StaticResource SectionLabel}" />
                     </DockPanel>
                 </Border>
                 <Border Style="{StaticResource SettingRow}" Padding="20,14"
                         Visibility="{Binding HasProfiles, Converter={StaticResource BoolVis}, ConverterParameter=invert}">
-                    <TextBlock Text="Nog geen profielen. Sluit een controller aan of importeer een profiel." Style="{StaticResource Dim}" />
+                    <TextBlock Text="{l:Loc Profiles_None}" Style="{StaticResource Dim}" />
                 </Border>
                 <ItemsControl ItemsSource="{Binding Profiles}">
                     <ItemsControl.ItemTemplate>
@@ -91,7 +92,7 @@
                                     <!-- Name (editable) -->
                                     <Grid Margin="0,0,20,0" VerticalAlignment="Center">
                                         <TextBox x:Name="NameBox" Style="{StaticResource Input}" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                                                 ToolTip="{x:Static vm:Tips.ProfileName}" MaxLength="60" FontWeight="SemiBold" AutomationProperties.Name="Naam van het profiel"
+                                                 ToolTip="{x:Static vm:Tips.ProfileName}" MaxLength="60" FontWeight="SemiBold" AutomationProperties.Name="{l:Loc Profiles_NameBox}"
                                                  LostKeyboardFocus="OnNameLostFocus" KeyDown="OnNameKeyDown" Loaded="OnNameLoaded" />
                                         <TextBlock Text="{Binding NamePlaceholder}" Foreground="{StaticResource TextMutedBrush}" FontSize="14"
                                                    Margin="9,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False" TextTrimming="CharacterEllipsis"
@@ -123,11 +124,11 @@
 
                                     <!-- Actions -->
                                     <WrapPanel Grid.Row="1" Grid.ColumnSpan="3" Margin="-8,8,0,0">
-                                        <Button Style="{StaticResource LinkButton}" Content="Hernoemen" Command="{Binding RenameCommand}" ToolTip="{x:Static vm:Tips.ProfileRename}" />
-                                        <Button Style="{StaticResource LinkButton}" Content="Kopiëren naar…" Click="OnCopyClick"
+                                        <Button Style="{StaticResource LinkButton}" Content="{l:Loc Profiles_Rename}" Command="{Binding RenameCommand}" ToolTip="{x:Static vm:Tips.ProfileRename}" />
+                                        <Button Style="{StaticResource LinkButton}" Content="{l:Loc Profiles_CopyTo}" Click="OnCopyClick"
                                                 IsEnabled="{Binding CanCopy}" ToolTip="{Binding CopyTip}" />
-                                        <Button Style="{StaticResource LinkButton}" Content="Exporteren…" Command="{Binding ExportCommand}" ToolTip="{x:Static vm:Tips.ProfileExport}" />
-                                        <Button Style="{StaticResource DangerLinkButton}" Content="Verwijderen"
+                                        <Button Style="{StaticResource LinkButton}" Content="{l:Loc Profiles_Export}" Command="{Binding ExportCommand}" ToolTip="{x:Static vm:Tips.ProfileExport}" />
+                                        <Button Style="{StaticResource DangerLinkButton}" Content="{l:Loc Profiles_Delete}"
                                                 Command="{Binding DeleteCommand}" IsEnabled="{Binding CanDelete}" ToolTip="{Binding DeleteTip}" />
                                     </WrapPanel>
                                 </Grid>

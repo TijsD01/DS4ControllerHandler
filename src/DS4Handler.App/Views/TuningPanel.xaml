@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:DS4Handler.App.Controls"
              xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
+             xmlns:l="clr-namespace:DS4Handler.App.Lang"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:TuningViewModel}">
 
@@ -28,7 +29,7 @@
         <!-- Card title with its own "Standaard" link (for a Stick- or TriggerTuningSection). -->
         <DataTemplate x:Key="SectionHead" DataType="{x:Type vm:TuningSection}">
             <DockPanel Margin="0,0,0,14">
-                <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="Standaard"
+                <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="{l:Loc Common_Default}"
                         Command="{Binding ResetCommand}" ToolTip="{x:Static vm:Tips.TuneResetSection}" />
                 <TextBlock Text="{Binding Title}" Style="{StaticResource H2}" VerticalAlignment="Center" />
             </DockPanel>
@@ -49,7 +50,7 @@
                             <c:CurvePreview Width="150" Height="150" HorizontalAlignment="Left"
                                             InnerDeadzone="{Binding Inner.Value}" OuterDeadzone="{Binding Outer.Value}"
                                             AntiDeadzone="{Binding Anti.Value}" Curve="{Binding Curve.Value}" Sensitivity="{Binding Sensitivity.Value}"
-                                            AutomationProperties.Name="{Binding Title, StringFormat='Reactiecurve {0}'}" />
+                                            AutomationProperties.Name="{Binding Title, StringFormat={l:Loc Tuning_CurveName}}" />
                             <TextBlock Text="{Binding CurveCaption}" Style="{StaticResource Mono}" Margin="0,6,0,0" TextWrapping="Wrap" />
                         </StackPanel>
                         <StackPanel Grid.Column="2">
@@ -58,14 +59,14 @@
                                     <ColumnDefinition Width="110" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="Vorm" Style="{StaticResource Body}" VerticalAlignment="Center" />
+                                <TextBlock Text="{l:Loc Tuning_Shape}" Style="{StaticResource Body}" VerticalAlignment="Center" />
                                 <Border Grid.Column="1" Style="{StaticResource SegmentHost}">
                                     <StackPanel Orientation="Horizontal">
-                                        <RadioButton Style="{StaticResource Segment}" Content="Rond" IsChecked="{Binding ShapeRadial}"
+                                        <RadioButton Style="{StaticResource Segment}" Content="{l:Loc Tuning_Round}" IsChecked="{Binding ShapeRadial}"
                                                      GroupName="{Binding Group}" ToolTip="{x:Static vm:Tips.TuneShapeRadial}" />
-                                        <RadioButton Style="{StaticResource Segment}" Content="Vierkant" IsChecked="{Binding ShapeSquare}"
+                                        <RadioButton Style="{StaticResource Segment}" Content="{l:Loc Tuning_Square}" IsChecked="{Binding ShapeSquare}"
                                                      GroupName="{Binding Group}" ToolTip="{x:Static vm:Tips.TuneShapeSquare}" />
-                                        <RadioButton Style="{StaticResource Segment}" Content="Kruis" IsChecked="{Binding ShapeAxial}"
+                                        <RadioButton Style="{StaticResource Segment}" Content="{l:Loc Tuning_Cross}" IsChecked="{Binding ShapeAxial}"
                                                      GroupName="{Binding Group}" ToolTip="{x:Static vm:Tips.TuneShapeAxial}" />
                                     </StackPanel>
                                 </Border>
@@ -76,11 +77,11 @@
                     <Border BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,1,0,0" Margin="0,16,0,0" Padding="0,14,0,0">
                         <WrapPanel>
                             <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding SquareOutput}" Margin="0,0,20,6"
-                                      ToolTip="{x:Static vm:Tips.TuneSquareOutput}" Content="Vierkante uitvoer" />
+                                      ToolTip="{x:Static vm:Tips.TuneSquareOutput}" Content="{l:Loc Tuning_SquareOutput}" />
                             <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding InvertX}" Margin="0,0,20,6"
-                                      ToolTip="{x:Static vm:Tips.TuneInvertX}" Content="X omdraaien" />
+                                      ToolTip="{x:Static vm:Tips.TuneInvertX}" Content="{l:Loc Tuning_InvertX}" />
                             <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding InvertY}" Margin="0,0,0,6"
-                                      ToolTip="{x:Static vm:Tips.TuneInvertY}" Content="Y omdraaien" />
+                                      ToolTip="{x:Static vm:Tips.TuneInvertY}" Content="{l:Loc Tuning_InvertY}" />
                         </WrapPanel>
                     </Border>
                 </StackPanel>
@@ -102,7 +103,7 @@
                             <c:CurvePreview Width="150" Height="150" HorizontalAlignment="Left"
                                             InnerDeadzone="{Binding Inner.Value}" OuterDeadzone="{Binding Outer.Value}"
                                             AntiDeadzone="{Binding Anti.Value}" Curve="{Binding Curve.Value}"
-                                            AutomationProperties.Name="{Binding Title, StringFormat='Reactiecurve {0}'}" />
+                                            AutomationProperties.Name="{Binding Title, StringFormat={l:Loc Tuning_CurveName}}" />
                             <TextBlock Text="{Binding CurveCaption}" Style="{StaticResource Mono}" Margin="0,6,0,0" TextWrapping="Wrap" />
                         </StackPanel>
                         <ItemsControl Grid.Column="2" ItemsSource="{Binding Sliders}" ItemTemplate="{StaticResource TuneSliderRow}" Focusable="False" />
@@ -124,12 +125,12 @@
                 <StackPanel Orientation="Horizontal">
                     <RadioButton Style="{StaticResource Segment}" Content="Sticks" IsChecked="{Binding ShowSticks}" ToolTip="{x:Static vm:Tips.TuneSticks}" />
                     <RadioButton Style="{StaticResource Segment}" Content="Triggers" IsChecked="{Binding ShowTriggers}" ToolTip="{x:Static vm:Tips.TuneTriggers}" />
-                    <RadioButton Style="{StaticResource Segment}" Content="Snelheid" IsChecked="{Binding ShowSpeed}" ToolTip="{x:Static vm:Tips.TuneSpeed}" />
+                    <RadioButton Style="{StaticResource Segment}" Content="{l:Loc Common_Speed}" IsChecked="{Binding ShowSpeed}" ToolTip="{x:Static vm:Tips.TuneSpeed}" />
                 </StackPanel>
             </Border>
-            <TextBlock Grid.Column="1" Text="Wijzigingen worden meteen opgeslagen in het profiel van deze controller." Style="{StaticResource Dim}"
+            <TextBlock Grid.Column="1" Text="{l:Loc Tuning_SavedNow}" Style="{StaticResource Dim}"
                        VerticalAlignment="Center" Margin="20,0" Cursor="Help" ToolTip="{x:Static vm:Tips.TuneSaved}" />
-            <Button Grid.Column="2" Content="Alles op standaard" Command="{Binding ResetAllCommand}" ToolTip="{x:Static vm:Tips.TuneResetAll}"
+            <Button Grid.Column="2" Content="{l:Loc Common_ResetAll}" Command="{Binding ResetAllCommand}" ToolTip="{x:Static vm:Tips.TuneResetAll}"
                     VerticalAlignment="Center" />
         </Grid>
         <TextBlock Text="{Binding SaveNote}" Style="{StaticResource Body}" Foreground="{StaticResource WarnBrush}" Margin="0,0,0,16"
@@ -153,29 +154,29 @@
         <Border Style="{StaticResource Card}" Visibility="{Binding ShowSpeed, Converter={StaticResource BoolVis}}">
             <StackPanel>
                 <DockPanel Margin="0,0,0,14">
-                    <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="Standaard"
+                    <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="{l:Loc Common_Default}"
                             Command="{Binding ResetSpeedCommand}" ToolTip="{x:Static vm:Tips.TuneResetSection}" />
-                    <TextBlock Text="Snelheid" Style="{StaticResource SectionLabel}" ToolTip="{x:Static vm:Tips.TuneSpeed}" />
+                    <TextBlock Text="{l:Loc Common_Speed}" Style="{StaticResource SectionLabel}" ToolTip="{x:Static vm:Tips.TuneSpeed}" />
                 </DockPanel>
                 <WrapPanel>
                     <StackPanel Margin="0,0,40,8" Width="320">
-                        <TextBlock Text="Meten via Bluetooth (DualShock 4)" Style="{StaticResource RowTitle}" Margin="0,0,0,8"
+                        <TextBlock Text="{l:Loc Tuning_PollBluetooth}" Style="{StaticResource RowTitle}" Margin="0,0,0,8"
                                    ToolTip="{x:Static vm:Tips.TunePoll}" Cursor="Help" />
                         <ComboBox Style="{StaticResource Combo}" ItemsSource="{x:Static vm:TuningViewModel.PollChoices}"
                                   SelectedItem="{Binding SelectedPoll, Mode=TwoWay}" DisplayMemberPath="Label"
                                   IsEnabled="{Binding SupportsPoll}" ToolTip="{x:Static vm:Tips.TunePoll}"
-                                  AutomationProperties.Name="Meten via Bluetooth" />
+                                  AutomationProperties.Name="{l:Loc Tuning_PollBluetoothName}" />
                         <TextBlock Text="{Binding PollNote}" Style="{StaticResource Caption}" Margin="0,8,0,0"
                                    ToolTip="{x:Static vm:Tips.TunePollUnavailable}"
                                    Visibility="{Binding PollNote, Converter={StaticResource TextVis}}" />
                     </StackPanel>
                     <StackPanel Margin="0,0,0,8" Width="320">
-                        <TextBlock Text="Naar de game sturen" Style="{StaticResource RowTitle}" Margin="0,0,0,8"
+                        <TextBlock Text="{l:Loc Tuning_SendToGame}" Style="{StaticResource RowTitle}" Margin="0,0,0,8"
                                    ToolTip="{x:Static vm:Tips.TuneOutputRate}" Cursor="Help" />
                         <ComboBox Style="{StaticResource Combo}" ItemsSource="{x:Static vm:TuningViewModel.OutputChoices}"
                                   SelectedItem="{Binding SelectedOutputRate, Mode=TwoWay}" DisplayMemberPath="Label"
-                                  ToolTip="{x:Static vm:Tips.TuneOutputRate}" AutomationProperties.Name="Naar de game sturen" />
-                        <TextBlock Text="Elke meting is het snelst en voor bijna iedereen goed." Style="{StaticResource Caption}" Margin="0,8,0,0"
+                                  ToolTip="{x:Static vm:Tips.TuneOutputRate}" AutomationProperties.Name="{l:Loc Tuning_SendToGame}" />
+                        <TextBlock Text="{l:Loc Tuning_SendToGameNote}" Style="{StaticResource Caption}" Margin="0,8,0,0"
                                    ToolTip="{x:Static vm:Tips.TuneOutputRate}" />
                     </StackPanel>
                 </WrapPanel>

@@ -1,4 +1,5 @@
 using System.Windows;
+using DS4Handler.App.Lang;
 using DS4Handler.App.ViewModels;
 using Microsoft.Win32;
 
@@ -7,7 +8,7 @@ namespace DS4Handler.App.Views;
 /// <summary>WPF implementation of <see cref="IDialogs"/>, centred on the main window.</summary>
 public sealed class Dialogs : IDialogs
 {
-    private const string Filter = "DS4 Handler-profiel (*.json)|*.json|Alle bestanden (*.*)|*.*";
+    private static readonly string Filter = Loc.Get("Dialog_ProfileFilter");
     private readonly Func<Window?> _owner;
 
     public Dialogs(Func<Window?> owner) => _owner = owner;
@@ -21,7 +22,7 @@ public sealed class Dialogs : IDialogs
     {
         var dialog = new SaveFileDialog
         {
-            Title = "Profiel exporteren",
+            Title = Loc.Get("Dialog_ExportTitle"),
             Filter = Filter,
             FileName = suggestedName,
             DefaultExt = ".json",
@@ -41,7 +42,7 @@ public sealed class Dialogs : IDialogs
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Profiel importeren",
+            Title = Loc.Get("Dialog_ImportTitle"),
             Filter = Filter,
             CheckFileExists = true,
         };

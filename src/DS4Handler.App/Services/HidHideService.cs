@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using DS4Handler.App.Engine;
 using DS4Handler.App.Infrastructure;
+using DS4Handler.App.Lang;
 using DS4Handler.HidHide;
 
 namespace DS4Handler.App.Services;
@@ -44,12 +45,9 @@ public sealed class HidHideService
 
     public HidHideService(SettingsStore settings) => _settings = settings;
 
-    private const string SettingsReadOnlyProblem =
-        "Instellingen konden niet gelezen of veilig bewaard worden, dus verbergt de app nu geen controllers (anders kunnen ze verborgen blijven). Herstart de app; meer staat in het logbestand.";
-
     public HidHideAvailability Availability { get; private set; } = HidHideAvailability.Checking;
 
-    /// <summary>A problem that stops hiding even though HidHide is installed (Dutch); null when none.</summary>
+    /// <summary>A problem that stops hiding even though HidHide is installed (UI text); null when none.</summary>
     public string? Problem { get; private set; }
 
     /// <summary>Changes whenever availability or a device state changes.</summary>
@@ -146,7 +144,7 @@ public sealed class HidHideService
         {
             // Ownership could not be saved: after a crash or taskkill the pad would stay hidden with nobody
             // knowing it was ours. Hide nothing this session.
-            Problem = SettingsReadOnlyProblem;
+            Problem = Loc.Get("HidHide_SettingsReadOnly");
             _states[session.Id] = DeviceHideState.Failed;
             return;
         }
@@ -198,7 +196,7 @@ public sealed class HidHideService
         if (string.IsNullOrEmpty(exe) || HidHideClient.IsSharedHostExecutable(exe))
         {
             // Allowing dotnet.exe would let every .NET program see the hidden pads.
-            Problem = "De app draait via dotnet.exe. Start DS4Handler.exe zelf, anders kan HidHide de app niet als uitzondering toevoegen en blijft de controller zichtbaar.";
+            Problem = Loc.Get("HidHide_SharedHost");
             return false;
         }
         try
@@ -212,10 +210,10 @@ public sealed class HidHideService
                     Problem = null;
                     return true;
                 case WhitelistResult.RefusedSharedHost:
-                    Problem = "De app draait via dotnet.exe. Start DS4Handler.exe zelf, anders kan HidHide de app niet als uitzondering toevoegen en blijft de controller zichtbaar.";
+                    Problem = Loc.Get("HidHide_SharedHost");
                     return false;
                 default: // PathConversionFailed
-                    Problem = "De map waar DS4 Handler staat kon niet aan HidHide worden doorgegeven (bijvoorbeeld een netwerkschijf). Zet de app op een lokale schijf.";
+                    Problem = Loc.Get("HidHide_PathFailed");
                     return false;
             }
         }
@@ -228,12 +226,12 @@ public sealed class HidHideService
         }
     }
 
-    /// <summary>Plain Dutch explanation of a HidHide error.</summary>
+    /// <summary>Plain-language explanation of a HidHide error.</summary>
     public static string Describe(HidHideException ex) => ex.Kind switch
     {
-        HidHideErrorKind.NotInstalled => "HidHide is niet geïnstalleerd.",
-        HidHideErrorKind.Busy => "HidHide is bezet: een ander programma (zoals HidHide Configuration Client of DS4Windows) heeft het open. Sluit dat programma en klik op Opnieuw controleren.",
-        _ => "HidHide gaf een fout: " + ex.Message,
+        HidHideErrorKind.NotInstalled => Loc.Get("HidHide_NotInstalled"),
+        HidHideErrorKind.Busy => Loc.Get("HidHide_Busy"),
+        _ => Loc.Format("HidHide_Error", ex.Message),
     };
 
     private void UnhideOwnedCore()

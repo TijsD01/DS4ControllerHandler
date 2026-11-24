@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using DS4Handler.App.Engine;
 using DS4Handler.App.Infrastructure;
+using DS4Handler.App.Lang;
 using DS4Handler.App.Services;
 using DS4Handler.Core.Input;
 using DS4Handler.Core.Profiles;
@@ -56,24 +57,24 @@ public sealed class ProfileRowViewModel : ObservableObject
     public string DisplayName { get; }
     public string NamePlaceholder => ModelText;
 
-    public string MacText => Info.Mac ?? "(geen MAC gevonden)";
+    public string MacText => Info.Mac ?? Loc.Get("Profile_NoMacFound");
     public string MacTip => Info.Mac != null ? Tips.ProfileMac : Tips.ProfileNoMac;
 
     public string ModelText => Info.Model switch
     {
         ControllerModel.DualShock4 => "DualShock 4",
         ControllerModel.DualSense => "DualSense",
-        _ => "Onbekend type",
+        _ => Loc.Get("Profile_UnknownModel"),
     };
 
     public bool IsConnected => Info.Connected != null;
     public string StatusLevel => IsConnected ? Level.Ok : Level.Off;
 
     public string StatusText => Info.Connected is { } s
-        ? "Nu verbonden via " + (s.Connection == ConnectionType.Bluetooth ? "Bluetooth" : "USB")
+        ? Loc.Format("Profile_ConnectedVia", s.Connection == ConnectionType.Bluetooth ? "Bluetooth" : "USB")
         : Info.LastSeenUtc is { } seen
-            ? "Laatst gezien " + seen.ToLocalTime().ToString("d MMMM yyyy, HH:mm", Fmt.Nl)
-            : "Nog niet verbonden met deze pc";
+            ? Loc.Format("Profile_LastSeen", seen.ToLocalTime().ToString("d MMMM yyyy, HH:mm", Loc.Culture))
+            : Loc.Get("Profile_NeverConnected");
 
     public string StatusTip => IsConnected ? Tips.ProfileConnected : Tips.ProfileLastSeen;
 
@@ -85,7 +86,7 @@ public sealed class ProfileRowViewModel : ObservableObject
         {
             var others = Info.UsedBy.Where(s => !string.Equals(s.Id, Info.Id, StringComparison.OrdinalIgnoreCase)).ToArray();
             if (others.Length == 0) return "";
-            return "Gedeeld: ook gebruikt door " + string.Join(", ", others.Select(s => _owner.NameOf(s.Id)));
+            return Loc.Format("Profile_AlsoUsedBy", string.Join(", ", others.Select(s => _owner.NameOf(s.Id))));
         }
     }
 
@@ -130,7 +131,7 @@ public sealed class LinkRowViewModel : ObservableObject
 
     public ControllerSession Session { get; }
     public string Name { get; }
-    public string MacText => Session.Mac ?? "(geen MAC gevonden)";
+    public string MacText => Session.Mac ?? Loc.Get("Profile_NoMacFound");
     public IReadOnlyList<ProfileChoice> Choices { get; }
 
     public ProfileChoice? Selected
@@ -151,10 +152,10 @@ public sealed class LinkRowViewModel : ObservableObject
     }
 
     public string StatusText => Session.ProfileBlocked
-        ? "Profiel in gebruik door een andere controller: draait zonder opslaan"
+        ? Loc.Get("Profile_LinkBlocked")
         : string.Equals(Session.ProfileId, Session.Id, StringComparison.OrdinalIgnoreCase)
-            ? "Gebruikt zijn eigen profiel"
-            : "Gebruikt gedeeld profiel: " + _owner.NameOf(Session.ProfileId);
+            ? Loc.Get("Profile_LinkOwn")
+            : Loc.Format("Profile_LinkShared", _owner.NameOf(Session.ProfileId));
 
     public string StatusLevel => Session.ProfileBlocked ? Level.Warn : Level.Ok;
 }
@@ -221,14 +222,14 @@ public sealed class ProfilesViewModel : ObservableObject
         Connected.Clear();
         foreach (var session in _host.Manager.Sessions)
         {
-            var choices = new List<ProfileChoice> { new(session.Id, "Eigen profiel (" + NameOf(session.Id) + ")", Tips.LinkOwn) };
+            var choices = new List<ProfileChoice> { new(session.Id, Loc.Format("Profile_ChoiceOwn", NameOf(session.Id)), Tips.LinkOwn) };
             foreach (var info in infos)
             {
                 if (string.Equals(info.Id, session.Id, StringComparison.OrdinalIgnoreCase)) continue;
                 if (info.Model != null && info.Model != session.Model) continue; // only the same kind of controller
                 bool inUseByOther = info.UsedBy.Any(s => s != session) || (info.Connected != null && info.Connected != session);
                 if (inUseByOther && !string.Equals(info.Id, session.ProfileId, StringComparison.OrdinalIgnoreCase)) continue;
-                choices.Add(new ProfileChoice(info.Id, "Gedeeld: " + Label(info), Tips.LinkShared));
+                choices.Add(new ProfileChoice(info.Id, Loc.Format("Profile_ChoiceShared", Label(info)), Tips.LinkShared));
             }
             Connected.Add(new LinkRowViewModel(this, session, NameOf(session.Id), choices));
         }
@@ -237,7 +238,7 @@ public sealed class ProfilesViewModel : ObservableObject
         OnPropertyChanged(nameof(HasConnected));
     }
 
-    private string Label(ProfileInfo info) => NameOf(info.Id) + "  ·  " + (info.Mac ?? "geen MAC");
+    private string Label(ProfileInfo info) => NameOf(info.Id) + "  ·  " + (info.Mac ?? Loc.Get("Profile_NoMac"));
 
     internal void Rename(ProfileRowViewModel row, string name)
     {
@@ -246,16 +247,16 @@ public sealed class ProfilesViewModel : ObservableObject
     }
 
     internal void LinkAsync(LinkRowViewModel row, ProfileChoice choice, Action revert) =>
-        RunAsync(() => _host.Library.Link(row.Session, choice.Id), refresh: true, onError: revert, errorTitle: "Profiel kiezen");
+        RunAsync(() => _host.Library.Link(row.Session, choice.Id), refresh: true, onError: revert, errorTitle: Loc.Get("Profile_ChooseErrorTitle"));
 
     internal void Copy(ProfileRowViewModel row, ProfileChoice target)
     {
         if (!_dialogs.Confirm(
-                "Kalibratie kopiëren?",
-                $"Wat is geleerd voor '{row.DisplayName}' wordt gekopieerd naar '{NameOf(target.Id)}'. Wat daar al geleerd was, wordt overschreven. Namen en koppelingen blijven zoals ze zijn.",
-                "Kopiëren"))
+                Loc.Get("Profile_CopyTitle"),
+                Loc.Format("Profile_CopyMessage", row.DisplayName, NameOf(target.Id)),
+                Loc.Get("Profile_CopyConfirm")))
             return;
-        RunAsync(() => _host.Library.Copy(row.Id, target.Id), refresh: true, done: "Kalibratie gekopieerd.");
+        RunAsync(() => _host.Library.Copy(row.Id, target.Id), refresh: true, done: Loc.Get("Profile_CopyDone"));
     }
 
     internal void Export(ProfileRowViewModel row)
@@ -263,16 +264,16 @@ public sealed class ProfilesViewModel : ObservableObject
         var path = _dialogs.SaveProfileFile(SafeFileName(row.DisplayName) + ".ds4profile.json");
         if (path == null) return;
         RunAsync(() => _host.Library.Export(row.Id, path), refresh: false,
-            done: "Profiel opgeslagen. Stuur het bestand naar je vriend; hij kiest in DS4 Handler bij Profielen › Importeren.");
+            done: Loc.Get("Profile_ExportDone"));
     }
 
     internal void Delete(ProfileRowViewModel row)
     {
         if (!row.CanDelete) return;
         if (!_dialogs.Confirm(
-                "Profiel verwijderen?",
-                $"Alles wat is geleerd voor '{row.DisplayName}' ({row.MacText}) wordt verwijderd, met de naam. Sluit je deze controller later weer aan, dan begint hij opnieuw met leren.",
-                "Verwijderen"))
+                Loc.Get("Profile_DeleteTitle"),
+                Loc.Format("Profile_DeleteMessage", row.DisplayName, row.MacText),
+                Loc.Get("Profile_DeleteConfirm")))
             return;
         RunAsync(() => _host.Library.Delete(row.Id), refresh: true);
     }
@@ -289,13 +290,13 @@ public sealed class ProfilesViewModel : ObservableObject
         {
             if (new FileInfo(path).Length > MaxImportBytes)
             {
-                _dialogs.Inform("Importeren mislukt", "Dit bestand is veel te groot voor een DS4 Handler-profiel.");
+                _dialogs.Inform(Loc.Get("Profile_ImportFailed"), Loc.Get("Profile_ImportTooLarge"));
                 return;
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            _dialogs.Inform("Importeren mislukt", "Het bestand kon niet worden gelezen.");
+            _dialogs.Inform(Loc.Get("Profile_ImportFailed"), Loc.Get("Profile_ImportUnreadable"));
             return;
         }
 
@@ -313,7 +314,7 @@ public sealed class ProfilesViewModel : ObservableObject
             {
                 Log.Warn($"Profiel importeren uit {path} mislukt", ex);
                 return (Imported: (ImportedProfile?)null, Exists: false,
-                    Error: (string?)"Dit bestand is geen geldig DS4 Handler-profiel, of het kon niet worden gelezen.");
+                    Error: (string?)Loc.Get("Profile_ImportInvalid"));
             }
         }).ContinueWith(t => dispatcher?.BeginInvoke(() =>
         {
@@ -322,33 +323,33 @@ public sealed class ProfilesViewModel : ObservableObject
             var (imported, exists, error) = t.Result;
             if (imported == null)
             {
-                _dialogs.Inform("Importeren mislukt", error ?? "Onbekende fout.");
+                _dialogs.Inform(Loc.Get("Profile_ImportFailed"), error ?? Loc.Get("Profile_UnknownError"));
                 return;
             }
 
             var id = imported.Profile.ControllerId;
             string who = imported.Name ?? NameOf(id);
-            string mac = ControllerIds.MacFromId(id) ?? "geen MAC";
+            string mac = ControllerIds.MacFromId(id) ?? Loc.Get("Profile_NoMac");
             if (exists &&
-                !_dialogs.Confirm("Bestaand profiel overschrijven?",
-                    $"Er is al een profiel voor deze controller ({mac}). Wat daar is geleerd, wordt vervangen door het geïmporteerde profiel '{who}'.",
-                    "Overschrijven"))
+                !_dialogs.Confirm(Loc.Get("Profile_OverwriteTitle"),
+                    Loc.Format("Profile_OverwriteMessage", mac, who),
+                    Loc.Get("Profile_OverwriteConfirm")))
                 return;
 
             RunAsync(() => _host.Library.Import(imported), refresh: true,
-                done: $"Profiel '{who}' ({mac}) geïmporteerd. Sluit die controller aan en hij gebruikt het meteen.");
+                done: Loc.Format("Profile_ImportDone", who, mac));
         }), TaskScheduler.Default);
     }
 
-    /// <summary>Runs a profile action off the UI thread and reports its Dutch error (if any).</summary>
-    private void RunAsync(Func<string?> action, bool refresh, string? done = null, Action? onError = null, string errorTitle = "Dat lukte niet")
+    /// <summary>Runs a profile action off the UI thread and reports its error text (if any).</summary>
+    private void RunAsync(Func<string?> action, bool refresh, string? done = null, Action? onError = null, string? errorTitle = null)
     {
         Busy = true;
         var dispatcher = Application.Current?.Dispatcher;
         Task.Run(() =>
         {
             try { return action(); }
-            catch (Exception ex) { Log.Error("Profielactie mislukt", ex); return "Er ging iets mis: " + ex.Message; }
+            catch (Exception ex) { Log.Error("Profielactie mislukt", ex); return Loc.Format("Profile_SomethingWentWrong", ex.Message); }
         }).ContinueWith(t => dispatcher?.BeginInvoke(() =>
         {
             Busy = false;
@@ -356,9 +357,9 @@ public sealed class ProfilesViewModel : ObservableObject
             if (t.Result is { } error)
             {
                 onError?.Invoke();
-                _dialogs.Inform(errorTitle, error);
+                _dialogs.Inform(errorTitle ?? Loc.Get("Profile_ErrorTitle"), error);
             }
-            else if (done != null) _dialogs.Inform("Gelukt", done);
+            else if (done != null) _dialogs.Inform(Loc.Get("Profile_DoneTitle"), done);
             if (refresh) Refresh();
         }), TaskScheduler.Default);
     }
@@ -367,31 +368,31 @@ public sealed class ProfilesViewModel : ObservableObject
     {
         var invalid = Path.GetInvalidFileNameChars();
         var clean = new string(name.Select(c => invalid.Contains(c) ? '_' : c).ToArray()).Trim();
-        return clean.Length == 0 ? "profiel" : clean;
+        return clean.Length == 0 ? Loc.Get("Profile_FileNameFallback") : clean;
     }
 
-    /// <summary>Short plain-Dutch summary of what a saved profile learned.</summary>
+    /// <summary>Short plain-language summary of what a saved profile learned.</summary>
     internal static string Summarize(CalibrationProfile? p)
     {
-        if (p == null) return "Nog niets opgeslagen.";
+        if (p == null) return Loc.Get("Profile_SumNothing");
         var parts = new List<string>(4);
         parts.Add(TriggerText("L2", p.L2));
         parts.Add(TriggerText("R2", p.R2));
-        parts.Add(StickText("Linker stick", p.LeftStick));
-        parts.Add(StickText("rechter stick", p.RightStick));
+        parts.Add(StickText(Loc.Get("Profile_SumLeftStick"), p.LeftStick));
+        parts.Add(StickText(Loc.Get("Profile_SumRightStick"), p.RightStick));
         return string.Join(" · ", parts);
 
         static string TriggerText(string name, Core.Calibration.TriggerCalibrationData t)
         {
-            if (!t.EndStopLearned) return $"{name} nog niet geleerd";
-            return t.EndStop >= 250 ? $"{name} volledig bereik" : $"{name} komt tot {Fmt.Pct(t.EndStop / 255.0)}";
+            if (!t.EndStopLearned) return Loc.Format("Profile_SumNotLearned", name);
+            return t.EndStop >= 250 ? Loc.Format("Profile_SumFullRange", name) : Loc.Format("Profile_SumReaches", name, Fmt.Pct(t.EndStop / 255.0));
         }
 
         static string StickText(string name, Core.Calibration.StickCalibrationData s)
         {
             double drift = Math.Sqrt(s.CenterX * s.CenterX + s.CenterY * s.CenterY);
-            if (s.Releases == 0) return $"{name} nog niet geleerd";
-            return drift >= 0.02 ? $"{name} drift {Fmt.Pct(drift)}" : $"{name} geen drift";
+            if (s.Releases == 0) return Loc.Format("Profile_SumNotLearned", name);
+            return drift >= 0.02 ? Loc.Format("Profile_SumDrift", name, Fmt.Pct(drift)) : Loc.Format("Profile_SumNoDrift", name);
         }
     }
 }

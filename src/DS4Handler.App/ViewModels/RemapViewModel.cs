@@ -6,6 +6,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
 using DS4Handler.App.Engine;
+using DS4Handler.App.Lang;
 using DS4Handler.App.Services;
 using DS4Handler.Core.Input;
 using DS4Handler.Core.Mapping;
@@ -15,9 +16,9 @@ namespace DS4Handler.App.ViewModels;
 /// <summary>One entry in a row's target drop-down.</summary>
 public sealed class RemapOption : ObservableObject
 {
-    public const string GroupButtons = "CONTROLLERKNOPPEN";
-    public const string GroupTriggers = "TRIGGERS";
-    public const string GroupOther = ""; // keyboard and "Uit": shown under a plain divider
+    public static string GroupButtons => Loc.Get("Remap_GroupButtons");
+    public static string GroupTriggers => Loc.Get("Remap_GroupTriggers");
+    public const string GroupOther = ""; // keyboard and "Off": shown under a plain divider
 
     private string _label;
 
@@ -76,12 +77,12 @@ public sealed class RemapRow : ObservableObject
         // Buttons first, then triggers (the order of the groups), each in PadControl order.
         foreach (var o in _pad.Values.Where(o => o.Group == RemapOption.GroupButtons)) _items.Add(o);
         foreach (var o in _pad.Values.Where(o => o.Group == RemapOption.GroupTriggers)) _items.Add(o);
-        _pickKey = new RemapOption(RemapOption.GroupOther, RemapTarget.ToKey(0), "Toetsenbord…", picksKey: true);
-        _off = new RemapOption(RemapOption.GroupOther, RemapTarget.Disabled, "Uit");
+        _pickKey = new RemapOption(RemapOption.GroupOther, RemapTarget.ToKey(0), Loc.Get("Remap_Keyboard"), picksKey: true);
+        _off = new RemapOption(RemapOption.GroupOther, RemapTarget.Disabled, Loc.Get("Remap_Off"));
         if (source == PadControl.Mute)
         {
             // The mute button has no counterpart on the virtual pad: by default it does nothing.
-            _nothing = new RemapOption(RemapOption.GroupOther, RemapTarget.Same, "Niets", isDefault: true);
+            _nothing = new RemapOption(RemapOption.GroupOther, RemapTarget.Same, Loc.Get("Remap_Nothing"), isDefault: true);
             _items.Add(_nothing);
         }
         _items.Add(_pickKey);
@@ -117,7 +118,7 @@ public sealed class RemapRow : ObservableObject
     /// </summary>
     public bool IsListOpen { get; set; }
 
-    public string AutomationName => $"{Name}: wat de game krijgt";
+    public string AutomationName => Loc.Format("Remap_AutomationName", Name);
 
     /// <summary>Differs from the default: accent marker and a "Standaard" link.</summary>
     public bool IsChanged => _target.Kind != RemapKind.Same;
@@ -165,7 +166,7 @@ public sealed class RemapRow : ObservableObject
         _target = target;
         if (target.Kind == RemapKind.Key)
         {
-            string label = "Toets " + KeyNames.Name(target.ScanCode);
+            string label = Loc.Format("Remap_KeyLabel", KeyNames.Name(target.ScanCode));
             if (_key == null)
             {
                 _key = new RemapOption(RemapOption.GroupOther, target, label);
@@ -235,14 +236,14 @@ public sealed class RemapViewModel : ObservableObject
         RemapRow Row(PadControl c) => _rows[c] = new RemapRow(this, c, RemapNames.Badge(c), RemapNames.Source(c, dualSense));
         var groups = new List<RemapGroup>
         {
-            new("SYMBOOLKNOPPEN", new[] { Row(PadControl.Cross), Row(PadControl.Circle), Row(PadControl.Square), Row(PadControl.Triangle) }),
-            new("Schouderknoppen en triggers", new[] { Row(PadControl.L1), Row(PadControl.R1), Row(PadControl.L2), Row(PadControl.R2) }),
-            new("Pijltjes", new[] { Row(PadControl.DpadUp), Row(PadControl.DpadDown), Row(PadControl.DpadLeft), Row(PadControl.DpadRight) }),
-            new("Sticks indrukken", new[] { Row(PadControl.L3), Row(PadControl.R3) }),
+            new(Loc.Get("Remap_GroupSymbols"), new[] { Row(PadControl.Cross), Row(PadControl.Circle), Row(PadControl.Square), Row(PadControl.Triangle) }),
+            new(Loc.Get("Remap_GroupShoulders"), new[] { Row(PadControl.L1), Row(PadControl.R1), Row(PadControl.L2), Row(PadControl.R2) }),
+            new(Loc.Get("Remap_GroupDpad"), new[] { Row(PadControl.DpadUp), Row(PadControl.DpadDown), Row(PadControl.DpadLeft), Row(PadControl.DpadRight) }),
+            new(Loc.Get("Remap_GroupStickClicks"), new[] { Row(PadControl.L3), Row(PadControl.R3) }),
         };
         var middle = new List<RemapRow> { Row(PadControl.Share), Row(PadControl.Options), Row(PadControl.PS), Row(PadControl.TouchpadClick) };
         if (dualSense) middle.Add(Row(PadControl.Mute)); // the DualShock 4 has no mute button
-        groups.Add(new("Midden", middle));
+        groups.Add(new(Loc.Get("Remap_GroupMiddle"), middle));
         Groups = groups;
 
         _generation = session.TuningGeneration; // before Tuning, see ControllerSession.TuningGeneration
@@ -282,20 +283,20 @@ public sealed class RemapViewModel : ObservableObject
         get
         {
             int n = _rows.Values.Count(r => r.IsChanged);
-            return n == 0 ? "Elke knop doet wat erop staat." : n == 1 ? "1 knop aangepast." : $"{n} knoppen aangepast.";
+            return n == 0 ? Loc.Get("Remap_NoneChanged") : n == 1 ? Loc.Get("Remap_OneChanged") : Loc.Format("Remap_ManyChanged", n);
         }
     }
 
     /// <summary>Under the picture: the names on the right are what the game sees.</summary>
     public string OutputHint => _xbox
-        ? "Rechts zie je wat de game krijgt, met Xbox-namen (de game ziet een Xbox 360-controller)."
-        : "Rechts zie je wat de game krijgt, met PlayStation-namen (de game ziet een DualShock 4).";
+        ? Loc.Get("Remap_OutputHintXbox")
+        : Loc.Get("Remap_OutputHintDs4");
 
     private bool CanSave { get => _canSave; set { if (SetField(ref _canSave, value)) OnPropertyChanged(nameof(SaveNote)); } }
 
     public string SaveNote => CanSave ? ""
-        : _blocked ? "Wijzigingen werken nu, maar worden niet bewaard: dit profiel is in gebruik door een andere controller."
-        : "Wijzigingen werken nu, maar worden niet bewaard: het profielbestand kon niet worden gelezen. Het bestand blijft ongemoeid.";
+        : _blocked ? Loc.Get("Tune_SaveNoteBlocked")
+        : Loc.Get("Tune_SaveNoteUnreadable");
 
     internal void SetOutputXbox(bool xbox)
     {
@@ -390,9 +391,9 @@ public sealed class RemapViewModel : ObservableObject
     private void ResetAll()
     {
         if (!_confirm(
-                "Alle knoppen op standaard?",
-                $"Elke knop van deze {Pad.Title} doet weer wat erop staat, toetsen worden losgekoppeld en de sticks staan weer op hun eigen plek. Afstellen en kalibratie blijven zoals ze zijn.",
-                "Op standaard zetten"))
+                Loc.Get("Remap_ResetAllTitle"),
+                Loc.Format("Remap_ResetAllMessage", Pad.Title),
+                Loc.Get("Remap_ResetAllConfirm")))
             return;
         Apply(ButtonRemap.Identity);
     }
@@ -403,7 +404,7 @@ public sealed class RemapViewModel : ObservableObject
     {
         if (_capturing != null && _capturing != row) CancelCapture();
         _capturing = row;
-        row.CaptureNote = "Esc stopt zonder iets te wijzigen.";
+        row.CaptureNote = Loc.Get("Remap_CaptureHint");
         row.CaptureRefused = false;
         row.IsCapturing = true;
         OnPropertyChanged(nameof(IsCapturing));
@@ -437,7 +438,7 @@ public sealed class RemapViewModel : ObservableObject
         ushort scan = vk == 0 ? (ushort)0 : KeyNames.ScanCode(vk);
         if (scan == 0)
         {
-            row.CaptureNote = "Deze toets wordt niet ondersteund. Kies een andere, of Esc om te stoppen.";
+            row.CaptureNote = Loc.Get("Remap_KeyNotSupported");
             row.CaptureRefused = true;
             return true;
         }
@@ -469,25 +470,25 @@ internal static class RemapNames
 
     public static string Source(PadControl c, bool dualSense) => c switch
     {
-        PadControl.Cross => "Kruisje",
-        PadControl.Circle => "Rondje",
-        PadControl.Square => "Vierkantje",
-        PadControl.Triangle => "Driehoekje",
-        PadControl.L1 => "Linker schouderknop",
-        PadControl.R1 => "Rechter schouderknop",
-        PadControl.L2 => "Linker trigger",
-        PadControl.R2 => "Rechter trigger",
+        PadControl.Cross => Loc.Get("Remap_Cross"),
+        PadControl.Circle => Loc.Get("Remap_Circle"),
+        PadControl.Square => Loc.Get("Remap_Square"),
+        PadControl.Triangle => Loc.Get("Remap_Triangle"),
+        PadControl.L1 => Loc.Get("Remap_SourceL1"),
+        PadControl.R1 => Loc.Get("Remap_SourceR1"),
+        PadControl.L2 => Loc.Get("Remap_SourceL2"),
+        PadControl.R2 => Loc.Get("Remap_SourceR2"),
         PadControl.Share => dualSense ? "Create" : "Share",
         PadControl.Options => "Options",
-        PadControl.L3 => "Linker stick indrukken",
-        PadControl.R3 => "Rechter stick indrukken",
-        PadControl.PS => "PlayStation-knop",
-        PadControl.TouchpadClick => "Touchpad-klik",
-        PadControl.Mute => "Microfoonknop",
-        PadControl.DpadUp => "Omhoog",
-        PadControl.DpadDown => "Omlaag",
-        PadControl.DpadLeft => "Links",
-        PadControl.DpadRight => "Rechts",
+        PadControl.L3 => Loc.Get("Remap_SourceL3"),
+        PadControl.R3 => Loc.Get("Remap_SourceR3"),
+        PadControl.PS => Loc.Get("Remap_SourcePS"),
+        PadControl.TouchpadClick => Loc.Get("Remap_TouchpadClick"),
+        PadControl.Mute => Loc.Get("Remap_SourceMute"),
+        PadControl.DpadUp => Loc.Get("Remap_Up"),
+        PadControl.DpadDown => Loc.Get("Remap_Down"),
+        PadControl.DpadLeft => Loc.Get("Remap_Left"),
+        PadControl.DpadRight => Loc.Get("Remap_Right"),
         _ => c.ToString(),
     };
 
@@ -504,30 +505,30 @@ internal static class RemapNames
             PadControl.R2 => "RT",
             PadControl.Share => "Back",
             PadControl.Options => "Start",
-            PadControl.L3 => "LS (linker stick in)",
-            PadControl.R3 => "RS (rechter stick in)",
+            PadControl.L3 => "LS " + Loc.Get("Remap_LeftStickIn"),
+            PadControl.R3 => "RS " + Loc.Get("Remap_RightStickIn"),
             PadControl.PS => "Guide",
-            PadControl.TouchpadClick => "Touchpad (niet op Xbox)",
-            PadControl.DpadUp => "D-pad omhoog",
-            PadControl.DpadDown => "D-pad omlaag",
-            PadControl.DpadLeft => "D-pad links",
-            PadControl.DpadRight => "D-pad rechts",
+            PadControl.TouchpadClick => Loc.Get("Remap_TouchpadNotXbox"),
+            PadControl.DpadUp => Loc.Get("Remap_DpadUp"),
+            PadControl.DpadDown => Loc.Get("Remap_DpadDown"),
+            PadControl.DpadLeft => Loc.Get("Remap_DpadLeft"),
+            PadControl.DpadRight => Loc.Get("Remap_DpadRight"),
             _ => c.ToString(),
         }
         : c switch
         {
-            PadControl.Cross => "✕ Kruisje",
-            PadControl.Circle => "○ Rondje",
-            PadControl.Square => "□ Vierkantje",
-            PadControl.Triangle => "△ Driehoekje",
-            PadControl.L3 => "L3 (linker stick in)",
-            PadControl.R3 => "R3 (rechter stick in)",
-            PadControl.PS => "PS-knop",
-            PadControl.TouchpadClick => "Touchpad-klik",
-            PadControl.DpadUp => "↑ Omhoog",
-            PadControl.DpadDown => "↓ Omlaag",
-            PadControl.DpadLeft => "← Links",
-            PadControl.DpadRight => "→ Rechts",
+            PadControl.Cross => "✕ " + Loc.Get("Remap_Cross"),
+            PadControl.Circle => "○ " + Loc.Get("Remap_Circle"),
+            PadControl.Square => "□ " + Loc.Get("Remap_Square"),
+            PadControl.Triangle => "△ " + Loc.Get("Remap_Triangle"),
+            PadControl.L3 => "L3 " + Loc.Get("Remap_LeftStickIn"),
+            PadControl.R3 => "R3 " + Loc.Get("Remap_RightStickIn"),
+            PadControl.PS => Loc.Get("Remap_TargetPS"),
+            PadControl.TouchpadClick => Loc.Get("Remap_TouchpadClick"),
+            PadControl.DpadUp => "↑ " + Loc.Get("Remap_Up"),
+            PadControl.DpadDown => "↓ " + Loc.Get("Remap_Down"),
+            PadControl.DpadLeft => "← " + Loc.Get("Remap_Left"),
+            PadControl.DpadRight => "→ " + Loc.Get("Remap_Right"),
             _ => c.ToString(), // L1, R1, L2, R2, Share, Options
         };
 }
@@ -545,7 +546,7 @@ internal static class KeyNames
         return RemapTarget.IsSendableScanCode((int)scan) ? (ushort)scan : (ushort)0;
     }
 
-    /// <summary>"Spatiebalk", "W", "Rechter Ctrl"; a hex code when Windows has no name.</summary>
+    /// <summary>"Space", "W", "Right Ctrl" (Windows names them in the keyboard layout's language); a hex code when Windows has no name.</summary>
     public static string Name(ushort scan)
     {
         int lParam = (scan & 0xFF) << 16 | ((scan >> 8) == 0xE0 ? 1 << 24 : 0);

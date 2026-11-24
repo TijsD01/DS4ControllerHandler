@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using DS4Handler.App.Lang;
 using DS4Handler.App.ViewModels;
 
 namespace DS4Handler.App.Controls;
@@ -79,17 +80,17 @@ public sealed class TextVisibilityConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
 }
 
-/// <summary>Maps a <see cref="Level"/> string to a short Dutch status word ("In orde", "Leert", ...).</summary>
+/// <summary>Maps a <see cref="Level"/> string to a short status word ("In orde", "Leert", ...).</summary>
 public sealed class LevelWordConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) => (value as string) switch
     {
-        Level.Ok => "In orde",
-        Level.Warn => "Let op",
-        Level.Bad => "Probleem",
-        Level.Learning => "Leert",
-        Level.Info => "Info",
-        _ => "Uit",
+        Level.Ok => Loc.Get("Level_Ok"),
+        Level.Warn => Loc.Get("Level_Warn"),
+        Level.Bad => Loc.Get("Level_Bad"),
+        Level.Learning => Loc.Get("Level_Learning"),
+        Level.Info => Loc.Get("Level_Info"),
+        _ => Loc.Get("Level_Off"),
     };
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;

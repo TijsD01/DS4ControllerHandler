@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using DS4Handler.App.Infrastructure;
+using DS4Handler.App.Lang;
 using DS4Handler.App.Services;
 using DS4Handler.Core.Updates;
 
@@ -14,7 +15,7 @@ public sealed class UpdateViewModel : ObservableObject
     private static readonly TimeSpan FirstCheckDelay = TimeSpan.FromSeconds(8);
     private static readonly TimeSpan CheckInterval = TimeSpan.FromHours(12);
     private const int MaxNotesInBanner = 6;
-    private const string ChangelogLink = "Alle wijzigingen bekijken";
+    private static string ChangelogLink => Loc.Get("Update_ChangelogLink");
     private static readonly ICommand OpenChangelog = new RelayCommand(() => AppHost.OpenUrl(UpdateCheck.ChangelogUrl));
 
     private readonly AppHost _host;
@@ -26,7 +27,7 @@ public sealed class UpdateViewModel : ObservableObject
     private bool _downloading;
     private double _progress;
     private string? _error;
-    private string _status = "Nog niet gezocht.";
+    private string _status = Loc.Get("Update_NotChecked");
     private (ReleaseVersion Version, IReadOnlyList<string> Notes)? _justUpdated;
 
     public UpdateViewModel(AppHost host)
@@ -41,7 +42,7 @@ public sealed class UpdateViewModel : ObservableObject
 
     public ICommand CheckNowCommand { get; }
 
-    public string CurrentVersionText => "Versie " + UpdateService.CurrentVersion;
+    public string CurrentVersionText => Loc.Format("Update_Version", UpdateService.CurrentVersion);
 
     public string Status { get => _status; private set => SetField(ref _status, value); }
 
@@ -71,29 +72,30 @@ public sealed class UpdateViewModel : ObservableObject
             yield return new NoticeViewModel
             {
                 Level = Level.Ok,
-                Title = $"DS4 Handler is bijgewerkt naar versie {done.Version}",
+                Title = Loc.Format("Update_UpdatedTitle", done.Version),
                 Text = done.Notes.Count > 0
-                    ? "Nieuw in deze versie:\n" + Bullets(done.Notes) + "\nJe profielen en instellingen zijn bewaard gebleven."
-                    : "Je profielen en instellingen zijn bewaard gebleven.",
+                    ? Loc.Get("Update_NewInThisVersion") + "\n" + Bullets(done.Notes) + "\n" + Loc.Get("Update_SettingsKept")
+                    : Loc.Get("Update_SettingsKept"),
                 LinkText = ChangelogLink,
                 LinkCommand = OpenChangelog,
-                PrimaryText = "Sluiten",
+                PrimaryText = Loc.Get("Update_Close"),
                 PrimaryCommand = new RelayCommand(() => { _justUpdated = null; Changed(); }),
-                PrimaryTip = "Verberg deze melding.",
+                PrimaryTip = Loc.Get("Update_CloseTip"),
             };
         }
 
         if (_available is { } update && !_availableDismissed)
         {
             var notes = update.LatestNotes;
-            string whatsNew = notes.Count > 0 ? $"\n\nNieuw in {update.Latest.Version}:\n" + Bullets(notes) : "";
+            // The notes themselves come from the release (Dutch); only the words around them are translated.
+            string whatsNew = notes.Count > 0 ? "\n\n" + Loc.Format("Update_NewIn", update.Latest.Version) + "\n" + Bullets(notes) : "";
             if (_downloading)
             {
                 yield return new NoticeViewModel
                 {
                     Level = Level.Learning,
-                    Title = $"Versie {update.Latest.Version} wordt gedownload… {Math.Round(_progress * 100):0}%",
-                    Text = "Daarna sluit de app even en wordt de nieuwe versie geïnstalleerd. Je profielen en instellingen blijven bewaard.",
+                    Title = Loc.Format("Update_Downloading", update.Latest.Version, Math.Round(_progress * 100)),
+                    Text = Loc.Get("Update_DownloadingText"),
                 };
             }
             else if (UpdateService.IsInstalled)
@@ -101,14 +103,14 @@ public sealed class UpdateViewModel : ObservableObject
                 yield return new NoticeViewModel
                 {
                     Level = Level.Learning,
-                    Title = $"Nieuwe versie beschikbaar: {update.Latest.Version}",
-                    Text = (_error != null ? "Bijwerken lukte niet: " + _error + "\n\n" : "")
-                           + $"Je hebt nu versie {UpdateService.CurrentVersion}. Bijwerken duurt ongeveer een minuut; de app sluit even en start daarna vanzelf opnieuw. Je profielen en instellingen blijven bewaard."
+                    Title = Loc.Format("Update_AvailableTitle", update.Latest.Version),
+                    Text = (_error != null ? Loc.Format("Update_Failed", _error) + "\n\n" : "")
+                           + Loc.Format("Update_InstalledText", UpdateService.CurrentVersion)
                            + whatsNew,
-                    PrimaryText = _error != null ? "Opnieuw proberen" : "Nu bijwerken",
+                    PrimaryText = _error != null ? Loc.Get("Update_TryAgain") : Loc.Get("Update_UpdateNow"),
                     PrimaryCommand = new RelayCommand(() => _ = InstallAsync(update.Latest)),
                     PrimaryTip = Tips.UpdateNow,
-                    SecondaryText = "Later",
+                    SecondaryText = Loc.Get("Update_Later"),
                     SecondaryCommand = new RelayCommand(() => { _availableDismissed = true; Changed(); }),
                     SecondaryTip = Tips.UpdateLater,
                     LinkText = ChangelogLink,
@@ -121,12 +123,12 @@ public sealed class UpdateViewModel : ObservableObject
                 yield return new NoticeViewModel
                 {
                     Level = Level.Learning,
-                    Title = $"Nieuwe versie beschikbaar: {update.Latest.Version}",
-                    Text = $"Je gebruikt de losse (portable) versie {UpdateService.CurrentVersion}. Download de nieuwe versie en vervang dit bestand, of installeer met de Setup; je profielen blijven bewaard." + whatsNew,
-                    PrimaryText = "Downloadpagina openen",
+                    Title = Loc.Format("Update_AvailableTitle", update.Latest.Version),
+                    Text = Loc.Format("Update_PortableText", UpdateService.CurrentVersion) + whatsNew,
+                    PrimaryText = Loc.Get("Update_OpenDownloadPage"),
                     PrimaryCommand = new RelayCommand(() => AppHost.OpenUrl(string.IsNullOrEmpty(update.Latest.PageUrl) ? UpdateCheck.ReleasesPageUrl : update.Latest.PageUrl)),
                     PrimaryTip = Tips.UpdateDownloadPage,
-                    SecondaryText = "Later",
+                    SecondaryText = Loc.Get("Update_Later"),
                     SecondaryCommand = new RelayCommand(() => { _availableDismissed = true; Changed(); }),
                     SecondaryTip = Tips.UpdateLater,
                     LinkText = ChangelogLink,
@@ -140,7 +142,7 @@ public sealed class UpdateViewModel : ObservableObject
     {
         if (_checking || _downloading) return;
         _checking = true;
-        Status = "Bezig met zoeken naar een nieuwe versie…";
+        Status = Loc.Get("Update_Checking");
         try
         {
             var update = await _service.CheckAsync();
@@ -150,11 +152,11 @@ public sealed class UpdateViewModel : ObservableObject
                 bool isNew = _available?.Latest.Version != update.Latest.Version;
                 _available = update;
                 if (isNew || manual) { _availableDismissed = false; _error = null; }
-                Status = $"Versie {update.Latest.Version} is beschikbaar (je hebt {UpdateService.CurrentVersion}).";
+                Status = Loc.Format("Update_StatusAvailable", update.Latest.Version, UpdateService.CurrentVersion);
             }
             else
             {
-                Status = $"Je hebt de nieuwste versie. Laatst gezocht om {DateTime.Now:HH:mm}.";
+                Status = Loc.Format("Update_StatusUpToDate", DateTime.Now.ToString("HH:mm", Loc.Culture));
             }
         }
         finally
@@ -189,7 +191,7 @@ public sealed class UpdateViewModel : ObservableObject
         {
             Log.Warn("Update installeren mislukt", ex);
             _error = ex is System.ComponentModel.Win32Exception { NativeErrorCode: 1223 }
-                ? "je hebt de installatie geannuleerd."
+                ? Loc.Get("Update_Cancelled")
                 : ex.Message;
             _downloading = false;
             Changed();
@@ -224,7 +226,7 @@ public sealed class UpdateViewModel : ObservableObject
     {
         var lines = notes.Take(MaxNotesInBanner).Select(n => "• " + n);
         var text = string.Join("\n", lines);
-        if (notes.Count > MaxNotesInBanner) text += $"\n• en nog {notes.Count - MaxNotesInBanner} andere verbeteringen";
+        if (notes.Count > MaxNotesInBanner) text += "\n• " + Loc.Format("Update_MoreNotes", notes.Count - MaxNotesInBanner);
         return text;
     }
 }

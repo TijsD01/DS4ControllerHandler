@@ -3,6 +3,11 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
+## 2.4.0
+
+- De app is er nu ook in het Engels. Kies de taal bij Instellingen → Taal. The app is now available in English too: pick it under Settings → Language.
+- Een versleten stick loopt bij rustig richten veel minder achter: zodra je echt beweegt voorspelt het trillingsfilter je beweging (ongeveer 3 ms vertraging in plaats van 16 ms). Stilhouden, het begin van een beweging en heel langzaam bewegen blijven precies zo rustig en vlot als eerst.
+
 ## 2.3.1
 
 - Knoppen geven nu een klein, kort indrukeffect als je erop klikt.

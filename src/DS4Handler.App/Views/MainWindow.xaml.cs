@@ -2,7 +2,9 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Markup;
 using System.Windows.Media;
+using DS4Handler.App.Lang;
 using DS4Handler.App.ViewModels;
 
 namespace DS4Handler.App.Views;
@@ -11,10 +13,12 @@ public partial class MainWindow : Window
 {
     public MainWindow(MainViewModel viewModel, ImageSource? icon)
     {
+        Language = XmlLanguage.GetLanguage(Loc.Culture.IetfLanguageTag); // number formats in bindings ({0:P0})
         InitializeComponent();
         DataContext = viewModel;
         Icon = icon;
         viewModel.Settings.QuitRequested += (_, _) => QuitRequested?.Invoke(this, EventArgs.Empty);
+        viewModel.Settings.RestartRequested += (_, _) => RestartRequested?.Invoke(this, EventArgs.Empty);
         SourceInitialized += (_, _) => UseDarkTitleBar();
     }
 
@@ -23,6 +27,9 @@ public partial class MainWindow : Window
 
     /// <summary>The user clicked "Afsluiten" (on Instellingen, via <see cref="SettingsViewModel.QuitCommand"/>).</summary>
     public event EventHandler? QuitRequested;
+
+    /// <summary>The user clicked "Nu herstarten" after choosing another language.</summary>
+    public event EventHandler? RestartRequested;
 
     /// <summary>The window was closed to the tray.</summary>
     public event EventHandler? HiddenToTray;

@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Settings_Title" xml:space="preserve"><value>Instellingen</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Annuleren</value></data>
+  <data name="Common_Default" xml:space="preserve"><value>Standaard</value></data>
+  <data name="Common_ResetAll" xml:space="preserve"><value>Alles op standaard</value></data>
+  <data name="Common_ToGame" xml:space="preserve"><value>Naar de game</value></data>
+  <data name="Common_OpenProfileFolder" xml:space="preserve"><value>Profielmap openen</value></data>
+  <data name="Common_OpenLog" xml:space="preserve"><value>Logbestand openen</value></data>
+  <data name="Common_DownloadViGEm" xml:space="preserve"><value>ViGEmBus downloaden</value></data>
+  <data name="Common_DownloadHidHide" xml:space="preserve"><value>HidHide downloaden</value></data>
+  <data name="Common_Recheck" xml:space="preserve"><value>Opnieuw controleren</value></data>
+  <data name="Common_Quit" xml:space="preserve"><value>Afsluiten</value></data>
+  <data name="Common_Checking" xml:space="preserve"><value>Controleren…</value></data>
+  <data name="Common_PressedButtons" xml:space="preserve"><value>Ingedrukte knoppen op je controller</value></data>
+  <data name="Common_HideFromGames" xml:space="preserve"><value>Verborgen voor games</value></data>
+  <data name="Common_Calibration" xml:space="preserve"><value>Kalibratie</value></data>
+  <data name="Common_Buttons" xml:space="preserve"><value>Knoppen</value></data>
+  <data name="Common_Profiles" xml:space="preserve"><value>Profielen</value></data>
+  <data name="Common_Speed" xml:space="preserve"><value>Snelheid</value></data>
+  <data name="App_ErrorText" xml:space="preserve"><value>Er ging iets mis: {0}
+
+De app draait door. Meer details staan in het logbestand:
+{1}</value></data>
+  <data name="Dialog_CancelTip" xml:space="preserve"><value>Sluit dit venster zonder iets te veranderen.</value></data>
+  <data name="Dialog_ConfirmTip" xml:space="preserve"><value>Bevestig: {0}.</value></data>
+  <data name="Dialog_OkTip" xml:space="preserve"><value>Sluit deze melding.</value></data>
+  <data name="Dialog_ProfileFilter" xml:space="preserve"><value>DS4 Handler-profiel (*.json)|*.json|Alle bestanden (*.*)|*.*</value></data>
+  <data name="Dialog_ExportTitle" xml:space="preserve"><value>Profiel exporteren</value></data>
+  <data name="Dialog_ImportTitle" xml:space="preserve"><value>Profiel importeren</value></data>
+  <data name="Tray_Show" xml:space="preserve"><value>Tonen</value></data>
+  <data name="Tray_ShowTip" xml:space="preserve"><value>Opent het venster met je controllers en hun kalibratie.</value></data>
+  <data name="Tray_Learning" xml:space="preserve"><value>Leren</value></data>
+  <data name="Tray_LearningTip" xml:space="preserve"><value>Aan: de app blijft bijleren hoe je controllers zich gedragen (drift, versleten triggers). Uit: de huidige correctie blijft werken, maar verandert niet meer.</value></data>
+  <data name="Tray_QuitTip" xml:space="preserve"><value>Sluit DS4 Handler helemaal af. De virtuele controllers verdwijnen dan.</value></data>
+  <data name="Tray_HintTitle" xml:space="preserve"><value>DS4 Handler draait door</value></data>
+  <data name="Tray_HintText" xml:space="preserve"><value>Je controllers blijven werken. Klik op het icoon in het systeemvak om het venster weer te openen, of kies daar Afsluiten.</value></data>
+  <data name="Tray_TextNone" xml:space="preserve"><value>DS4 Handler – geen controller</value></data>
+  <data name="Tray_TextOne" xml:space="preserve"><value>DS4 Handler – 1 controller actief</value></data>
+  <data name="Tray_TextMany" xml:space="preserve"><value>DS4 Handler – {0} controllers actief</value></data>
+  <data name="Level_Ok" xml:space="preserve"><value>In orde</value></data>
+  <data name="Level_Warn" xml:space="preserve"><value>Let op</value></data>
+  <data name="Level_Bad" xml:space="preserve"><value>Probleem</value></data>
+  <data name="Level_Learning" xml:space="preserve"><value>Leert</value></data>
+  <data name="Level_Info" xml:space="preserve"><value>Info</value></data>
+  <data name="Level_Off" xml:space="preserve"><value>Uit</value></data>
+  <data name="Main_NoController" xml:space="preserve"><value>Geen controller aangesloten</value></data>
+  <data name="Main_Drivers" xml:space="preserve"><value>Stuurprogramma's</value></data>
+  <data name="Main_DriversOk" xml:space="preserve"><value>Stuurprogramma's in orde</value></data>
+  <data name="Main_EmptyTitle" xml:space="preserve"><value>Nog geen controller gevonden</value></data>
+  <data name="Main_EmptyText" xml:space="preserve"><value>Sluit een DualShock 4 of DualSense aan. Hij verschijnt dan vanzelf bovenin als tabblad.</value></data>
+  <data name="Main_EmptyUsb" xml:space="preserve"><value>Steek de kabel in. Meer hoef je niet te doen.</value></data>
+  <data name="Main_EmptyBluetooth" xml:space="preserve"><value>Houd PS en Share (of Create) ingedrukt tot het lampje snel knippert. Koppel hem daarna in Windows bij Instellingen › Bluetooth.</value></data>
+  <data name="Main_DriverOk" xml:space="preserve"><value>Xbox-driver OK</value></data>
+  <data name="Main_DriverMissing" xml:space="preserve"><value>Xbox-driver ontbreekt</value></data>
+  <data name="Main_DriverError" xml:space="preserve"><value>Xbox-driver fout</value></data>
+  <data name="Main_DriverErrorTip" xml:space="preserve"><value>ViGEmBus kon niet worden geopend: {0}</value></data>
+  <data name="Main_HidHideOff" xml:space="preserve"><value>HidHide uit</value></data>
+  <data name="Main_HidHideOffTip" xml:space="preserve"><value>Verbergen voor games staat uit (zie Instellingen). Sommige games zien dan twee controllers.</value></data>
+  <data name="Main_HidHideActive" xml:space="preserve"><value>HidHide actief</value></data>
+  <data name="Main_HidHideActiveTip" xml:space="preserve"><value>HidHide verbergt je echte controllers voor games, zodat ze alleen de Xbox-controller zien.</value></data>
+  <data name="Main_HidHideAttention" xml:space="preserve"><value>HidHide: let op</value></data>
+  <data name="Main_HidHideMissing" xml:space="preserve"><value>HidHide ontbreekt</value></data>
+  <data name="Main_HidHideMissingTip" xml:space="preserve"><value>HidHide is niet geïnstalleerd. Zonder HidHide zien sommige games je controller dubbel.</value></data>
+  <data name="Main_HidHideBusy" xml:space="preserve"><value>HidHide bezet</value></data>
+  <data name="Main_HidHideBusyTip" xml:space="preserve"><value>Een ander programma (HidHide Configuration Client of DS4Windows) heeft HidHide open. Sluit dat en klik op Opnieuw controleren.</value></data>
+  <data name="Main_HidHideError" xml:space="preserve"><value>HidHide fout</value></data>
+  <data name="Main_HidHideErrorTip" xml:space="preserve"><value>HidHide reageerde niet zoals verwacht. Zie het logbestand (Instellingen).</value></data>
+  <data name="Main_HidHideCheckingTip" xml:space="preserve"><value>Bezig met controleren of HidHide aanwezig is.</value></data>
+  <data name="Notice_ViGEmMissingTitle" xml:space="preserve"><value>De Xbox-driver (ViGEmBus) ontbreekt</value></data>
+  <data name="Notice_ViGEmMissingText" xml:space="preserve"><value>Zonder ViGEmBus kan DS4 Handler geen Xbox-controller maken, dus games krijgen geen input. Je ziet hier wel alle waarden. Installeer ViGEmBus (gratis) en start de app daarna opnieuw.</value></data>
+  <data name="Notice_ViGEmFailedTitle" xml:space="preserve"><value>De Xbox-driver (ViGEmBus) werkt niet</value></data>
+  <data name="Notice_ViGEmFailedText" xml:space="preserve"><value>ViGEmBus kon niet worden geopend ({0}). Herstart de pc; helpt dat niet, installeer ViGEmBus dan opnieuw.</value></data>
+  <data name="Notice_HidHideMissingTitle" xml:space="preserve"><value>HidHide is niet geïnstalleerd</value></data>
+  <data name="Notice_HidHideMissingText" xml:space="preserve"><value>Zonder HidHide zien sommige games zowel je PlayStation-controller als de Xbox-controller, waardoor knoppen dubbel reageren. Installeer HidHide (gratis) en klik daarna op Opnieuw controleren. Geen last van dubbele input? Zet HidHide dan uit bij Instellingen.</value></data>
+  <data name="Notice_HidHideBusyTitle" xml:space="preserve"><value>HidHide is bezet</value></data>
+  <data name="Notice_HidHideBusyText" xml:space="preserve"><value>Een ander programma heeft HidHide open, meestal de HidHide-configuratie of DS4Windows. Sluit dat programma en klik op Opnieuw controleren.</value></data>
+  <data name="Notice_HidHideErrorTitle" xml:space="preserve"><value>HidHide reageert niet</value></data>
+  <data name="Notice_HidHideErrorText" xml:space="preserve"><value>HidHide gaf een onverwachte fout. Herstart de pc of installeer HidHide opnieuw.</value></data>
+  <data name="Notice_HideFailedTitle" xml:space="preserve"><value>Controller kon niet worden verborgen</value></data>
+  <data name="Notice_TryAgain" xml:space="preserve"><value>Opnieuw proberen</value></data>
+  <data name="Notice_BlockedOne" xml:space="preserve"><value>Een controller is in gebruik door een ander programma</value></data>
+  <data name="Notice_BlockedMany" xml:space="preserve"><value>{0} controllers zijn in gebruik door een ander programma</value></data>
+  <data name="Notice_BlockedText" xml:space="preserve"><value>DS4 Handler ziet een controller maar kan hem niet openen. Sluit DS4Windows of andere controller-software. De app probeert het elke paar seconden opnieuw.</value></data>
+  <data name="Settings_HidHideReady" xml:space="preserve"><value>HidHide is geïnstalleerd en klaar voor gebruik.</value></data>
+  <data name="Settings_HidHideMissing" xml:space="preserve"><value>HidHide is niet geïnstalleerd. Download het gratis via de knop hieronder en klik daarna op Opnieuw controleren.</value></data>
+  <data name="Settings_HidHideBusy" xml:space="preserve"><value>HidHide is bezet: sluit de HidHide-configuratie (of DS4Windows) en klik op Opnieuw controleren.</value></data>
+  <data name="Settings_HidHideError" xml:space="preserve"><value>HidHide gaf een onverwachte fout. Zie het logbestand.</value></data>
+  <data name="Settings_HidHideChecking" xml:space="preserve"><value>Bezig met controleren…</value></data>
+  <data name="Settings_Startup" xml:space="preserve"><value>Opstarten</value></data>
+  <data name="Settings_StartWithWindows" xml:space="preserve"><value>Start met Windows</value></data>
+  <data name="Settings_StartWithWindowsText" xml:space="preserve"><value>De app start als je inlogt, zodat je controller meteen werkt.</value></data>
+  <data name="Settings_StartMinimized" xml:space="preserve"><value>Geminimaliseerd starten</value></data>
+  <data name="Settings_StartMinimizedText" xml:space="preserve"><value>Alleen als icoon in het systeemvak naast de klok.</value></data>
+  <data name="Settings_AutoUpdate" xml:space="preserve"><value>Automatisch zoeken naar nieuwe versies</value></data>
+  <data name="Settings_AutoUpdateText" xml:space="preserve"><value>Je profielen en instellingen blijven bewaard bij het bijwerken.</value></data>
+  <data name="Settings_CheckNow" xml:space="preserve"><value>Nu zoeken naar updates</value></data>
+  <data name="Settings_HidHideSection" xml:space="preserve"><value>Verborgen voor games (HidHide)</value></data>
+  <data name="Settings_UseHidHide" xml:space="preserve"><value>HidHide gebruiken</value></data>
+  <data name="Settings_UseHidHideText" xml:space="preserve"><value>Games zien alleen de virtuele controller. Per controller zet je dit aan met 'Verborgen voor games'.</value></data>
+  <data name="Settings_UnhideOnExit" xml:space="preserve"><value>Weer zichtbaar maken bij afsluiten</value></data>
+  <data name="Settings_UnhideOnExitText" xml:space="preserve"><value>Na het sluiten zien games je PlayStation-controller weer gewoon.</value></data>
+  <data name="Settings_About" xml:space="preserve"><value>Over</value></data>
+  <data name="Settings_AboutText" xml:space="preserve"><value>Je PlayStation-controller werkt in games als een Xbox 360- of DualShock 4-controller. De app leert vanzelf de drift van je sticks en de slijtage van je triggers en corrigeert die.</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Taal</value></data>
+  <data name="Settings_LanguageText" xml:space="preserve"><value>Voor alle teksten in de app.</value></data>
+  <data name="Settings_LanguageTip" xml:space="preserve"><value>Kies de taal van de app. De nieuwe taal wordt gebruikt na een herstart van de app.</value></data>
+  <data name="Settings_LanguageRestartNote" xml:space="preserve"><value>De nieuwe taal wordt gebruikt na een herstart.</value></data>
+  <data name="Settings_RestartNow" xml:space="preserve"><value>Nu herstarten</value></data>
+  <data name="Settings_RestartNowTip" xml:space="preserve"><value>Sluit DS4 Handler en start hem meteen opnieuw, in de nieuwe taal. Je profielen en instellingen blijven bewaard.</value></data>
+  <data name="Controller_Deadzone" xml:space="preserve"><value>deadzone</value></data>
+  <data name="Controller_Measure" xml:space="preserve"><value>Meten</value></data>
+  <data name="Controller_BatteryFormat" xml:space="preserve"><value> · batterij {0}</value></data>
+  <data name="Controller_GamesSeeAs" xml:space="preserve"><value>Games zien hem als</value></data>
+  <data name="Controller_VirtualController" xml:space="preserve"><value>Virtuele controller</value></data>
+  <data name="Controller_Parts" xml:space="preserve"><value>Onderdelen van deze controller</value></data>
+  <data name="Controller_RealPosition" xml:space="preserve"><value>Echte stand</value></data>
+  <data name="Controller_RestAndEnd" xml:space="preserve"><value>Rust- en eindpunt</value></data>
+  <data name="Controller_PressedButtonsGame" xml:space="preserve"><value>Ingedrukte knoppen zoals de game ze ziet</value></data>
+  <data name="Controller_ViewCalibration" xml:space="preserve"><value>Kalibratie bekijken</value></data>
+  <data name="Controller_View" xml:space="preserve"><value>Bekijken</value></data>
+  <data name="Controller_CalibrationIntro" xml:space="preserve"><value>De app leert vanzelf terwijl je speelt: waar het midden van je sticks ligt en hoe ver je triggers echt indrukken. Je hoeft hier niets te doen, tenzij je het sneller wilt.</value></data>
+  <data name="Controller_Recenter" xml:space="preserve"><value>Sticks centreren</value></data>
+  <data name="Controller_ReleaseSticks" xml:space="preserve"><value>Laat beide sticks los…</value></data>
+  <data name="Controller_Learned" xml:space="preserve"><value>Wat de app geleerd heeft</value></data>
+  <data name="Controller_Learning" xml:space="preserve"><value>Leren</value></data>
+  <data name="Controller_KeepLearning" xml:space="preserve"><value>Blijven leren tijdens het spelen</value></data>
+  <data name="Controller_KeepLearningText" xml:space="preserve"><value>Drift en slijtage veranderen langzaam. De app houdt dat bij.</value></data>
+  <data name="Controller_JitterFilter" xml:space="preserve"><value>Trillingsfilter</value></data>
+  <data name="Controller_JitterFilterText" xml:space="preserve"><value>Haalt het kleine heen-en-weer weg als je de stick loslaat.</value></data>
+  <data name="Controller_StartOver" xml:space="preserve"><value>Opnieuw beginnen</value></data>
+  <data name="Controller_StartOverText" xml:space="preserve"><value>Gooit alles weg wat de app over deze controller geleerd heeft.</value></data>
+  <data name="Controller_ResetCalibration" xml:space="preserve"><value>Kalibratie resetten</value></data>
+  <data name="Controller_Tuning" xml:space="preserve"><value>Afstellen</value></data>
+  <data name="Profiles_Import" xml:space="preserve"><value>Importeren…</value></data>
+  <data name="Profiles_Intro" xml:space="preserve"><value>Elke controller krijgt een eigen profiel, herkend aan zijn MAC-adres. Neem het profiel van een vriend mee met Importeren.</value></data>
+  <data name="Profiles_Connected" xml:space="preserve"><value>Nu aangesloten</value></data>
+  <data name="Profiles_ProfileForController" xml:space="preserve"><value>Profiel voor deze controller</value></data>
+  <data name="Profiles_All" xml:space="preserve"><value>Alle profielen</value></data>
+  <data name="Profiles_None" xml:space="preserve"><value>Nog geen profielen. Sluit een controller aan of importeer een profiel.</value></data>
+  <data name="Profiles_NameBox" xml:space="preserve"><value>Naam van het profiel</value></data>
+  <data name="Profiles_Rename" xml:space="preserve"><value>Hernoemen</value></data>
+  <data name="Profiles_CopyTo" xml:space="preserve"><value>Kopiëren naar…</value></data>
+  <data name="Profiles_Export" xml:space="preserve"><value>Exporteren…</value></data>
+  <data name="Profiles_Delete" xml:space="preserve"><value>Verwijderen</value></data>
+  <data name="Remap_DefaultSuffix" xml:space="preserve"><value> · standaard</value></data>
+  <data name="Remap_PressKeyFor" xml:space="preserve"><value>Druk op een toets voor {0}</value></data>
+  <data name="Remap_PressKey" xml:space="preserve"><value>Druk op een toets…</value></data>
+  <data name="Remap_RowDefault" xml:space="preserve"><value>{0} op standaard</value></data>
+  <data name="Remap_SwapSticks" xml:space="preserve"><value>Sticks wisselen</value></data>
+  <data name="Remap_SavedNow" xml:space="preserve"><value>Wijzigingen worden meteen opgeslagen.</value></data>
+  <data name="Remap_YourController" xml:space="preserve"><value>Jouw controller</value></data>
+  <data name="Remap_PressToFind" xml:space="preserve"><value>Druk een knop in om hem te vinden.</value></data>
+  <data name="Remap_List" xml:space="preserve"><value>Knoppen en wat de game krijgt</value></data>
+  <data name="Tuning_CurveName" xml:space="preserve"><value>Reactiecurve {0}</value></data>
+  <data name="Tuning_Shape" xml:space="preserve"><value>Vorm</value></data>
+  <data name="Tuning_Round" xml:space="preserve"><value>Rond</value></data>
+  <data name="Tuning_Square" xml:space="preserve"><value>Vierkant</value></data>
+  <data name="Tuning_Cross" xml:space="preserve"><value>Kruis</value></data>
+  <data name="Tuning_SquareOutput" xml:space="preserve"><value>Vierkante uitvoer</value></data>
+  <data name="Tuning_InvertX" xml:space="preserve"><value>X omdraaien</value></data>
+  <data name="Tuning_InvertY" xml:space="preserve"><value>Y omdraaien</value></data>
+  <data name="Tuning_SavedNow" xml:space="preserve"><value>Wijzigingen worden meteen opgeslagen in het profiel van deze controller.</value></data>
+  <data name="Tuning_PollBluetooth" xml:space="preserve"><value>Meten via Bluetooth (DualShock 4)</value></data>
+  <data name="Tuning_PollBluetoothName" xml:space="preserve"><value>Meten via Bluetooth</value></data>
+  <data name="Tuning_SendToGame" xml:space="preserve"><value>Naar de game sturen</value></data>
+  <data name="Tuning_SendToGameNote" xml:space="preserve"><value>Elke meting is het snelst en voor bijna iedereen goed.</value></data>
+  <data name="Settings_AppLanguage" xml:space="preserve"><value>Taal van de app</value></data>
+
+  <data name="Tip_Brand" xml:space="preserve"><value>DS4 Handler laat je PlayStation-controller in games werken als Xbox- of DualShock 4-controller en corrigeert vanzelf stickdrift en versleten triggers.</value></data>
+  <data name="Tip_NavSettings" xml:space="preserve"><value>Opstarten met Windows, HidHide (je echte controller verbergen voor games), updates, informatie over de app en afsluiten.</value></data>
+  <data name="Tip_ControllerTab" xml:space="preserve"><value>Klik om deze controller te bekijken. Het bolletje laat zien hoe hij ervoor staat: groen werkt, oranje wacht of leert nog, rood is een probleem.</value></data>
+  <data name="Tip_NoControllerTab" xml:space="preserve"><value>Zodra je een controller aansluit, verschijnt hij hier als tabblad. Klik om te zien hoe je een controller aansluit.</value></data>
+  <data name="Tip_DriversSection" xml:space="preserve"><value>De twee gratis hulpprogramma's die DS4 Handler gebruikt. ViGEmBus maakt de controller die games zien; HidHide verbergt je echte controller, zodat games hem niet dubbel zien. Klik om Instellingen te openen.</value></data>
+  <data name="Tip_ControllerTitle" xml:space="preserve"><value>De naam van het profiel van deze controller. Je wijzigt hem bij Profielen.</value></data>
+  <data name="Tip_TabLive" xml:space="preserve"><value>Zie live wat je sticks en triggers doen, en wat de game ervan krijgt.</value></data>
+  <data name="Tip_TabCalibration" xml:space="preserve"><value>Wat de app geleerd heeft over drift en slijtage, sticks centreren en triggers meten.</value></data>
+  <data name="Tip_TabAdjust" xml:space="preserve"><value>Stel zelf in hoe deze controller reageert: deadzones, curves, triggers en snelheid. Wijzigingen worden meteen opgeslagen in het profiel van de controller.</value></data>
+  <data name="Tip_TabButtons" xml:space="preserve"><value>Kies per knop wat de game krijgt: een andere knop, een toets op je toetsenbord of niets. Je kunt ook de sticks wisselen. Wijzigingen worden meteen opgeslagen in het profiel van de controller.</value></data>
+  <data name="Tip_CalibrationSummary" xml:space="preserve"><value>Kort wat de app over deze controller geleerd heeft. Klik om Kalibratie te openen en alles te zien.</value></data>
+  <data name="Tip_ControllerName" xml:space="preserve"><value>Het type PlayStation-controller. De app laat hem in games werken als een Xbox 360- of DualShock 4-controller (zie 'Games zien hem als').</value></data>
+  <data name="Tip_ControllerId" xml:space="preserve"><value>Het unieke adres van deze controller. Daarop wordt zijn kalibratie bewaard, dus via USB en Bluetooth gebruikt hij hetzelfde profiel.</value></data>
+  <data name="Tip_ControllerIdUnstable" xml:space="preserve"><value>Het adres van deze controller kon niet worden gelezen. Zijn kalibratie hangt daarom aan deze USB-poort: op een andere poort begint hij opnieuw met leren.</value></data>
+  <data name="Tip_Usb" xml:space="preserve"><value>Verbonden met een USB-kabel. Dat geeft de snelste reactie en laadt de controller ondertussen op.</value></data>
+  <data name="Tip_Bluetooth" xml:space="preserve"><value>Draadloos verbonden via Bluetooth. Merk je vertraging? Gebruik dan een kabel of zet de controller dichter bij je pc.</value></data>
+  <data name="Tip_ReportRate" xml:space="preserve"><value>Hoe vaak per seconde de controller zijn standen doorgeeft. Hoger is vloeiender; 250 of meer is prima.</value></data>
+  <data name="Tip_Latency" xml:space="preserve"><value>Hoe lang de app nodig heeft van een meting van de controller tot de virtuele controller voor games is bijgewerkt. Onder 0,1 ms is uitstekend; boven 1 ms wijst op een drukke pc.
+De langste pauze laat zien of de verbinding hapert: via USB hoort die rond 4 ms te zitten, via Bluetooth rond je ingestelde meetsnelheid. Veel hoger betekent storing of een zwak Bluetooth-signaal.</value></data>
+  <data name="Tip_StickView" xml:space="preserve"><value>Live weergave van de stick.
+• Grijze stip: waar de stick werkelijk staat.
+• Blauwe stip: wat de game krijgt na correctie.
+• Oranje stippelring: de deadzone rond het geleerde rustpunt.</value></data>
+  <data name="Tip_Deadzone" xml:space="preserve"><value>Binnen deze cirkel wordt stickbeweging genegeerd, zodat drift je personage niet laat bewegen. De grootte wordt automatisch geleerd: zo klein als kan, zo groot als nodig.</value></data>
+  <data name="Tip_TriggerBar" xml:space="preserve"><value>Dunne grijze lijn: hoe ver je de trigger echt indrukt.
+Dikke blauwe balk: wat de game krijgt.
+Oranje streepjes: het geleerde rustpunt en eindpunt (jouw 100%).</value></data>
+  <data name="Tip_LegendRaw" xml:space="preserve"><value>Grijs: de echte stand van de controller, zonder correctie.</value></data>
+  <data name="Tip_LegendOutput" xml:space="preserve"><value>Blauw: wat de game krijgt, na de correctie voor drift en slijtage.</value></data>
+  <data name="Tip_LegendDeadzone" xml:space="preserve"><value>Oranje: het rustpunt en eindpunt die de app voor deze trigger geleerd heeft.</value></data>
+  <data name="Tip_Pad" xml:space="preserve"><value>Welke knoppen nu ingedrukt zijn. Kies of je je echte controller ziet of de virtuele controller die de game krijgt.</value></data>
+  <data name="Tip_PadInput" xml:space="preserve"><value>Wat je nu op je controller indrukt, zonder correctie.</value></data>
+  <data name="Tip_PadOutput" xml:space="preserve"><value>Wat de game nu krijgt van de virtuele controller.
+Bij Xbox 360 bestaan de touchpadklik en de Mute-knop niet; die komen dus nooit bij de game aan.</value></data>
+  <data name="Tip_CalibrationSection" xml:space="preserve"><value>Hier staat in gewone woorden wat de app over deze controller heeft geleerd. Dat gaat vanzelf tijdens het spelen en wordt per controller bewaard.</value></data>
+  <data name="Tip_Learning" xml:space="preserve"><value>Aan: de app blijft tijdens het spelen bijleren hoe deze controller zich gedraagt (drift, versleten triggers).
+Uit: wat al geleerd is blijft gewoon werken, maar er verandert niets meer.</value></data>
+  <data name="Tip_JitterFilter" xml:space="preserve"><value>Aan: trillen van een stick wordt weggefilterd. De app meet zelf hoeveel een stick trilt als je hem stilhoudt (los of op een vaste stand) en filtert precies zoveel als nodig. Een goede stick merkt er niets van.
+Snelle bewegingen gaan er zonder merkbare vertraging doorheen; alleen stilhouden en heel langzaam richten wordt rustiger.
+Uit: de stick gaat ongefilterd naar de game, net als vroeger.</value></data>
+  <data name="Tip_HideFromGames" xml:space="preserve"><value>Verbergt je echte PlayStation-controller voor games, zodat ze alleen de Xbox-controller van deze app zien. Dat voorkomt dubbele input.
+Werkt via HidHide. Een game die al draait moet je opnieuw starten (of sluit de controller opnieuw aan).</value></data>
+  <data name="Tip_HideUnavailable" xml:space="preserve"><value>Verbergen werkt via het gratis programma HidHide. Zet HidHide aan bij Instellingen, of installeer het eerst.</value></data>
+  <data name="Tip_Output" xml:space="preserve"><value>Als welk soort controller games deze controller zien.</value></data>
+  <data name="Tip_OutputXbox" xml:space="preserve"><value>Xbox 360: werkt in vrijwel elke pc-game. Kies dit als je twijfelt. Games tonen dan Xbox-knoppen (A, B, X, Y).</value></data>
+  <data name="Tip_OutputDs4" xml:space="preserve"><value>DualShock 4: voor games die PlayStation-controllers zelf ondersteunen (bijvoorbeeld via de PlayStation-ondersteuning van Steam); die tonen dan PlayStation-knoppen.
+Let op: bewegingssensor en touchpad worden (nog) niet doorgegeven. Zet 'Verborgen voor games' aan, zodat games alleen de virtuele DualShock 4 zien en niet ook je echte controller.</value></data>
+  <data name="Tip_Reset" xml:space="preserve"><value>Vergeet alles wat voor deze controller is geleerd en begin opnieuw met fabriekswaarden. Handig na een reparatie of als de correctie niet meer klopt.</value></data>
+  <data name="Tip_Recenter" xml:space="preserve"><value>Gebruik dit als je stick ineens veel meer drift heeft dan eerst. Laat daarna beide sticks los; het nieuwe rustpunt wordt direct gemeten.
+Gewone drift wordt ook vanzelf geleerd, daarvoor hoef je niets te doen.</value></data>
+  <data name="Tip_CancelGuided" xml:space="preserve"><value>Stopt de assistent. Wat al geleerd was blijft staan.</value></data>
+  <data name="Tip_CalibrateTrigger" xml:space="preserve"><value>De snelste manier om een trigger te repareren die niet meer tot 100% komt: druk hem een paar keer helemaal in en dat punt wordt je nieuwe 100%.
+Automatisch leren werkt ook, maar heeft meer drukken nodig.</value></data>
+  <data name="Tip_StickSummary" xml:space="preserve"><value>Wat er voor deze stick is geleerd: waar hij in rust staat (drift), hoe groot de deadzone is en of hij in alle richtingen de rand haalt.</value></data>
+  <data name="Tip_TriggerSummary" xml:space="preserve"><value>Wat er voor deze trigger is geleerd: tot hoever hij nog komt en of dat naar 100% wordt opgeschaald.</value></data>
+  <data name="Tip_EmptyState" xml:space="preserve"><value>Zodra je een DualShock 4 of DualSense aansluit verschijnt hij hier vanzelf. Bluetooth? Koppel de controller eerst in de Windows-instellingen (houd PS + Share ingedrukt tot het lampje knippert).</value></data>
+  <data name="Tip_StartWithWindows" xml:space="preserve"><value>Start DS4 Handler automatisch als je inlogt, zodat je controller meteen werkt in games.</value></data>
+  <data name="Tip_StartMinimized" xml:space="preserve"><value>Start zonder venster, alleen met een icoon in het systeemvak (rechtsonder bij de klok). Dubbelklik op dat icoon om het venster te openen.</value></data>
+  <data name="Tip_HidHideEnabled" xml:space="preserve"><value>Gebruik HidHide om je echte controllers te verbergen voor games. Zonder verbergen zien sommige games twee controllers en reageren knoppen dubbel.
+DS4 Handler zet zichzelf op de uitzonderingslijst, zodat de app de controller zelf wel blijft zien.
+Let op: hierbij gaat ook de algemene verberg-schakelaar van HidHide aan. Die geldt ook voor apparaten die je eerder zelf in HidHide hebt verborgen.</value></data>
+  <data name="Tip_UnhideOnExit" xml:space="preserve"><value>Aan: als je DS4 Handler afsluit, zien games en andere programma's (zoals Steam of een emulator) je controller weer gewoon.
+Uit: de controller blijft ook na afsluiten verborgen. Handig als de app altijd draait, maar zonder de app werkt hij dan in games niet.</value></data>
+  <data name="Tip_RecheckHidHide" xml:space="preserve"><value>Kijk opnieuw of HidHide beschikbaar is, bijvoorbeeld nadat je het hebt geïnstalleerd of de HidHide-configuratie hebt gesloten.</value></data>
+  <data name="Tip_DownloadHidHide" xml:space="preserve"><value>Opent de downloadpagina van HidHide (gratis, van dezelfde maker als ViGEmBus).</value></data>
+  <data name="Tip_DownloadViGEm" xml:space="preserve"><value>Opent de downloadpagina van ViGEmBus, de driver die de virtuele Xbox-controller maakt. Start de app na installatie opnieuw.</value></data>
+  <data name="Tip_OpenProfiles" xml:space="preserve"><value>Opent de map waarin per controller de geleerde kalibratie staat.</value></data>
+  <data name="Tip_CheckForUpdates" xml:space="preserve"><value>Kijkt bij het opstarten (en daarna twee keer per dag) op GitHub of er een nieuwe versie van DS4 Handler is. Je ziet dan bovenin wat er nieuw is en kunt met één klik bijwerken. Er wordt nooit iets geïnstalleerd zonder dat je erop klikt.</value></data>
+  <data name="Tip_CheckNow" xml:space="preserve"><value>Kijk nu meteen of er een nieuwe versie is.</value></data>
+  <data name="Tip_UpdateNow" xml:space="preserve"><value>Downloadt de nieuwe versie en installeert die over de oude heen. De app sluit even en start daarna vanzelf opnieuw. Je profielen, kalibratie en instellingen blijven bewaard.</value></data>
+  <data name="Tip_UpdateLater" xml:space="preserve"><value>Verberg deze melding tot de volgende keer dat de app start.</value></data>
+  <data name="Tip_UpdateDownloadPage" xml:space="preserve"><value>Opent de downloadpagina van de nieuwe versie op GitHub.</value></data>
+  <data name="Tip_OpenLog" xml:space="preserve"><value>Opent het logbestand. Handig om mee te sturen als iets niet werkt.</value></data>
+  <data name="Tip_Quit" xml:space="preserve"><value>Sluit DS4 Handler helemaal af. De virtuele Xbox-controllers verdwijnen dan.</value></data>
+  <data name="Tip_DriverReady" xml:space="preserve"><value>ViGEmBus is geïnstalleerd: games zien je controller als een Xbox 360-controller.</value></data>
+  <data name="Tip_DriverMissing" xml:space="preserve"><value>ViGEmBus ontbreekt. Zonder deze driver kan de app geen Xbox-controller maken en krijgen games geen input.</value></data>
+  <data name="Tip_DriverChecking" xml:space="preserve"><value>Bezig met controleren of de Xbox-driver (ViGEmBus) aanwezig is.</value></data>
+  <data name="Tip_NavProfiles" xml:space="preserve"><value>Alle controllers die deze pc kent, met hun geleerde kalibratie. Geef ze een naam, deel of kopieer een profiel, of neem het profiel van een vriend mee.</value></data>
+  <data name="Tip_ProfilesIntro" xml:space="preserve"><value>Elke controller krijgt een eigen profiel, herkend aan zijn MAC-adres. Via USB en Bluetooth gebruikt hij dus hetzelfde profiel.</value></data>
+  <data name="Tip_ProfileName" xml:space="preserve"><value>Een naam die je zelf kiest, bijvoorbeeld 'Controller van Sem'. Leeg laten toont het type controller. De naam verandert niets aan de kalibratie.</value></data>
+  <data name="Tip_ProfileRename" xml:space="preserve"><value>Geef dit profiel een andere naam. Druk op Enter of klik ergens anders om op te slaan.</value></data>
+  <data name="Tip_ProfileMac" xml:space="preserve"><value>Het MAC-adres: het unieke adres van deze controller. Hieraan herkent de app hem, via USB en via Bluetooth.</value></data>
+  <data name="Tip_ProfileNoMac" xml:space="preserve"><value>Van deze controller kon geen MAC-adres worden gelezen. Het profiel hangt daarom aan de USB-poort waarop hij zat.</value></data>
+  <data name="Tip_ProfileModel" xml:space="preserve"><value>Het type controller van dit profiel.</value></data>
+  <data name="Tip_ProfileConnected" xml:space="preserve"><value>Deze controller is nu aangesloten.</value></data>
+  <data name="Tip_ProfileLastSeen" xml:space="preserve"><value>Wanneer deze controller voor het laatst met deze pc verbonden was.</value></data>
+  <data name="Tip_ProfileSummary" xml:space="preserve"><value>Kort wat er voor deze controller is geleerd: tot hoever de triggers komen en of de sticks drift hebben.</value></data>
+  <data name="Tip_ProfileUsedBy" xml:space="preserve"><value>Andere aangesloten controllers die dit profiel delen: ze leren samen in dezelfde kalibratie.</value></data>
+  <data name="Tip_ProfileCopy" xml:space="preserve"><value>Kopieer wat voor deze controller is geleerd naar een andere controller. Wat daar al geleerd was, wordt overschreven.</value></data>
+  <data name="Tip_ProfileCopyNone" xml:space="preserve"><value>Kopiëren kan pas als er voor dit profiel iets is geleerd en er nog een ander profiel is.</value></data>
+  <data name="Tip_ProfileExport" xml:space="preserve"><value>Sla dit profiel op als bestand, bijvoorbeeld om het aan een vriend te geven of als reservekopie.</value></data>
+  <data name="Tip_ProfileImport" xml:space="preserve"><value>Laad een profielbestand, bijvoorbeeld dat van een vriend. Het wordt gekoppeld aan zijn controller (MAC-adres): sluit die aan en hij werkt meteen met zijn eigen kalibratie.</value></data>
+  <data name="Tip_ProfileDelete" xml:space="preserve"><value>Verwijder dit profiel en zijn naam. Sluit je de controller later weer aan, dan begint hij opnieuw met leren.</value></data>
+  <data name="Tip_ProfileDeleteBlocked" xml:space="preserve"><value>Een profiel dat een aangesloten controller gebruikt kan niet worden verwijderd. Koppel de controller eerst los of kies voor hem een ander profiel.</value></data>
+  <data name="Tip_ProfileChoose" xml:space="preserve"><value>Kies in welk profiel deze controller leert. Standaard zijn eigen profiel; je kunt hem ook laten delen met het profiel van een andere controller van hetzelfde type.
+Twee aangesloten controllers kunnen niet tegelijk hetzelfde profiel gebruiken.</value></data>
+  <data name="Tip_LinkOwn" xml:space="preserve"><value>De controller leert in zijn eigen profiel (aanbevolen).</value></data>
+  <data name="Tip_LinkShared" xml:space="preserve"><value>De controller gebruikt en verbetert de kalibratie van dit andere profiel.</value></data>
+  <data name="Tip_ProfileOnCard" xml:space="preserve"><value>Het profiel waarin deze controller leert. Wijzigen kan bij Profielen.</value></data>
+  <data name="Tip_ProfileOwnOnCard" xml:space="preserve"><value>Dit profiel hoort bij deze controller. Wat de app leert en wat je afstelt, wordt hierin bewaard. Een ander profiel kiezen kan bij Profielen.</value></data>
+  <data name="Tip_ProfileBlockedOnCard" xml:space="preserve"><value>Het profiel van deze controller wordt al gebruikt door een andere aangesloten controller. Om te voorkomen dat beide hetzelfde bestand overschrijven, draait deze controller tijdelijk met fabriekswaarden en wordt er niets opgeslagen. Kies bij Profielen een ander profiel of sluit hem later opnieuw aan.</value></data>
+  <data name="Tip_OpenProfileFolder" xml:space="preserve"><value>Opent de map waarin de profielbestanden staan.</value></data>
+  <data name="Tip_TunePicker" xml:space="preserve"><value>Kies wat je wilt afstellen. Je ziet steeds één onderdeel.</value></data>
+  <data name="Tip_TuneSticks" xml:space="preserve"><value>Deadzones, vorm, curve en gevoeligheid van beide sticks.</value></data>
+  <data name="Tip_TuneTriggers" xml:space="preserve"><value>Deadzone, eindpunt en curve van L2 en R2.</value></data>
+  <data name="Tip_TuneSpeed" xml:space="preserve"><value>Hoe vaak de controller meet en hoe vaak de game een update krijgt.</value></data>
+  <data name="Tip_TuneSaved" xml:space="preserve"><value>Je hoeft niets op te slaan. Elke wijziging staat meteen in het profiel van deze controller.</value></data>
+  <data name="Tip_CurveStick" xml:space="preserve"><value>Zo reageert de stick: naar rechts hoe ver je duwt, omhoog wat de game krijgt. Het grijze stuk is de extra deadzone, de stippellijn is 1 op 1. Verandert mee terwijl je de schuifjes beweegt.</value></data>
+  <data name="Tip_CurveTrigger" xml:space="preserve"><value>Zo reageert de trigger: naar rechts hoe ver je indrukt, omhoog wat de game krijgt. Het grijze stuk is de extra deadzone, de stippellijn is 1 op 1. Verandert mee terwijl je de schuifjes beweegt.</value></data>
+  <data name="Tip_TuneSection" xml:space="preserve"><value>Deze instellingen komen bovenop wat de app zelf heeft geleerd. Ze worden in het profiel van de controller bewaard.</value></data>
+  <data name="Tip_TuneResetAll" xml:space="preserve"><value>Zet alle instellingen van Afstellen voor deze controller terug naar standaard. Wat de app heeft geleerd blijft staan.</value></data>
+  <data name="Tip_TuneResetSection" xml:space="preserve"><value>Zet alleen dit onderdeel terug naar standaard.</value></data>
+  <data name="Tip_TuneShape" xml:space="preserve"><value>De vorm van de extra deadzone rond het midden van de stick.</value></data>
+  <data name="Tip_TuneShapeRadial" xml:space="preserve"><value>Rond: de stick moet eerst uit een cirkel om het midden voordat er iets gebeurt. Voelt in alle richtingen hetzelfde. Dit is de normale keuze.</value></data>
+  <data name="Tip_TuneShapeSquare" xml:space="preserve"><value>Vierkant: de stick telt pas als je op minstens één as ver genoeg duwt; kleine schuine bewegingen rond het midden worden genegeerd. Veel Rocket League-spelers gebruiken dit voor rustig en recht sturen.</value></data>
+  <data name="Tip_TuneShapeAxial" xml:space="preserve"><value>Kruis: elke richting (links-rechts en omhoog-omlaag) heeft zijn eigen deadzone, zodat een klein zijwaarts wobbeltje niet doorlekt in een rechte duw. Ook anti-deadzone en gevoeligheid werken dan per as. Diagonalen voelen wel wat hoekiger.</value></data>
+  <data name="Tip_TuneInner" xml:space="preserve"><value>Extra deadzone: de stick moet eerst zo ver bewegen voordat de game iets merkt. Komt bovenop de deadzone die de app zelf heeft geleerd. Handig als je personage of camera nog licht beweegt zonder dat je iets doet. Bij Vierkant en Kruis kan hij minder groot, en hoe hoger het eindpunt, hoe lager het maximum, zodat je altijd een werkend bereik overhoudt.</value></data>
+  <data name="Tip_TuneOuter" xml:space="preserve"><value>Eindpunt: de stick geeft al volle kracht voordat hij tegen de rand zit. Handig als de rand van de stick moeilijk te halen is, bijvoorbeeld door een dikke stickdop of een versleten stick.</value></data>
+  <data name="Tip_TuneAnti" xml:space="preserve"><value>Anti-deadzone: zodra de stick de deadzone verlaat springt de uitvoer meteen naar minstens dit percentage. Gebruik dit als de game zelf een deadzone heeft: dan reageert je stick meteen, in plaats van dat je eerst een stuk moet duwen. Begin klein, ongeveer 10%. Bij Kruis geldt dit per as.</value></data>
+  <data name="Tip_TuneTriggerAnti" xml:space="preserve"><value>Anti-deadzone: zodra je de trigger voorbij zijn deadzone indrukt, springt de uitvoer meteen naar minstens dit percentage. Handig als de game zelf pas reageert na een stukje indrukken. Begin klein, ongeveer 10%.</value></data>
+  <data name="Tip_TuneCurve" xml:space="preserve"><value>Curve: hoe de stick of trigger reageert tussen begin en eind. 1,00 is recht: 1 op 1. Hoger dan 1 is rustiger in het begin (precies richten) en heftiger aan het eind. Lager dan 1 is juist snel bij kleine bewegingen.</value></data>
+  <data name="Tip_TuneSensitivity" xml:space="preserve"><value>Gevoeligheid: vermenigvuldigt de uitslag van de stick. Boven 1× haal je volle uitslag al voordat de stick de rand raakt; onder 1× haal je nooit helemaal vol. De uitkomst gaat nooit boven 100%. Bij Kruis werkt dit per as.</value></data>
+  <data name="Tip_TuneFilterResponse" xml:space="preserve"><value>Reactie: de app filtert trillen van een versleten stick weg; een gelijkmatige richtbeweging loopt daarbij nauwelijks achter. Rustig (links) haalt het meeste trillen weg. Snel (rechts) volgt het begin van een beweging en heel kleine bewegingen nog directer, maar er komt meer trillen door. Heeft alleen effect als de app trillen heeft gemeten op deze stick; een nieuwe stick merkt er niets van.</value></data>
+  <data name="Tip_TuneSquareOutput" xml:space="preserve"><value>Vierkante uitvoer: schuin duwen geeft op beide assen 100%, in plaats van maximaal ongeveer 70% per as. Handig voor games waar je diagonaal volle snelheid wilt. Zet dit niet aan als een game zelf al een vierkant bereik gebruikt.</value></data>
+  <data name="Tip_TuneInvertX" xml:space="preserve"><value>Draait links en rechts om voor deze stick.</value></data>
+  <data name="Tip_TuneInvertY" xml:space="preserve"><value>Draait omhoog en omlaag om voor deze stick. Handig voor vliegen of de camera 'omgekeerd'.</value></data>
+  <data name="Tip_TuneTriggerInner" xml:space="preserve"><value>Extra deadzone: de trigger moet eerst zo ver worden ingedrukt voordat de game iets merkt. Handig als een trigger al licht reageert terwijl je hem loslaat.</value></data>
+  <data name="Tip_TuneTriggerOuter" xml:space="preserve"><value>Eindpunt: de trigger geeft al volle kracht voordat hij helemaal is ingedrukt. Handig voor sneller gas geven of schieten.</value></data>
+  <data name="Tip_TunePoll" xml:space="preserve"><value>Hoe vaak per seconde de controller zijn standen doorgeeft. Hoger geeft minder vertraging, maar kost meer batterij. 250 of meer is prima voor de meeste games.
+Alleen te kiezen voor een DualShock 4 via Bluetooth. Via USB bepaalt de controller zelf de snelheid.</value></data>
+  <data name="Tip_TunePollUnavailable" xml:space="preserve"><value>Dit kan alleen voor een DualShock 4 via Bluetooth. Via USB, en bij een DualSense, bepaalt de controller zelf hoe vaak hij meet.</value></data>
+  <data name="Tip_TuneOutputRate" xml:space="preserve"><value>Hoe vaak per seconde de virtuele controller wordt bijgewerkt voor games.
+'Elke meting' is het snelst en voor bijna iedereen goed. Beperken is alleen nodig bij een trage pc of een game die zich verslikt in heel veel updates.</value></data>
+  <data name="Tip_RemapPicture" xml:space="preserve"><value>Je controller, live. Druk een knop in: de regel van die knop licht op in de lijst, zodat je hem meteen vindt.</value></data>
+  <data name="Tip_RemapTarget" xml:space="preserve"><value>Wat de game krijgt als je deze knop indrukt. Kies een andere knop, 'Toetsenbord…' voor een toets (bijvoorbeeld voor een spraak- of chattoets), of 'Uit' om de knop te negeren. Twee knoppen mogen hetzelfde doel hebben.</value></data>
+  <data name="Tip_RemapTriggerTarget" xml:space="preserve"><value>Een knop op een trigger geeft die trigger helemaal ingedrukt. Een trigger op de andere trigger blijft traploos (L2 en R2 wisselen). Een trigger op een knop telt vanaf half ingedrukt.</value></data>
+  <data name="Tip_RemapResetRow" xml:space="preserve"><value>Deze knop doet weer wat erop staat.</value></data>
+  <data name="Tip_RemapResetAll" xml:space="preserve"><value>Zet alle knoppen en de sticks voor deze controller terug naar standaard. Afstellen en kalibratie blijven zoals ze zijn.</value></data>
+  <data name="Tip_RemapSwapSticks" xml:space="preserve"><value>Wisselt linker en rechter stick: wat je met links doet, krijgt de game als rechts, en andersom. Je instellingen bij Afstellen blijven bij je echte stick. L3 en R3 wisselen niet mee; die kies je hieronder per knop.</value></data>
+  <data name="Tip_RemapCapture" xml:space="preserve"><value>Druk op de toets die de game moet krijgen als je deze knop indrukt. Esc stopt zonder iets te wijzigen.</value></data>
+  <data name="Tip_RemapChanged" xml:space="preserve"><value>Deze knop doet iets anders dan wat erop staat.</value></data>
+  <data name="Common_Now" xml:space="preserve"><value>Nu: {0}</value></data>
+  <data name="Stick_Left" xml:space="preserve"><value>Linker stick</value></data>
+  <data name="Stick_LeftShort" xml:space="preserve"><value>Links</value></data>
+  <data name="Stick_Right" xml:space="preserve"><value>Rechter stick</value></data>
+  <data name="Stick_RightShort" xml:space="preserve"><value>Rechts</value></data>
+  <data name="Calib_DeadzoneNow" xml:space="preserve"><value>Nu: {0} van de stickuitslag.</value></data>
+  <data name="Calib_StickGuided" xml:space="preserve"><value>{0}: laat de stick los… het rustpunt wordt gemeten.</value></data>
+  <data name="Calib_StickLearning" xml:space="preserve"><value>{0}: nog aan het leren — laat de stick af en toe even los.</value></data>
+  <data name="Calib_StickRestsAt" xml:space="preserve"><value>{0} rust op ({1}; {2}) in plaats van in het midden — dat punt telt nu als midden.</value></data>
+  <data name="Calib_StickCentered" xml:space="preserve"><value>{0} rust netjes in het midden.</value></data>
+  <data name="Calib_StickDeadzone" xml:space="preserve"><value>Deadzone {0}.</value></data>
+  <data name="Calib_StickWeakReach" xml:space="preserve"><value>Haalt in sommige richtingen maar {0} van de rand — wordt bijgeschaald naar 100%.</value></data>
+  <data name="Calib_StickJitterFiltered" xml:space="preserve"><value>Trilling {0}: {1} (wordt weggefilterd).</value></data>
+  <data name="Calib_StickJitterOff" xml:space="preserve"><value>Trilling {0}: {1} (trillingsfilter staat uit).</value></data>
+  <data name="Calib_CalibrateTrigger" xml:space="preserve"><value>Kalibreer {0}</value></data>
+  <data name="Calib_TriggerPressMore" xml:space="preserve"><value>Druk {0} nog {1}× helemaal in</value></data>
+  <data name="Calib_TriggerRelease" xml:space="preserve"><value>Laat {0} los…</value></data>
+  <data name="Calib_TriggerLearnedEnd" xml:space="preserve"><value>Geleerd eindpunt: {0}.</value></data>
+  <data name="Calib_TriggerGuided" xml:space="preserve"><value>{0}: assistent loopt — druk de trigger een paar keer helemaal in.</value></data>
+  <data name="Calib_TriggerLearning" xml:space="preserve"><value>{0}: nog aan het leren — druk hem tijdens het spelen een paar keer helemaal in. Tot dan geldt het volle bereik.</value></data>
+  <data name="Calib_TriggerSetByAssistant" xml:space="preserve"><value>Ingesteld met de assistent.</value></data>
+  <data name="Calib_TriggerLearnedAuto" xml:space="preserve"><value>Automatisch geleerd tijdens het spelen.</value></data>
+  <data name="Calib_TriggerFullRange" xml:space="preserve"><value>{0} haalt het volle bereik — geen correctie nodig. {1}</value></data>
+  <data name="Calib_TriggerScaled" xml:space="preserve"><value>{0} komt tot {1} — wordt opgeschaald naar 100%. {2}</value></data>
+  <data name="Calib_TriggerRestIgnored" xml:space="preserve"><value>Rustwaarde {0} wordt genegeerd.</value></data>
+  <data name="Calib_ResetTitle" xml:space="preserve"><value>Kalibratie resetten?</value></data>
+  <data name="Calib_ResetMessage" xml:space="preserve"><value>Alles wat de app over deze {0} heeft geleerd (drift, deadzone, trigger-eindpunten) wordt vergeten. De controller begint weer met fabriekswaarden en leert daarna opnieuw.</value></data>
+  <data name="Calib_ResetConfirm" xml:space="preserve"><value>Resetten</value></data>
+  <data name="Latency_Text" xml:space="preserve"><value>verwerking {0} ms</value></data>
+  <data name="Latency_Now" xml:space="preserve"><value>Nu: gemiddeld {0} ms, traagste {1} ms. Langste pauze van de controller: {2} ms.</value></data>
+  <data name="Battery_Low" xml:space="preserve"><value>Batterij: {0}%. Bijna leeg: sluit de kabel aan om op te laden.</value></data>
+  <data name="Battery_Wireless" xml:space="preserve"><value>Batterij: {0}%. Gaat ongeveer 4 tot 8 uur mee op een volle lading.</value></data>
+  <data name="Battery_Usb" xml:space="preserve"><value>Batterij: {0}%. De controller laadt op via de USB-kabel.</value></data>
+  <data name="Status_WaitingInput" xml:space="preserve"><value>Wacht op invoer…</value></data>
+  <data name="Status_WaitingInputTip" xml:space="preserve"><value>De controller is verbonden maar stuurt (nog) geen standen. Bij Bluetooth: druk op de PS-knop. Blijft dit staan, sluit hem dan opnieuw aan.</value></data>
+  <data name="Status_Ds4Active" xml:space="preserve"><value>Virtuele DualShock 4 actief</value></data>
+  <data name="Status_Ds4ActiveTip" xml:space="preserve"><value>Games zien deze controller nu als een (virtuele) DualShock 4, inclusief trillen. De correcties uit de kalibratie worden al toegepast. Zet 'Verborgen voor games' aan zodat games niet ook je echte controller zien.</value></data>
+  <data name="Status_XboxActive" xml:space="preserve"><value>Virtuele Xbox 360 actief</value></data>
+  <data name="Status_XboxActiveTip" xml:space="preserve"><value>Games zien deze controller nu als een Xbox 360-controller, inclusief trillen. De correcties uit de kalibratie worden al toegepast.</value></data>
+  <data name="Status_MeasureOnly" xml:space="preserve"><value>Alleen meten</value></data>
+  <data name="Status_MeasureOnlyTip" xml:space="preserve"><value>ViGEmBus ontbreekt, dus er is geen virtuele controller voor games. Je ziet hier wel alle waarden en de app leert gewoon door. Installeer ViGEmBus (zie de melding bovenaan).</value></data>
+  <data name="Status_VirtualFailed" xml:space="preserve"><value>Virtuele controller mislukt</value></data>
+  <data name="Status_VirtualFailedTip" xml:space="preserve"><value>De virtuele controller kon niet worden gemaakt: {0}. Sluit de controller opnieuw aan of start de pc opnieuw op.</value></data>
+  <data name="Status_UnknownError" xml:space="preserve"><value>onbekende fout</value></data>
+  <data name="Status_Starting" xml:space="preserve"><value>Starten…</value></data>
+  <data name="Status_StartingTip" xml:space="preserve"><value>De virtuele controller wordt aangemaakt.</value></data>
+  <data name="Profile_CardBlocked" xml:space="preserve"><value>Profiel in gebruik — draait zonder opslaan</value></data>
+  <data name="Profile_CardShared" xml:space="preserve"><value>Profiel: {0}</value></data>
+  <data name="Profile_CardOwn" xml:space="preserve"><value>Profiel: eigen profiel</value></data>
+  <data name="Profile_NoMacFound" xml:space="preserve"><value>(geen MAC gevonden)</value></data>
+  <data name="Hide_Hidden" xml:space="preserve"><value>Verborgen voor games</value></data>
+  <data name="Hide_HiddenTip" xml:space="preserve"><value>Games zien alleen de Xbox-controller, niet je echte PlayStation-controller. Een game die al draaide: herstart hem of sluit de controller opnieuw aan.</value></data>
+  <data name="Hide_Working" xml:space="preserve"><value>Bezig…</value></data>
+  <data name="Hide_WorkingTip" xml:space="preserve"><value>HidHide wordt ingesteld.</value></data>
+  <data name="Hide_Failed" xml:space="preserve"><value>Niet verborgen</value></data>
+  <data name="Hide_FailedTip" xml:space="preserve"><value>Verbergen lukte niet, dus games kunnen deze controller twee keer zien. {0}</value></data>
+  <data name="Hide_FailedSeeNotice" xml:space="preserve"><value>Kijk bij de melding bovenaan of bij Instellingen › HidHide.</value></data>
+  <data name="Profile_UnknownModel" xml:space="preserve"><value>Onbekend type</value></data>
+  <data name="Profile_ConnectedVia" xml:space="preserve"><value>Nu verbonden via {0}</value></data>
+  <data name="Profile_LastSeen" xml:space="preserve"><value>Laatst gezien {0}</value></data>
+  <data name="Profile_NeverConnected" xml:space="preserve"><value>Nog niet verbonden met deze pc</value></data>
+  <data name="Profile_AlsoUsedBy" xml:space="preserve"><value>Gedeeld: ook gebruikt door {0}</value></data>
+  <data name="Profile_LinkBlocked" xml:space="preserve"><value>Profiel in gebruik door een andere controller: draait zonder opslaan</value></data>
+  <data name="Profile_LinkOwn" xml:space="preserve"><value>Gebruikt zijn eigen profiel</value></data>
+  <data name="Profile_LinkShared" xml:space="preserve"><value>Gebruikt gedeeld profiel: {0}</value></data>
+  <data name="Profile_ChoiceOwn" xml:space="preserve"><value>Eigen profiel ({0})</value></data>
+  <data name="Profile_ChoiceShared" xml:space="preserve"><value>Gedeeld: {0}</value></data>
+  <data name="Profile_NoMac" xml:space="preserve"><value>geen MAC</value></data>
+  <data name="Profile_ChooseErrorTitle" xml:space="preserve"><value>Profiel kiezen</value></data>
+  <data name="Profile_CopyTitle" xml:space="preserve"><value>Kalibratie kopiëren?</value></data>
+  <data name="Profile_CopyMessage" xml:space="preserve"><value>Wat is geleerd voor '{0}' wordt gekopieerd naar '{1}'. Wat daar al geleerd was, wordt overschreven. Namen en koppelingen blijven zoals ze zijn.</value></data>
+  <data name="Profile_CopyConfirm" xml:space="preserve"><value>Kopiëren</value></data>
+  <data name="Profile_CopyDone" xml:space="preserve"><value>Kalibratie gekopieerd.</value></data>
+  <data name="Profile_ExportDone" xml:space="preserve"><value>Profiel opgeslagen. Stuur het bestand naar je vriend; hij kiest in DS4 Handler bij Profielen › Importeren.</value></data>
+  <data name="Profile_DeleteTitle" xml:space="preserve"><value>Profiel verwijderen?</value></data>
+  <data name="Profile_DeleteMessage" xml:space="preserve"><value>Alles wat is geleerd voor '{0}' ({1}) wordt verwijderd, met de naam. Sluit je deze controller later weer aan, dan begint hij opnieuw met leren.</value></data>
+  <data name="Profile_DeleteConfirm" xml:space="preserve"><value>Verwijderen</value></data>
+  <data name="Profile_ImportFailed" xml:space="preserve"><value>Importeren mislukt</value></data>
+  <data name="Profile_ImportTooLarge" xml:space="preserve"><value>Dit bestand is veel te groot voor een DS4 Handler-profiel.</value></data>
+  <data name="Profile_ImportUnreadable" xml:space="preserve"><value>Het bestand kon niet worden gelezen.</value></data>
+  <data name="Profile_ImportInvalid" xml:space="preserve"><value>Dit bestand is geen geldig DS4 Handler-profiel, of het kon niet worden gelezen.</value></data>
+  <data name="Profile_UnknownError" xml:space="preserve"><value>Onbekende fout.</value></data>
+  <data name="Profile_OverwriteTitle" xml:space="preserve"><value>Bestaand profiel overschrijven?</value></data>
+  <data name="Profile_OverwriteMessage" xml:space="preserve"><value>Er is al een profiel voor deze controller ({0}). Wat daar is geleerd, wordt vervangen door het geïmporteerde profiel '{1}'.</value></data>
+  <data name="Profile_OverwriteConfirm" xml:space="preserve"><value>Overschrijven</value></data>
+  <data name="Profile_ImportDone" xml:space="preserve"><value>Profiel '{0}' ({1}) geïmporteerd. Sluit die controller aan en hij gebruikt het meteen.</value></data>
+  <data name="Profile_ErrorTitle" xml:space="preserve"><value>Dat lukte niet</value></data>
+  <data name="Profile_SomethingWentWrong" xml:space="preserve"><value>Er ging iets mis: {0}</value></data>
+  <data name="Profile_DoneTitle" xml:space="preserve"><value>Gelukt</value></data>
+  <data name="Profile_FileNameFallback" xml:space="preserve"><value>profiel</value></data>
+  <data name="Profile_SumNothing" xml:space="preserve"><value>Nog niets opgeslagen.</value></data>
+  <data name="Profile_SumLeftStick" xml:space="preserve"><value>Linker stick</value></data>
+  <data name="Profile_SumRightStick" xml:space="preserve"><value>rechter stick</value></data>
+  <data name="Profile_SumNotLearned" xml:space="preserve"><value>{0} nog niet geleerd</value></data>
+  <data name="Profile_SumFullRange" xml:space="preserve"><value>{0} volledig bereik</value></data>
+  <data name="Profile_SumReaches" xml:space="preserve"><value>{0} komt tot {1}</value></data>
+  <data name="Profile_SumDrift" xml:space="preserve"><value>{0} drift {1}</value></data>
+  <data name="Profile_SumNoDrift" xml:space="preserve"><value>{0} geen drift</value></data>
+  <data name="Remap_GroupButtons" xml:space="preserve"><value>CONTROLLERKNOPPEN</value></data>
+  <data name="Remap_GroupTriggers" xml:space="preserve"><value>TRIGGERS</value></data>
+  <data name="Remap_Keyboard" xml:space="preserve"><value>Toetsenbord…</value></data>
+  <data name="Remap_Off" xml:space="preserve"><value>Uit</value></data>
+  <data name="Remap_Nothing" xml:space="preserve"><value>Niets</value></data>
+  <data name="Remap_AutomationName" xml:space="preserve"><value>{0}: wat de game krijgt</value></data>
+  <data name="Remap_KeyLabel" xml:space="preserve"><value>Toets {0}</value></data>
+  <data name="Remap_GroupSymbols" xml:space="preserve"><value>SYMBOOLKNOPPEN</value></data>
+  <data name="Remap_GroupShoulders" xml:space="preserve"><value>Schouderknoppen en triggers</value></data>
+  <data name="Remap_GroupDpad" xml:space="preserve"><value>Pijltjes</value></data>
+  <data name="Remap_GroupStickClicks" xml:space="preserve"><value>Sticks indrukken</value></data>
+  <data name="Remap_GroupMiddle" xml:space="preserve"><value>Midden</value></data>
+  <data name="Remap_NoneChanged" xml:space="preserve"><value>Elke knop doet wat erop staat.</value></data>
+  <data name="Remap_OneChanged" xml:space="preserve"><value>1 knop aangepast.</value></data>
+  <data name="Remap_ManyChanged" xml:space="preserve"><value>{0} knoppen aangepast.</value></data>
+  <data name="Remap_OutputHintXbox" xml:space="preserve"><value>Rechts zie je wat de game krijgt, met Xbox-namen (de game ziet een Xbox 360-controller).</value></data>
+  <data name="Remap_OutputHintDs4" xml:space="preserve"><value>Rechts zie je wat de game krijgt, met PlayStation-namen (de game ziet een DualShock 4).</value></data>
+  <data name="Remap_ResetAllTitle" xml:space="preserve"><value>Alle knoppen op standaard?</value></data>
+  <data name="Remap_ResetAllMessage" xml:space="preserve"><value>Elke knop van deze {0} doet weer wat erop staat, toetsen worden losgekoppeld en de sticks staan weer op hun eigen plek. Afstellen en kalibratie blijven zoals ze zijn.</value></data>
+  <data name="Remap_ResetAllConfirm" xml:space="preserve"><value>Op standaard zetten</value></data>
+  <data name="Remap_CaptureHint" xml:space="preserve"><value>Esc stopt zonder iets te wijzigen.</value></data>
+  <data name="Remap_KeyNotSupported" xml:space="preserve"><value>Deze toets wordt niet ondersteund. Kies een andere, of Esc om te stoppen.</value></data>
+  <data name="Remap_Cross" xml:space="preserve"><value>Kruisje</value></data>
+  <data name="Remap_Circle" xml:space="preserve"><value>Rondje</value></data>
+  <data name="Remap_Square" xml:space="preserve"><value>Vierkantje</value></data>
+  <data name="Remap_Triangle" xml:space="preserve"><value>Driehoekje</value></data>
+  <data name="Remap_SourceL1" xml:space="preserve"><value>Linker schouderknop</value></data>
+  <data name="Remap_SourceR1" xml:space="preserve"><value>Rechter schouderknop</value></data>
+  <data name="Remap_SourceL2" xml:space="preserve"><value>Linker trigger</value></data>
+  <data name="Remap_SourceR2" xml:space="preserve"><value>Rechter trigger</value></data>
+  <data name="Remap_SourceL3" xml:space="preserve"><value>Linker stick indrukken</value></data>
+  <data name="Remap_SourceR3" xml:space="preserve"><value>Rechter stick indrukken</value></data>
+  <data name="Remap_SourcePS" xml:space="preserve"><value>PlayStation-knop</value></data>
+  <data name="Remap_TouchpadClick" xml:space="preserve"><value>Touchpad-klik</value></data>
+  <data name="Remap_SourceMute" xml:space="preserve"><value>Microfoonknop</value></data>
+  <data name="Remap_Up" xml:space="preserve"><value>Omhoog</value></data>
+  <data name="Remap_Down" xml:space="preserve"><value>Omlaag</value></data>
+  <data name="Remap_Left" xml:space="preserve"><value>Links</value></data>
+  <data name="Remap_Right" xml:space="preserve"><value>Rechts</value></data>
+  <data name="Remap_LeftStickIn" xml:space="preserve"><value>(linker stick in)</value></data>
+  <data name="Remap_RightStickIn" xml:space="preserve"><value>(rechter stick in)</value></data>
+  <data name="Remap_TouchpadNotXbox" xml:space="preserve"><value>Touchpad (niet op Xbox)</value></data>
+  <data name="Remap_DpadUp" xml:space="preserve"><value>D-pad omhoog</value></data>
+  <data name="Remap_DpadDown" xml:space="preserve"><value>D-pad omlaag</value></data>
+  <data name="Remap_DpadLeft" xml:space="preserve"><value>D-pad links</value></data>
+  <data name="Remap_DpadRight" xml:space="preserve"><value>D-pad rechts</value></data>
+  <data name="Remap_TargetPS" xml:space="preserve"><value>PS-knop</value></data>
+  <data name="Tune_CurveStraight" xml:space="preserve"><value>recht</value></data>
+  <data name="Tune_CurveSofter" xml:space="preserve"><value>zachter in het midden</value></data>
+  <data name="Tune_CurveFaster" xml:space="preserve"><value>sneller uit het midden</value></data>
+  <data name="Tune_CurveCaption" xml:space="preserve"><value>curve {0} · {1}</value></data>
+  <data name="Tune_Inner" xml:space="preserve"><value>Extra deadzone</value></data>
+  <data name="Tune_Outer" xml:space="preserve"><value>Eindpunt</value></data>
+  <data name="Tune_Anti" xml:space="preserve"><value>Anti-deadzone</value></data>
+  <data name="Tune_Curve" xml:space="preserve"><value>Curve</value></data>
+  <data name="Tune_Sensitivity" xml:space="preserve"><value>Gevoeligheid</value></data>
+  <data name="Tune_Response" xml:space="preserve"><value>Reactie</value></data>
+  <data name="Tune_ResponseCalm" xml:space="preserve"><value>rustig</value></data>
+  <data name="Tune_ResponseFast" xml:space="preserve"><value>snel</value></data>
+  <data name="Tune_PerSecond" xml:space="preserve"><value>{0} per seconde</value></data>
+  <data name="Tune_EveryReading" xml:space="preserve"><value>Elke meting (standaard)</value></data>
+  <data name="Tune_PollNote" xml:space="preserve"><value>Alleen te kiezen voor een DualShock 4 via Bluetooth. Via USB bepaalt de controller zelf hoe vaak hij meet.</value></data>
+  <data name="Tune_SaveNoteBlocked" xml:space="preserve"><value>Wijzigingen werken nu, maar worden niet bewaard: dit profiel is in gebruik door een andere controller.</value></data>
+  <data name="Tune_SaveNoteUnreadable" xml:space="preserve"><value>Wijzigingen werken nu, maar worden niet bewaard: het profielbestand kon niet worden gelezen. Het bestand blijft ongemoeid.</value></data>
+  <data name="Update_ChangelogLink" xml:space="preserve"><value>Alle wijzigingen bekijken</value></data>
+  <data name="Update_NotChecked" xml:space="preserve"><value>Nog niet gezocht.</value></data>
+  <data name="Update_Version" xml:space="preserve"><value>Versie {0}</value></data>
+  <data name="Update_UpdatedTitle" xml:space="preserve"><value>DS4 Handler is bijgewerkt naar versie {0}</value></data>
+  <data name="Update_NewInThisVersion" xml:space="preserve"><value>Nieuw in deze versie:</value></data>
+  <data name="Update_SettingsKept" xml:space="preserve"><value>Je profielen en instellingen zijn bewaard gebleven.</value></data>
+  <data name="Update_Close" xml:space="preserve"><value>Sluiten</value></data>
+  <data name="Update_CloseTip" xml:space="preserve"><value>Verberg deze melding.</value></data>
+  <data name="Update_NewIn" xml:space="preserve"><value>Nieuw in {0}:</value></data>
+  <data name="Update_Downloading" xml:space="preserve"><value>Versie {0} wordt gedownload… {1}%</value></data>
+  <data name="Update_DownloadingText" xml:space="preserve"><value>Daarna sluit de app even en wordt de nieuwe versie geïnstalleerd. Je profielen en instellingen blijven bewaard.</value></data>
+  <data name="Update_AvailableTitle" xml:space="preserve"><value>Nieuwe versie beschikbaar: {0}</value></data>
+  <data name="Update_Failed" xml:space="preserve"><value>Bijwerken lukte niet: {0}</value></data>
+  <data name="Update_InstalledText" xml:space="preserve"><value>Je hebt nu versie {0}. Bijwerken duurt ongeveer een minuut; de app sluit even en start daarna vanzelf opnieuw. Je profielen en instellingen blijven bewaard.</value></data>
+  <data name="Update_TryAgain" xml:space="preserve"><value>Opnieuw proberen</value></data>
+  <data name="Update_UpdateNow" xml:space="preserve"><value>Nu bijwerken</value></data>
+  <data name="Update_Later" xml:space="preserve"><value>Later</value></data>
+  <data name="Update_PortableText" xml:space="preserve"><value>Je gebruikt de losse (portable) versie {0}. Download de nieuwe versie en vervang dit bestand, of installeer met de Setup; je profielen blijven bewaard.</value></data>
+  <data name="Update_OpenDownloadPage" xml:space="preserve"><value>Downloadpagina openen</value></data>
+  <data name="Update_Checking" xml:space="preserve"><value>Bezig met zoeken naar een nieuwe versie…</value></data>
+  <data name="Update_StatusAvailable" xml:space="preserve"><value>Versie {0} is beschikbaar (je hebt {1}).</value></data>
+  <data name="Update_StatusUpToDate" xml:space="preserve"><value>Je hebt de nieuwste versie. Laatst gezocht om {0}.</value></data>
+  <data name="Update_Cancelled" xml:space="preserve"><value>je hebt de installatie geannuleerd.</value></data>
+  <data name="Update_MoreNotes" xml:space="preserve"><value>en nog {0} andere verbeteringen</value></data>
+  <data name="Update_UntrustedUrl" xml:space="preserve"><value>Onverwacht downloadadres: {0}</value></data>
+  <data name="Update_Incomplete" xml:space="preserve"><value>Download onvolledig ({0} van {1} bytes).</value></data>
+  <data name="HidHide_SettingsReadOnly" xml:space="preserve"><value>Instellingen konden niet gelezen of veilig bewaard worden, dus verbergt de app nu geen controllers (anders kunnen ze verborgen blijven). Herstart de app; meer staat in het logbestand.</value></data>
+  <data name="HidHide_SharedHost" xml:space="preserve"><value>De app draait via dotnet.exe. Start DS4Handler.exe zelf, anders kan HidHide de app niet als uitzondering toevoegen en blijft de controller zichtbaar.</value></data>
+  <data name="HidHide_PathFailed" xml:space="preserve"><value>De map waar DS4 Handler staat kon niet aan HidHide worden doorgegeven (bijvoorbeeld een netwerkschijf). Zet de app op een lokale schijf.</value></data>
+  <data name="HidHide_NotInstalled" xml:space="preserve"><value>HidHide is niet geïnstalleerd.</value></data>
+  <data name="HidHide_Busy" xml:space="preserve"><value>HidHide is bezet: een ander programma (zoals HidHide Configuration Client of DS4Windows) heeft het open. Sluit dat programma en klik op Opnieuw controleren.</value></data>
+  <data name="HidHide_Error" xml:space="preserve"><value>HidHide gaf een fout: {0}</value></data>
+  <data name="Library_OtherModel" xml:space="preserve"><value>Dat profiel hoort bij een ander type controller. Kies een profiel van een {0}, of kopieer de kalibratie.</value></data>
+  <data name="Library_InUse" xml:space="preserve"><value>Dat profiel wordt al gebruikt door een andere aangesloten controller. Twee controllers kunnen niet tegelijk in hetzelfde profiel leren.</value></data>
+  <data name="Library_SameProfile" xml:space="preserve"><value>Bron en doel zijn hetzelfde profiel.</value></data>
+  <data name="Library_NothingToCopy" xml:space="preserve"><value>Er is voor dit profiel nog niets geleerd om te kopiëren.</value></data>
+  <data name="Library_NothingToExport" xml:space="preserve"><value>Er is voor dit profiel nog niets geleerd om te exporteren.</value></data>
+  <data name="Library_FileSaveFailed" xml:space="preserve"><value>Het bestand kon niet worden opgeslagen: {0}</value></data>
+  <data name="Library_DeleteInUse" xml:space="preserve"><value>Dit profiel is in gebruik door een aangesloten controller. Koppel die eerst los.</value></data>
+  <data name="Library_DeleteFailed" xml:space="preserve"><value>Het profiel kon niet worden verwijderd: {0}</value></data>
+  <data name="Library_UserCannotSave" xml:space="preserve"><value>De controller die dit profiel gebruikt, kan het nu niet opslaan (het profiel kon niet worden gelezen). Sluit hem opnieuw aan en probeer het nog eens.</value></data>
+  <data name="Library_SaveFailed" xml:space="preserve"><value>Het profiel kon niet worden opgeslagen: {0}</value></data>
+</root>

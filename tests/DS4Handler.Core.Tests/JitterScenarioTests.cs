@@ -434,7 +434,8 @@ public class JitterScenarioTests
         for (int k = 1; k <= 200; k++)
         {
             var r = s.Feed(toX, 0.05);
-            if (r.F.X >= 0.9 * r.Ideal.X) return k;
+            // Along the flick direction (a negative target was "reached" at once before).
+            if (r.F.X / r.Ideal.X >= 0.9) return k;
         }
         return int.MaxValue;
     }

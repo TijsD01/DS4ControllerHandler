@@ -29,6 +29,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- UI text: Lang/Strings.resx is Dutch (also the fallback), Lang/Strings.en.resx English. Read through Lang/Loc.cs. -->
+    <EmbeddedResource Update="Lang\Strings.resx" LogicalName="DS4Handler.App.Lang.Strings.resources" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Shown in the app once after an update ("Nieuw in deze versie"). -->
     <EmbeddedResource Include="..\..\CHANGELOG.md" LogicalName="CHANGELOG.md" Link="CHANGELOG.md" />
   </ItemGroup>

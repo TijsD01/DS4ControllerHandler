@@ -1,7 +1,7 @@
-using System.Globalization;
 using System.Windows.Input;
 using DS4Handler.App.Controls;
 using DS4Handler.App.Engine;
+using DS4Handler.App.Lang;
 using DS4Handler.App.Services;
 using DS4Handler.Core.Calibration;
 using DS4Handler.Core.Input;
@@ -22,11 +22,9 @@ public static class Level
 
 internal static class Fmt
 {
-    public static readonly CultureInfo Nl = CultureInfo.GetCultureInfo("nl-NL");
+    public static string Pct(double fraction) => Math.Round(fraction * 100).ToString("0", Loc.Culture) + "%";
 
-    public static string Pct(double fraction) => Math.Round(fraction * 100).ToString("0", Nl) + "%";
-
-    public static string Signed(double v) => v.ToString("+0.00;−0.00;0.00", Nl);
+    public static string Signed(double v) => v.ToString("+0.00;−0.00;0.00", Loc.Culture);
 }
 
 internal static class Words
@@ -56,10 +54,10 @@ public sealed class StickViewModel : ObservableObject
         ShortName = shortName;
     }
 
-    /// <summary>"Linker stick" / "Rechter stick" (Kalibratie, summaries).</summary>
+    /// <summary>"Left stick" / "Right stick" (Calibration, summaries).</summary>
     public string Name { get; }
 
-    /// <summary>"Links" / "Rechts" (label under the live stick).</summary>
+    /// <summary>"Left" / "Right" (label under the live stick).</summary>
     public string ShortName { get; }
 
     public double RawX { get => _rawX; private set => SetNumber(ref _rawX, value); }
@@ -90,10 +88,10 @@ public sealed class StickViewModel : ObservableObject
 
     internal void UpdateSummary(StickSummary s, bool guided)
     {
-        DeadzoneTip = Tips.Deadzone + $"\n\nNu: {Fmt.Pct(s.Deadzone)} van de stickuitslag.";
+        DeadzoneTip = Tips.Deadzone + "\n\n" + Loc.Format("Calib_DeadzoneNow", Fmt.Pct(s.Deadzone));
         if (guided)
         {
-            Summary = $"{Name}: laat de stick los… het rustpunt wordt gemeten.";
+            Summary = Loc.Format("Calib_StickGuided", Name);
             SummaryLevel = Level.Learning;
             return;
         }
@@ -102,23 +100,24 @@ public sealed class StickViewModel : ObservableObject
         double drift = Math.Sqrt(s.CenterX * s.CenterX + s.CenterY * s.CenterY);
         bool learning = s.Releases < Defaults.BootstrapReleases;
         if (learning)
-            text.Append($"{Name}: nog aan het leren — laat de stick af en toe even los. ");
+            text.Append(Loc.Format("Calib_StickLearning", Name));
         else if (drift >= 0.02)
-            text.Append($"{Name} rust op ({Fmt.Signed(s.CenterX)}; {Fmt.Signed(s.CenterY)}) in plaats van in het midden — dat punt telt nu als midden. ");
+            text.Append(Loc.Format("Calib_StickRestsAt", Name, Fmt.Signed(s.CenterX), Fmt.Signed(s.CenterY)));
         else
-            text.Append($"{Name} rust netjes in het midden. ");
+            text.Append(Loc.Format("Calib_StickCentered", Name));
 
-        text.Append($"Deadzone {Fmt.Pct(s.Deadzone)}.");
+        text.Append(' ').Append(Loc.Format("Calib_StickDeadzone", Fmt.Pct(s.Deadzone)));
 
         if (s.WeakestReach is { } reach && reach < 0.97)
-            text.Append($" Haalt in sommige richtingen maar {Fmt.Pct(reach)} van de rand — wordt bijgeschaald naar 100%.");
+            text.Append(' ').Append(Loc.Format("Calib_StickWeakReach", Fmt.Pct(reach)));
 
         if (s.JitterFilterStrength > 0)
         {
-            string jitter = "±" + (s.Jitter * 100).ToString(s.Jitter < 0.1 ? "0.0" : "0", Fmt.Nl) + "%";
-            text.Append(s.JitterFilterEnabled
-                ? $" Trilling {Name.ToLower(Fmt.Nl)}: {jitter} (wordt weggefilterd)."
-                : $" Trilling {Name.ToLower(Fmt.Nl)}: {jitter} (trillingsfilter staat uit).");
+            string jitter = "±" + (s.Jitter * 100).ToString(s.Jitter < 0.1 ? "0.0" : "0", Loc.Culture) + "%";
+            string name = Name.ToLower(Loc.Culture);
+            text.Append(' ').Append(s.JitterFilterEnabled
+                ? Loc.Format("Calib_StickJitterFiltered", name, jitter)
+                : Loc.Format("Calib_StickJitterOff", name, jitter));
         }
 
         Summary = text.ToString();
@@ -149,7 +148,7 @@ public sealed class TriggerViewModel : ObservableObject
     }
 
     public string Name { get; }
-    public string CalibrateText => $"Kalibreer {Name}";
+    public string CalibrateText => Loc.Format("Calib_CalibrateTrigger", Name);
 
     /// <summary>Short status for the Kalibratie summary on Live: "L2 in orde", "R2 leert nog".</summary>
     public ICommand StartGuidedCommand { get; }
@@ -176,19 +175,19 @@ public sealed class TriggerViewModel : ObservableObject
         GuidedActive = live.GuidedInProgress;
         GuidedText = live.GuidedInProgress
             ? (live.GuidedPressesRemaining > 0
-                ? $"Druk {Name} nog {live.GuidedPressesRemaining}× helemaal in"
-                : $"Laat {Name} los…")
+                ? Loc.Format("Calib_TriggerPressMore", Name, live.GuidedPressesRemaining)
+                : Loc.Format("Calib_TriggerRelease", Name))
             : "";
     }
 
     internal void UpdateSummary(in TriggerLive t)
     {
         double reach = t.EndStop / 255.0;
-        BarTip = Tips.TriggerBar + $"\n\nGeleerd eindpunt: {Fmt.Pct(reach)}.";
+        BarTip = Tips.TriggerBar + "\n\n" + Loc.Format("Calib_TriggerLearnedEnd", Fmt.Pct(reach));
 
         if (t.GuidedInProgress)
         {
-            Summary = $"{Name}: assistent loopt — druk de trigger een paar keer helemaal in.";
+            Summary = Loc.Format("Calib_TriggerGuided", Name);
             SummaryLevel = Level.Learning;
             return;
         }
@@ -197,20 +196,20 @@ public sealed class TriggerViewModel : ObservableObject
         string level = Level.Ok;
         if (!t.EndStopLearned)
         {
-            text = $"{Name}: nog aan het leren — druk hem tijdens het spelen een paar keer helemaal in. Tot dan geldt het volle bereik.";
+            text = Loc.Format("Calib_TriggerLearning", Name);
             level = Level.Learning;
         }
         else
         {
             string how = t.EndStopKind == PlateauKind.Guided
-                ? "Ingesteld met de assistent."
-                : "Automatisch geleerd tijdens het spelen.";
+                ? Loc.Get("Calib_TriggerSetByAssistant")
+                : Loc.Get("Calib_TriggerLearnedAuto");
             text = t.EndStop >= 250
-                ? $"{Name} haalt het volle bereik — geen correctie nodig. {how}"
-                : $"{Name} komt tot {Fmt.Pct(reach)} — wordt opgeschaald naar 100%. {how}";
+                ? Loc.Format("Calib_TriggerFullRange", Name, how)
+                : Loc.Format("Calib_TriggerScaled", Name, Fmt.Pct(reach), how);
         }
 
-        if (t.Rest > 4) text += $" Rustwaarde {Fmt.Pct(t.Rest / 255.0)} wordt genegeerd.";
+        if (t.Rest > 4) text += " " + Loc.Format("Calib_TriggerRestIgnored", Fmt.Pct(t.Rest / 255.0));
         Summary = text;
         SummaryLevel = level;
     }
@@ -256,8 +255,8 @@ public sealed class ControllerViewModel : ObservableObject
         Session = session;
         _host = host;
         _confirm = confirm;
-        Left = new StickViewModel("Linker stick", "Links");
-        Right = new StickViewModel("Rechter stick", "Rechts");
+        Left = new StickViewModel(Loc.Get("Stick_Left"), Loc.Get("Stick_LeftShort"));
+        Right = new StickViewModel(Loc.Get("Stick_Right"), Loc.Get("Stick_RightShort"));
         L2 = new TriggerViewModel(session, right: false);
         R2 = new TriggerViewModel(session, right: true);
         _learning = session.LearningEnabled;
@@ -321,7 +320,7 @@ public sealed class ControllerViewModel : ObservableObject
     public string ProfileText { get => _profileText; private set => SetField(ref _profileText, value); }
     public string ProfileLevel { get => _profileLevel; private set => SetField(ref _profileLevel, value); }
     public string ProfileTip { get => _profileTip; private set => SetField(ref _profileTip, value); }
-    public string IdText => Session.Mac != null ? $"MAC {Session.Mac}" : "(geen MAC gevonden)";
+    public string IdText => Session.Mac != null ? $"MAC {Session.Mac}" : Loc.Get("Profile_NoMacFound");
     public string IdTip => Session.HasStableId ? Tips.ControllerId : Tips.ControllerIdUnstable;
     public bool IsBluetooth => Session.Connection == ConnectionType.Bluetooth;
     public string ConnectionText => IsBluetooth ? "Bluetooth" : "USB";
@@ -344,7 +343,7 @@ public sealed class ControllerViewModel : ObservableObject
     public string HideStatusTip { get => _hideStatusTip; private set { if (SetField(ref _hideStatusTip, value)) OnPropertyChanged(nameof(HideChipTip)); } }
 
     /// <summary>Tooltip of the "Verborgen voor games" chip: what the switch does, plus the current state.</summary>
-    public string HideChipTip => string.IsNullOrEmpty(HideStatusTip) ? HideTip : HideTip + "\n\nNu: " + HideStatusTip;
+    public string HideChipTip => string.IsNullOrEmpty(HideStatusTip) ? HideTip : HideTip + "\n\n" + Loc.Format("Common_Now", HideStatusTip);
     public string ReportRateText { get => _rate; private set => SetField(ref _rate, value); }
 
     /// <summary>"verwerking 0,04 ms" for the header; empty until the first second of reports is measured.</summary>
@@ -491,10 +490,9 @@ public sealed class ControllerViewModel : ObservableObject
                       now - _snap.LastReportTimestamp < 2 * System.Diagnostics.Stopwatch.Frequency;
         if (l.ProcessAvgMicros > 0 && _snap.HasInput && recent)
         {
-            LatencyText = $"verwerking {Ms(l.ProcessAvgMicros / 1000)} ms";
-            LatencyTip = Tips.Latency + "\n\n" +
-                $"Nu: gemiddeld {Ms(l.ProcessAvgMicros / 1000)} ms, traagste {Ms(l.ProcessMaxMicros / 1000)} ms. " +
-                $"Langste pauze van de controller: {l.GapMaxMs.ToString("0.0", Fmt.Nl)} ms.";
+            LatencyText = Loc.Format("Latency_Text", Ms(l.ProcessAvgMicros / 1000));
+            LatencyTip = Tips.Latency + "\n\n" + Loc.Format("Latency_Now",
+                Ms(l.ProcessAvgMicros / 1000), Ms(l.ProcessMaxMicros / 1000), l.GapMaxMs.ToString("0.0", Loc.Culture));
         }
         else
         {
@@ -505,7 +503,7 @@ public sealed class ControllerViewModel : ObservableObject
         _lastReports = _snap.Reports;
     }
 
-    private static string Ms(float ms) => ms.ToString(ms < 1 ? "0.00" : "0.0", Fmt.Nl);
+    private static string Ms(float ms) => ms.ToString(ms < 1 ? "0.00" : "0.0", Loc.Culture);
 
     private void UpdateBattery(byte? percent)
     {
@@ -514,8 +512,8 @@ public sealed class ControllerViewModel : ObservableObject
         if (percent is not { } p) return;
         BatteryText = $"{p}%";
         BatteryTip = IsBluetooth
-            ? $"Batterij: {p}%. " + (p <= 20 ? "Bijna leeg: sluit de kabel aan om op te laden." : "Gaat ongeveer 4 tot 8 uur mee op een volle lading.")
-            : $"Batterij: {p}%. De controller laadt op via de USB-kabel.";
+            ? (p <= 20 ? Loc.Format("Battery_Low", p) : Loc.Format("Battery_Wireless", p))
+            : Loc.Format("Battery_Usb", p);
     }
 
     private void UpdateStatus()
@@ -525,34 +523,35 @@ public sealed class ControllerViewModel : ObservableObject
         switch (Session.VirtualState)
         {
             case VirtualPadState.Active when !_snap.HasInput || stale:
-                StatusText = "Wacht op invoer…";
+                StatusText = Loc.Get("Status_WaitingInput");
                 StatusLevel = Level.Learning;
-                StatusTip = "De controller is verbonden maar stuurt (nog) geen standen. Bij Bluetooth: druk op de PS-knop. Blijft dit staan, sluit hem dan opnieuw aan.";
+                StatusTip = Loc.Get("Status_WaitingInputTip");
                 break;
             case VirtualPadState.Active when Session.OutputMode == OutputMode.DualShock4:
-                StatusText = "Virtuele DualShock 4 actief";
+                StatusText = Loc.Get("Status_Ds4Active");
                 StatusLevel = Level.Ok;
-                StatusTip = "Games zien deze controller nu als een (virtuele) DualShock 4, inclusief trillen. De correcties uit de kalibratie worden al toegepast. Zet 'Verborgen voor games' aan zodat games niet ook je echte controller zien.";
+                StatusTip = Loc.Get("Status_Ds4ActiveTip");
                 break;
             case VirtualPadState.Active:
-                StatusText = "Virtuele Xbox 360 actief";
+                StatusText = Loc.Get("Status_XboxActive");
                 StatusLevel = Level.Ok;
-                StatusTip = "Games zien deze controller nu als een Xbox 360-controller, inclusief trillen. De correcties uit de kalibratie worden al toegepast.";
+                StatusTip = Loc.Get("Status_XboxActiveTip");
                 break;
             case VirtualPadState.DriverMissing:
-                StatusText = "Alleen meten";
+                StatusText = Loc.Get("Status_MeasureOnly");
                 StatusLevel = Level.Warn;
-                StatusTip = "ViGEmBus ontbreekt, dus er is geen virtuele controller voor games. Je ziet hier wel alle waarden en de app leert gewoon door. Installeer ViGEmBus (zie de melding bovenaan).";
+                StatusTip = Loc.Get("Status_MeasureOnlyTip");
                 break;
             case VirtualPadState.Failed:
-                StatusText = "Virtuele controller mislukt";
+                StatusText = Loc.Get("Status_VirtualFailed");
                 StatusLevel = Level.Bad;
-                StatusTip = "De virtuele controller kon niet worden gemaakt: " + (Session.VirtualError ?? "onbekende fout") + ". Sluit de controller opnieuw aan of start de pc opnieuw op.";
+                // VirtualError is the driver's own exception text (ViGEm), shown as is.
+                StatusTip = Loc.Format("Status_VirtualFailedTip", Session.VirtualError ?? Loc.Get("Status_UnknownError"));
                 break;
             default:
-                StatusText = "Starten…";
+                StatusText = Loc.Get("Status_Starting");
                 StatusLevel = Level.Learning;
-                StatusTip = "De virtuele controller wordt aangemaakt.";
+                StatusTip = Loc.Get("Status_StartingTip");
                 break;
         }
     }
@@ -563,19 +562,19 @@ public sealed class ControllerViewModel : ObservableObject
         Title = library.DisplayName(Session.Id);
         if (Session.ProfileBlocked)
         {
-            ProfileText = "Profiel in gebruik — draait zonder opslaan";
+            ProfileText = Loc.Get("Profile_CardBlocked");
             ProfileLevel = Level.Warn;
             ProfileTip = Tips.ProfileBlockedOnCard;
         }
         else if (!string.Equals(Session.ProfileId, Session.Id, StringComparison.OrdinalIgnoreCase))
         {
-            ProfileText = "Profiel: " + library.DisplayName(Session.ProfileId);
+            ProfileText = Loc.Format("Profile_CardShared", library.DisplayName(Session.ProfileId));
             ProfileLevel = Level.Info;
             ProfileTip = Tips.ProfileOnCard;
         }
         else
         {
-            ProfileText = "Profiel: eigen profiel";
+            ProfileText = Loc.Get("Profile_CardOwn");
             ProfileLevel = Level.Info;
             ProfileTip = Tips.ProfileOwnOnCard;
         }
@@ -593,20 +592,19 @@ public sealed class ControllerViewModel : ObservableObject
         switch (_host.HidHide.StateFor(Session.Id))
         {
             case DeviceHideState.Hidden:
-                HideStatusText = "Verborgen voor games";
+                HideStatusText = Loc.Get("Hide_Hidden");
                 HideLevel = Level.Ok;
-                HideStatusTip = "Games zien alleen de Xbox-controller, niet je echte PlayStation-controller. Een game die al draaide: herstart hem of sluit de controller opnieuw aan.";
+                HideStatusTip = Loc.Get("Hide_HiddenTip");
                 break;
             case DeviceHideState.Working:
-                HideStatusText = "Bezig…";
+                HideStatusText = Loc.Get("Hide_Working");
                 HideLevel = Level.Learning;
-                HideStatusTip = "HidHide wordt ingesteld.";
+                HideStatusTip = Loc.Get("Hide_WorkingTip");
                 break;
             case DeviceHideState.Failed:
-                HideStatusText = "Niet verborgen";
+                HideStatusText = Loc.Get("Hide_Failed");
                 HideLevel = Level.Warn;
-                HideStatusTip = "Verbergen lukte niet, dus games kunnen deze controller twee keer zien. " +
-                                (_host.HidHide.Problem ?? "Kijk bij de melding bovenaan of bij Instellingen › HidHide.");
+                HideStatusTip = Loc.Format("Hide_FailedTip", _host.HidHide.Problem ?? Loc.Get("Hide_FailedSeeNotice"));
                 break;
             default:
                 HideStatusText = "";
@@ -619,9 +617,9 @@ public sealed class ControllerViewModel : ObservableObject
     private void Reset()
     {
         if (!_confirm(
-                "Kalibratie resetten?",
-                $"Alles wat de app over deze {Title} heeft geleerd (drift, deadzone, trigger-eindpunten) wordt vergeten. De controller begint weer met fabriekswaarden en leert daarna opnieuw.",
-                "Resetten"))
+                Loc.Get("Calib_ResetTitle"),
+                Loc.Format("Calib_ResetMessage", Title),
+                Loc.Get("Calib_ResetConfirm")))
             return;
         Session.ResetCalibration();
         _tick = 0; // refresh the summary on the next tick

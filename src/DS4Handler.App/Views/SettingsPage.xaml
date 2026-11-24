@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
              xmlns:c="clr-namespace:DS4Handler.App.Controls"
+             xmlns:l="clr-namespace:DS4Handler.App.Lang"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}">
     <UserControl.Resources>
@@ -37,7 +38,7 @@
     </UserControl.Resources>
 
     <StackPanel>
-        <TextBlock Text="Instellingen" Style="{StaticResource H1}" Margin="0,0,0,20" />
+        <TextBlock Text="{l:Loc Settings_Title}" Style="{StaticResource H1}" Margin="0,0,0,20" />
 
         <Grid>
             <Grid.ColumnDefinitions>
@@ -49,35 +50,65 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- Left: Opstarten + Updates -->
+            <!-- Left: Opstarten + Taal + Updates -->
             <StackPanel Style="{StaticResource LeftColumn}">
                 <Border Style="{StaticResource Card}" Padding="0">
                     <StackPanel>
                 <Border Style="{StaticResource CardHeader}">
-                    <TextBlock Text="Opstarten" Style="{StaticResource SectionLabel}" />
+                    <TextBlock Text="{l:Loc Settings_Startup}" Style="{StaticResource SectionLabel}" />
                 </Border>
                 <Border Style="{StaticResource SettingRow}" ToolTip="{x:Static vm:Tips.StartWithWindows}">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,24,0" VerticalAlignment="Center">
-                            <TextBlock Text="Start met Windows" Style="{StaticResource RowTitle}" />
-                            <TextBlock Text="De app start als je inlogt, zodat je controller meteen werkt." Style="{StaticResource Dim}" />
+                            <TextBlock Text="{l:Loc Settings_StartWithWindows}" Style="{StaticResource RowTitle}" />
+                            <TextBlock Text="{l:Loc Settings_StartWithWindowsText}" Style="{StaticResource Dim}" />
                         </StackPanel>
                         <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding StartWithWindows}"
-                                  AutomationProperties.Name="Start met Windows" ToolTip="{x:Static vm:Tips.StartWithWindows}" />
+                                  AutomationProperties.Name="{l:Loc Settings_StartWithWindows}" ToolTip="{x:Static vm:Tips.StartWithWindows}" />
                     </Grid>
                 </Border>
                 <Border Style="{StaticResource SettingRow}" ToolTip="{x:Static vm:Tips.StartMinimized}">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,24,0" VerticalAlignment="Center">
-                            <TextBlock Text="Geminimaliseerd starten" Style="{StaticResource RowTitle}" />
-                            <TextBlock Text="Alleen als icoon in het systeemvak naast de klok." Style="{StaticResource Dim}" />
+                            <TextBlock Text="{l:Loc Settings_StartMinimized}" Style="{StaticResource RowTitle}" />
+                            <TextBlock Text="{l:Loc Settings_StartMinimizedText}" Style="{StaticResource Dim}" />
                         </StackPanel>
                         <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding StartMinimized}"
-                                  AutomationProperties.Name="Geminimaliseerd starten" ToolTip="{x:Static vm:Tips.StartMinimized}" />
+                                  AutomationProperties.Name="{l:Loc Settings_StartMinimized}" ToolTip="{x:Static vm:Tips.StartMinimized}" />
                     </Grid>
                 </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Taal: used after a restart (all text is read once at startup). -->
+                <Border Style="{StaticResource Card}" Padding="0" Margin="0,20,0,0">
+                    <StackPanel>
+                        <Border Style="{StaticResource CardHeader}">
+                            <TextBlock Text="{l:Loc Settings_Language}" Style="{StaticResource SectionLabel}" />
+                        </Border>
+                        <Border Style="{StaticResource SettingRow}" ToolTip="{l:Loc Settings_LanguageTip}">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <StackPanel Margin="0,0,24,0" VerticalAlignment="Center">
+                                    <TextBlock Text="{l:Loc Settings_AppLanguage}" Style="{StaticResource RowTitle}" />
+                                    <TextBlock Text="{l:Loc Settings_LanguageText}" Style="{StaticResource Dim}" />
+                                </StackPanel>
+                                <ComboBox Grid.Column="1" Style="{StaticResource Combo}" MinWidth="160" VerticalAlignment="Center"
+                                          ItemsSource="{Binding Languages}" DisplayMemberPath="Value" SelectedValuePath="Key"
+                                          SelectedValue="{Binding Language}"
+                                          AutomationProperties.Name="{l:Loc Settings_AppLanguage}" ToolTip="{l:Loc Settings_LanguageTip}" />
+                            </Grid>
+                        </Border>
+                        <Border Style="{StaticResource SettingRow}" Visibility="{Binding RestartNeeded, Converter={StaticResource BoolVis}}">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="{l:Loc Settings_LanguageRestartNote}" Style="{StaticResource Dim}" Margin="0,0,24,0" VerticalAlignment="Center" />
+                                <Button Grid.Column="1" Style="{StaticResource AccentButton}" Content="{l:Loc Settings_RestartNow}" Command="{Binding RestartCommand}"
+                                        ToolTip="{l:Loc Settings_RestartNowTip}" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
                     </StackPanel>
                 </Border>
 
@@ -90,11 +121,11 @@
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,24,0" VerticalAlignment="Center">
-                            <TextBlock Text="Automatisch zoeken naar nieuwe versies" Style="{StaticResource RowTitle}" />
-                            <TextBlock Text="Je profielen en instellingen blijven bewaard bij het bijwerken." Style="{StaticResource Dim}" />
+                            <TextBlock Text="{l:Loc Settings_AutoUpdate}" Style="{StaticResource RowTitle}" />
+                            <TextBlock Text="{l:Loc Settings_AutoUpdateText}" Style="{StaticResource Dim}" />
                         </StackPanel>
                         <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding CheckForUpdates}"
-                                  AutomationProperties.Name="Automatisch zoeken naar nieuwe versies" ToolTip="{x:Static vm:Tips.CheckForUpdates}" />
+                                  AutomationProperties.Name="{l:Loc Settings_AutoUpdate}" ToolTip="{x:Static vm:Tips.CheckForUpdates}" />
                     </Grid>
                 </Border>
                         <Border Style="{StaticResource SettingRow}">
@@ -104,7 +135,7 @@
                                     <Run Text="{Binding CurrentVersionText, Mode=OneWay}" /><LineBreak />
                                     <Run Text="{Binding Status, Mode=OneWay}" />
                                 </TextBlock>
-                                <Button Grid.Column="1" Content="Nu zoeken naar updates" Command="{Binding CheckNowCommand}"
+                                <Button Grid.Column="1" Content="{l:Loc Settings_CheckNow}" Command="{Binding CheckNowCommand}"
                                         ToolTip="{x:Static vm:Tips.CheckNow}" VerticalAlignment="Center" />
                             </Grid>
                         </Border>
@@ -123,7 +154,7 @@
                                     <c:StatusMark Level="{Binding HidHideLevel}"
                                                   AutomationProperties.Name="{Binding HidHideLevel, Converter={StaticResource LevelWord}}" />
                                 </StackPanel>
-                                <TextBlock Text="Verborgen voor games (HidHide)" Style="{StaticResource SectionLabel}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{l:Loc Settings_HidHideSection}" Style="{StaticResource SectionLabel}" TextTrimming="CharacterEllipsis" />
                             </DockPanel>
                         </Border>
                         <Border Style="{StaticResource SettingRow}">
@@ -133,29 +164,29 @@
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,24,0" VerticalAlignment="Center">
-                            <TextBlock Text="HidHide gebruiken" Style="{StaticResource RowTitle}" />
-                            <TextBlock Text="Games zien alleen de virtuele controller. Per controller zet je dit aan met 'Verborgen voor games'." Style="{StaticResource Dim}" />
+                            <TextBlock Text="{l:Loc Settings_UseHidHide}" Style="{StaticResource RowTitle}" />
+                            <TextBlock Text="{l:Loc Settings_UseHidHideText}" Style="{StaticResource Dim}" />
                         </StackPanel>
                         <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding HidHideEnabled}"
-                                  AutomationProperties.Name="HidHide gebruiken" ToolTip="{x:Static vm:Tips.HidHideEnabled}" />
+                                  AutomationProperties.Name="{l:Loc Settings_UseHidHide}" ToolTip="{x:Static vm:Tips.HidHideEnabled}" />
                     </Grid>
                 </Border>
                 <Border Style="{StaticResource SettingRow}" ToolTip="{x:Static vm:Tips.UnhideOnExit}">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                         <StackPanel Margin="0,0,24,0" VerticalAlignment="Center">
-                            <TextBlock Text="Weer zichtbaar maken bij afsluiten" Style="{StaticResource RowTitle}" />
-                            <TextBlock Text="Na het sluiten zien games je PlayStation-controller weer gewoon." Style="{StaticResource Dim}" />
+                            <TextBlock Text="{l:Loc Settings_UnhideOnExit}" Style="{StaticResource RowTitle}" />
+                            <TextBlock Text="{l:Loc Settings_UnhideOnExitText}" Style="{StaticResource Dim}" />
                         </StackPanel>
                         <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding UnhideOnExit}"
-                                  AutomationProperties.Name="Weer zichtbaar maken bij afsluiten" ToolTip="{x:Static vm:Tips.UnhideOnExit}" />
+                                  AutomationProperties.Name="{l:Loc Settings_UnhideOnExit}" ToolTip="{x:Static vm:Tips.UnhideOnExit}" />
                     </Grid>
                 </Border>
                         <Border Style="{StaticResource SettingRow}">
                             <WrapPanel>
-                                <Button Content="Opnieuw controleren" Command="{Binding RecheckHidHideCommand}" Margin="0,0,8,0"
+                                <Button Content="{l:Loc Common_Recheck}" Command="{Binding RecheckHidHideCommand}" Margin="0,0,8,0"
                                         ToolTip="{x:Static vm:Tips.RecheckHidHide}" />
-                                <Button Style="{StaticResource GhostButton}" Content="HidHide downloaden" Command="{Binding DownloadHidHideCommand}"
+                                <Button Style="{StaticResource GhostButton}" Content="{l:Loc Common_DownloadHidHide}" Command="{Binding DownloadHidHideCommand}"
                                         ToolTip="{x:Static vm:Tips.DownloadHidHide}" />
                             </WrapPanel>
                         </Border>
@@ -165,19 +196,19 @@
                 <Border Style="{StaticResource Card}" Padding="0" Margin="0,20,0,0">
                     <StackPanel>
                 <Border Style="{StaticResource CardHeader}">
-                    <TextBlock Text="Over" Style="{StaticResource SectionLabel}" />
+                    <TextBlock Text="{l:Loc Settings_About}" Style="{StaticResource SectionLabel}" />
                 </Border>
                         <Border Style="{StaticResource SettingRow}">
                             <StackPanel>
                                 <TextBlock Text="{Binding Version}" Style="{StaticResource Mono}" Margin="0,0,0,6" />
                                 <TextBlock Style="{StaticResource Dim}" Margin="0,0,0,14"
-                                           Text="Je PlayStation-controller werkt in games als een Xbox 360- of DualShock 4-controller. De app leert vanzelf de drift van je sticks en de slijtage van je triggers en corrigeert die." />
+                                           Text="{l:Loc Settings_AboutText}" />
                                 <WrapPanel>
-                                    <Button Content="Profielmap openen" Command="{Binding OpenProfilesCommand}" Margin="0,0,8,8"
+                                    <Button Content="{l:Loc Common_OpenProfileFolder}" Command="{Binding OpenProfilesCommand}" Margin="0,0,8,8"
                                             ToolTip="{x:Static vm:Tips.OpenProfiles}" />
-                                    <Button Content="Logbestand openen" Command="{Binding OpenLogCommand}" Margin="0,0,8,8"
+                                    <Button Content="{l:Loc Common_OpenLog}" Command="{Binding OpenLogCommand}" Margin="0,0,8,8"
                                             ToolTip="{x:Static vm:Tips.OpenLog}" />
-                                    <Button Style="{StaticResource GhostButton}" Content="ViGEmBus downloaden" Command="{Binding DownloadViGEmCommand}" Margin="0,0,0,8"
+                                    <Button Style="{StaticResource GhostButton}" Content="{l:Loc Common_DownloadViGEm}" Command="{Binding DownloadViGEmCommand}" Margin="0,0,0,8"
                                             ToolTip="{x:Static vm:Tips.DownloadViGEm}" />
                                 </WrapPanel>
                             </StackPanel>
@@ -188,7 +219,7 @@
         </Grid>
 
         <!-- Afsluiten -->
-        <Button Style="{StaticResource DangerButton}" Content="Afsluiten" Command="{Binding QuitCommand}"
+        <Button Style="{StaticResource DangerButton}" Content="{l:Loc Common_Quit}" Command="{Binding QuitCommand}"
                 HorizontalAlignment="Right" Margin="0,24,0,0" ToolTip="{x:Static vm:Tips.Quit}" />
     </StackPanel>
 </UserControl>

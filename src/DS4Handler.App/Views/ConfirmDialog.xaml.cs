@@ -1,5 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Markup;
+using DS4Handler.App.Lang;
 
 namespace DS4Handler.App.Views;
 
@@ -8,12 +10,13 @@ public partial class ConfirmDialog : Window
 {
     public ConfirmDialog(string title, string message, string confirmText)
     {
+        Language = XmlLanguage.GetLanguage(Loc.Culture.IetfLanguageTag);
         InitializeComponent();
         Title = title;
         TitleText.Text = title;
         MessageText.Text = message;
         ConfirmButton.Content = confirmText;
-        ConfirmButton.ToolTip = $"Bevestig: {confirmText.ToLowerInvariant()}.";
+        ConfirmButton.ToolTip = Loc.Format("Dialog_ConfirmTip", confirmText.ToLower(Loc.Culture));
         MouseLeftButtonDown += (_, e) => { if (e.ButtonState == MouseButtonState.Pressed) DragMove(); };
         Loaded += (_, _) => CancelButton.Focus(); // the safe choice is the default
     }
@@ -32,7 +35,7 @@ public partial class ConfirmDialog : Window
     {
         var dialog = new ConfirmDialog(title, message, "OK");
         dialog.CancelButton.Visibility = Visibility.Collapsed;
-        dialog.ConfirmButton.ToolTip = "Sluit deze melding.";
+        dialog.ConfirmButton.ToolTip = Loc.Get("Dialog_OkTip");
         dialog.Loaded += (_, _) => dialog.ConfirmButton.Focus();
         if (owner is { IsVisible: true }) dialog.Owner = owner;
         else dialog.WindowStartupLocation = WindowStartupLocation.CenterScreen;

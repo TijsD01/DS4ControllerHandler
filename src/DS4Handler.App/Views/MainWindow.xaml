@@ -6,6 +6,7 @@
         xmlns:v="clr-namespace:DS4Handler.App.Views"
         xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
         xmlns:c="clr-namespace:DS4Handler.App.Controls"
+        xmlns:l="clr-namespace:DS4Handler.App.Lang"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         Title="DS4 Handler"
@@ -15,7 +16,6 @@
         Foreground="{StaticResource TextBrush}"
         FontFamily="{StaticResource UiFont}"
         FontSize="14"
-        Language="nl-NL"
         UseLayoutRounding="True"
         TextOptions.TextFormattingMode="Display">
 
@@ -86,11 +86,11 @@
                     <!-- No controller: clickable, so the empty state stays reachable from Profielen / Instellingen. -->
                     <Button Style="{StaticResource ControllerTab}" Command="{Binding ShowControllersCommand}"
                             Tag="{Binding ShowControllers, Mode=OneWay}" ToolTip="{x:Static vm:Tips.NoControllerTab}"
-                            AutomationProperties.Name="Geen controller aangesloten"
+                            AutomationProperties.Name="{l:Loc Main_NoController}"
                             Visibility="{Binding IsEmpty, Converter={StaticResource BoolVis}}">
                         <StackPanel Orientation="Horizontal">
                             <Ellipse Style="{StaticResource Dot}" Margin="0,0,10,0" />
-                            <TextBlock Text="Geen controller aangesloten" Foreground="{StaticResource TextMutedBrush}" FontWeight="Normal" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Loc Main_NoController}" Foreground="{StaticResource TextMutedBrush}" FontWeight="Normal" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
                 </WrapPanel>
@@ -118,28 +118,28 @@
                         </Button.ToolTip>
                         <StackPanel Orientation="Horizontal">
                             <c:StatusMark Level="{Binding DriversLevel}" Width="14" Height="14" Margin="0,0,8,0" />
-                            <TextBlock Text="Stuurprogramma's" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Loc Main_Drivers}" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
 
                     <RadioButton Style="{StaticResource TopNavButton}" IsChecked="{Binding ShowProfiles}" ToolTip="{x:Static vm:Tips.NavProfiles}"
-                                 AutomationProperties.Name="Profielen">
+                                 AutomationProperties.Name="{l:Loc Common_Profiles}">
                         <StackPanel Orientation="Horizontal">
                             <Viewbox Width="16" Height="16" Margin="0,0,8,0">
                                 <Path Data="{StaticResource ProfileIconGeometry}" Width="24" Height="24" StrokeThickness="1.8"
                                       Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
                             </Viewbox>
-                            <TextBlock Text="Profielen" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Loc Common_Profiles}" VerticalAlignment="Center" />
                         </StackPanel>
                     </RadioButton>
                     <RadioButton Style="{StaticResource TopNavButton}" IsChecked="{Binding ShowSettings}" ToolTip="{x:Static vm:Tips.NavSettings}"
-                                 AutomationProperties.Name="Instellingen">
+                                 AutomationProperties.Name="{l:Loc Settings_Title}">
                         <StackPanel Orientation="Horizontal">
                             <Viewbox Width="16" Height="16" Margin="0,0,8,0">
                                 <Path Data="{StaticResource SettingsIconGeometry}" Width="24" Height="24" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                       Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}" />
                             </Viewbox>
-                            <TextBlock Text="Instellingen" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Loc Settings_Title}" VerticalAlignment="Center" />
                         </StackPanel>
                     </RadioButton>
                 </StackPanel>
@@ -240,9 +240,9 @@
                                 <Ellipse Canvas.Left="55.2" Canvas.Top="22.2" Width="3.6" Height="3.6" Stroke="{StaticResource AccentBrush}" StrokeThickness="1.5" />
                             </Canvas>
                         </Viewbox>
-                        <TextBlock Text="Nog geen controller gevonden" Style="{StaticResource H1}" FontSize="26" Margin="0,22,0,6" />
+                        <TextBlock Text="{l:Loc Main_EmptyTitle}" Style="{StaticResource H1}" FontSize="26" Margin="0,22,0,6" />
                         <TextBlock Style="{StaticResource Dim}" FontSize="14" Margin="0,0,0,28"
-                                   Text="Sluit een DualShock 4 of DualSense aan. Hij verschijnt dan vanzelf bovenin als tabblad." />
+                                   Text="{l:Loc Main_EmptyText}" />
                         <Border BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,1,0,0" Padding="0,16">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -252,7 +252,7 @@
                                 <TextBlock Text="01" Style="{StaticResource Mono}" FontSize="14" Foreground="{StaticResource LinkBrush}" />
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="USB" Style="{StaticResource RowTitle}" />
-                                    <TextBlock Style="{StaticResource Dim}" FontSize="14" Text="Steek de kabel in. Meer hoef je niet te doen." />
+                                    <TextBlock Style="{StaticResource Dim}" FontSize="14" Text="{l:Loc Main_EmptyUsb}" />
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -266,7 +266,7 @@
                                 <StackPanel Grid.Column="1">
                                     <TextBlock Text="Bluetooth" Style="{StaticResource RowTitle}" />
                                     <TextBlock Style="{StaticResource Dim}" FontSize="14"
-                                               Text="Houd PS en Share (of Create) ingedrukt tot het lampje snel knippert. Koppel hem daarna in Windows bij Instellingen › Bluetooth." />
+                                               Text="{l:Loc Main_EmptyBluetooth}" />
                                 </StackPanel>
                             </Grid>
                         </Border>

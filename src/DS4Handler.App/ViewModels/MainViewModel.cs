@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using DS4Handler.App.Engine;
 using DS4Handler.App.Infrastructure;
+using DS4Handler.App.Lang;
 using DS4Handler.App.Services;
 
 namespace DS4Handler.App.ViewModels;
@@ -34,10 +35,10 @@ public sealed class MainViewModel : ObservableObject
     private int _hidHideVersion = -1;
     private string _noticeKey = "";
     private string _page = "controllers";
-    private string _driverChip = "Controleren…";  // short driver texts for DriversText
+    private string _driverChip = Loc.Get("Common_Checking");  // short driver texts for DriversText
     private string _driverLevel = Level.Learning;
     private string _driverTip = Tips.DriverChecking;
-    private string _hidHideChip = "Controleren…";
+    private string _hidHideChip = Loc.Get("Common_Checking");
     private string _hidHideLevel = Level.Learning;
     private string _hidHideTip = "";
     private ControllerViewModel? _selected;
@@ -116,15 +117,15 @@ public sealed class MainViewModel : ObservableObject
     /// <summary>Compact driver status in the top bar: one dot and a short text for ViGEmBus and HidHide together.</summary>
     public string DriversText { get => _driversText; private set => SetField(ref _driversText, value); }
     public string DriversLevel { get => _driversLevel; private set => SetField(ref _driversLevel, value); }
-    private string _driversText = "Controleren…";
+    private string _driversText = Loc.Get("Common_Checking");
     private string _driversLevel = Level.Learning;
 
     /// <summary>Short text for the tray icon.</summary>
     public string TrayText => Controllers.Count switch
     {
-        0 => "DS4 Handler – geen controller",
-        1 => "DS4 Handler – 1 controller actief",
-        var n => $"DS4 Handler – {n} controllers actief",
+        0 => Loc.Get("Tray_TextNone"),
+        1 => Loc.Get("Tray_TextOne"),
+        var n => Loc.Format("Tray_TextMany", n),
     };
 
     /// <summary>Learning state for the tray menu: true when every connected controller is learning.</summary>
@@ -192,49 +193,49 @@ public sealed class MainViewModel : ObservableObject
         switch (manager.DriverState)
         {
             case VirtualDriverState.Ready:
-                _driverChip = "Xbox-driver OK"; DriverLevel = Level.Ok; DriverTip = Tips.DriverReady; break;
+                _driverChip = Loc.Get("Main_DriverOk"); DriverLevel = Level.Ok; DriverTip = Tips.DriverReady; break;
             case VirtualDriverState.Missing:
-                _driverChip = "Xbox-driver ontbreekt"; DriverLevel = Level.Bad; DriverTip = Tips.DriverMissing; break;
+                _driverChip = Loc.Get("Main_DriverMissing"); DriverLevel = Level.Bad; DriverTip = Tips.DriverMissing; break;
             case VirtualDriverState.Failed:
-                _driverChip = "Xbox-driver fout"; DriverLevel = Level.Bad; DriverTip = "ViGEmBus kon niet worden geopend: " + manager.DriverError; break;
+                _driverChip = Loc.Get("Main_DriverError"); DriverLevel = Level.Bad; DriverTip = Loc.Format("Main_DriverErrorTip", manager.DriverError); break;
             default:
-                _driverChip = "Controleren…"; DriverLevel = Level.Learning; DriverTip = Tips.DriverChecking; break;
+                _driverChip = Loc.Get("Common_Checking"); DriverLevel = Level.Learning; DriverTip = Tips.DriverChecking; break;
         }
 
         if (!hidHideEnabled)
         {
-            _hidHideChip = "HidHide uit"; HidHideLevel = Level.Off;
-            HidHideTip = "Verbergen voor games staat uit (zie Instellingen). Sommige games zien dan twee controllers.";
+            _hidHideChip = Loc.Get("Main_HidHideOff"); HidHideLevel = Level.Off;
+            HidHideTip = Loc.Get("Main_HidHideOffTip");
         }
         else
         {
             switch (hidHide.Availability)
             {
                 case HidHideAvailability.Ready when hidHide.Problem == null:
-                    _hidHideChip = "HidHide actief"; HidHideLevel = Level.Ok;
-                    HidHideTip = "HidHide verbergt je echte controllers voor games, zodat ze alleen de Xbox-controller zien.";
+                    _hidHideChip = Loc.Get("Main_HidHideActive"); HidHideLevel = Level.Ok;
+                    HidHideTip = Loc.Get("Main_HidHideActiveTip");
                     break;
                 case HidHideAvailability.Ready:
-                    _hidHideChip = "HidHide: let op"; HidHideLevel = Level.Warn; HidHideTip = hidHide.Problem!; break;
+                    _hidHideChip = Loc.Get("Main_HidHideAttention"); HidHideLevel = Level.Warn; HidHideTip = hidHide.Problem!; break;
                 case HidHideAvailability.NotInstalled:
-                    _hidHideChip = "HidHide ontbreekt"; HidHideLevel = Level.Warn;
-                    HidHideTip = "HidHide is niet geïnstalleerd. Zonder HidHide zien sommige games je controller dubbel."; break;
+                    _hidHideChip = Loc.Get("Main_HidHideMissing"); HidHideLevel = Level.Warn;
+                    HidHideTip = Loc.Get("Main_HidHideMissingTip"); break;
                 case HidHideAvailability.Busy:
-                    _hidHideChip = "HidHide bezet"; HidHideLevel = Level.Warn;
-                    HidHideTip = "Een ander programma (HidHide Configuration Client of DS4Windows) heeft HidHide open. Sluit dat en klik op Opnieuw controleren."; break;
+                    _hidHideChip = Loc.Get("Main_HidHideBusy"); HidHideLevel = Level.Warn;
+                    HidHideTip = Loc.Get("Main_HidHideBusyTip"); break;
                 case HidHideAvailability.Error:
-                    _hidHideChip = "HidHide fout"; HidHideLevel = Level.Warn;
-                    HidHideTip = "HidHide reageerde niet zoals verwacht. Zie het logbestand (Instellingen)."; break;
+                    _hidHideChip = Loc.Get("Main_HidHideError"); HidHideLevel = Level.Warn;
+                    HidHideTip = Loc.Get("Main_HidHideErrorTip"); break;
                 default:
-                    _hidHideChip = "Controleren…"; HidHideLevel = Level.Learning; HidHideTip = "Bezig met controleren of HidHide aanwezig is."; break;
+                    _hidHideChip = Loc.Get("Common_Checking"); HidHideLevel = Level.Learning; HidHideTip = Loc.Get("Main_HidHideCheckingTip"); break;
             }
         }
 
         // One line for the top bar: the most important problem, otherwise "in orde".
         if (DriverLevel is Level.Bad or Level.Warn) { DriversText = _driverChip; DriversLevel = DriverLevel; }
         else if (HidHideLevel is Level.Bad or Level.Warn) { DriversText = _hidHideChip; DriversLevel = HidHideLevel; }
-        else if (DriverLevel == Level.Learning || HidHideLevel == Level.Learning) { DriversText = "Controleren…"; DriversLevel = Level.Learning; }
-        else { DriversText = "Stuurprogramma's in orde"; DriversLevel = Level.Ok; }
+        else if (DriverLevel == Level.Learning || HidHideLevel == Level.Learning) { DriversText = Loc.Get("Common_Checking"); DriversLevel = Level.Learning; }
+        else { DriversText = Loc.Get("Main_DriversOk"); DriversLevel = Level.Ok; }
 
         Settings.Refresh();
         UpdateNotices(manager, hidHide, hidHideEnabled);
@@ -256,9 +257,9 @@ public sealed class MainViewModel : ObservableObject
             list.Add(new NoticeViewModel
             {
                 Level = Level.Bad,
-                Title = "De Xbox-driver (ViGEmBus) ontbreekt",
-                Text = "Zonder ViGEmBus kan DS4 Handler geen Xbox-controller maken, dus games krijgen geen input. Je ziet hier wel alle waarden. Installeer ViGEmBus (gratis) en start de app daarna opnieuw.",
-                PrimaryText = "ViGEmBus downloaden",
+                Title = Loc.Get("Notice_ViGEmMissingTitle"),
+                Text = Loc.Get("Notice_ViGEmMissingText"),
+                PrimaryText = Loc.Get("Common_DownloadViGEm"),
                 PrimaryCommand = new RelayCommand(() => AppHost.OpenUrl(AppHost.ViGEmDownloadUrl)),
                 PrimaryTip = Tips.DownloadViGEm,
             });
@@ -268,9 +269,9 @@ public sealed class MainViewModel : ObservableObject
             list.Add(new NoticeViewModel
             {
                 Level = Level.Bad,
-                Title = "De Xbox-driver (ViGEmBus) werkt niet",
-                Text = $"ViGEmBus kon niet worden geopend ({manager.DriverError}). Herstart de pc; helpt dat niet, installeer ViGEmBus dan opnieuw.",
-                PrimaryText = "ViGEmBus downloaden",
+                Title = Loc.Get("Notice_ViGEmFailedTitle"),
+                Text = Loc.Format("Notice_ViGEmFailedText", manager.DriverError),
+                PrimaryText = Loc.Get("Common_DownloadViGEm"),
                 PrimaryCommand = new RelayCommand(() => AppHost.OpenUrl(AppHost.ViGEmDownloadUrl)),
                 PrimaryTip = Tips.DownloadViGEm,
             });
@@ -284,12 +285,12 @@ public sealed class MainViewModel : ObservableObject
                     list.Add(new NoticeViewModel
                     {
                         Level = Level.Warn,
-                        Title = "HidHide is niet geïnstalleerd",
-                        Text = "Zonder HidHide zien sommige games zowel je PlayStation-controller als de Xbox-controller, waardoor knoppen dubbel reageren. Installeer HidHide (gratis) en klik daarna op Opnieuw controleren. Geen last van dubbele input? Zet HidHide dan uit bij Instellingen.",
-                        PrimaryText = "HidHide downloaden",
+                        Title = Loc.Get("Notice_HidHideMissingTitle"),
+                        Text = Loc.Get("Notice_HidHideMissingText"),
+                        PrimaryText = Loc.Get("Common_DownloadHidHide"),
                         PrimaryCommand = new RelayCommand(() => AppHost.OpenUrl(HidHideService.DownloadUrl)),
                         PrimaryTip = Tips.DownloadHidHide,
-                        SecondaryText = "Opnieuw controleren",
+                        SecondaryText = Loc.Get("Common_Recheck"),
                         SecondaryCommand = recheck,
                         SecondaryTip = Tips.RecheckHidHide,
                     });
@@ -298,9 +299,9 @@ public sealed class MainViewModel : ObservableObject
                     list.Add(new NoticeViewModel
                     {
                         Level = Level.Warn,
-                        Title = "HidHide is bezet",
-                        Text = "Een ander programma heeft HidHide open, meestal de HidHide-configuratie of DS4Windows. Sluit dat programma en klik op Opnieuw controleren.",
-                        PrimaryText = "Opnieuw controleren",
+                        Title = Loc.Get("Notice_HidHideBusyTitle"),
+                        Text = Loc.Get("Notice_HidHideBusyText"),
+                        PrimaryText = Loc.Get("Common_Recheck"),
                         PrimaryCommand = recheck,
                         PrimaryTip = Tips.RecheckHidHide,
                     });
@@ -309,9 +310,9 @@ public sealed class MainViewModel : ObservableObject
                     list.Add(new NoticeViewModel
                     {
                         Level = Level.Warn,
-                        Title = "HidHide reageert niet",
-                        Text = "HidHide gaf een onverwachte fout. Herstart de pc of installeer HidHide opnieuw.",
-                        PrimaryText = "Opnieuw controleren",
+                        Title = Loc.Get("Notice_HidHideErrorTitle"),
+                        Text = Loc.Get("Notice_HidHideErrorText"),
+                        PrimaryText = Loc.Get("Common_Recheck"),
                         PrimaryCommand = recheck,
                         PrimaryTip = Tips.RecheckHidHide,
                     });
@@ -322,9 +323,9 @@ public sealed class MainViewModel : ObservableObject
                 list.Add(new NoticeViewModel
                 {
                     Level = Level.Warn,
-                    Title = "Controller kon niet worden verborgen",
+                    Title = Loc.Get("Notice_HideFailedTitle"),
                     Text = problem,
-                    PrimaryText = "Opnieuw proberen",
+                    PrimaryText = Loc.Get("Notice_TryAgain"),
                     PrimaryCommand = recheck,
                     PrimaryTip = Tips.RecheckHidHide,
                 });
@@ -336,9 +337,9 @@ public sealed class MainViewModel : ObservableObject
             list.Add(new NoticeViewModel
             {
                 Level = Level.Warn,
-                Title = blocked == 1 ? "Een controller is in gebruik door een ander programma" : $"{blocked} controllers zijn in gebruik door een ander programma",
-                Text = "DS4 Handler ziet een controller maar kan hem niet openen. Sluit DS4Windows of andere controller-software. De app probeert het elke paar seconden opnieuw.",
-                PrimaryText = "Logbestand openen",
+                Title = blocked == 1 ? Loc.Get("Notice_BlockedOne") : Loc.Format("Notice_BlockedMany", blocked),
+                Text = Loc.Get("Notice_BlockedText"),
+                PrimaryText = Loc.Get("Common_OpenLog"),
                 PrimaryCommand = new RelayCommand(() => AppHost.OpenUrl(Log.FilePath)),
                 PrimaryTip = Tips.OpenLog,
             });
@@ -366,6 +367,7 @@ public sealed class SettingsViewModel : ObservableObject
         OpenProfilesCommand = new RelayCommand(() => AppHost.OpenFolder(host.Profiles.Directory));
         OpenLogCommand = new RelayCommand(() => AppHost.OpenUrl(Log.FilePath));
         QuitCommand = new RelayCommand(() => QuitRequested?.Invoke(this, EventArgs.Empty));
+        RestartCommand = new RelayCommand(() => RestartRequested?.Invoke(this, EventArgs.Empty));
         Updates = new UpdateViewModel(host);
     }
 
@@ -374,6 +376,34 @@ public sealed class SettingsViewModel : ObservableObject
 
     /// <summary>Raised by <see cref="QuitCommand"/>.</summary>
     public event EventHandler? QuitRequested;
+
+    /// <summary>"Nu herstarten" after a language change: quits and starts the app again.</summary>
+    public ICommand RestartCommand { get; }
+
+    /// <summary>Raised by <see cref="RestartCommand"/>.</summary>
+    public event EventHandler? RestartRequested;
+
+    /// <summary>The language menu: settings value (Key) and name in its own language (Value).</summary>
+    public IReadOnlyList<KeyValuePair<string, string>> Languages { get; } =
+        Loc.Languages.Select(l => KeyValuePair.Create(l.Code, l.Name)).ToList();
+
+    // The UI text is read once at startup (Loc.Apply), so a new choice only shows after a restart.
+    private readonly string _languageInUse = Loc.Culture.TwoLetterISOLanguageName;
+
+    /// <summary>The saved language, or the one in use when none is saved.</summary>
+    public string Language
+    {
+        get => _host.SettingsStore.Read(s => s.Language) is { } code && Loc.Languages.Any(l => l.Code == code) ? code : _languageInUse;
+        set
+        {
+            if (value == Language) return;
+            _host.SettingsStore.Update(s => s.Language = value);
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(RestartNeeded));
+        }
+    }
+
+    public bool RestartNeeded => Language != _languageInUse;
 
     public ICommand RecheckHidHideCommand { get; }
     public ICommand DownloadHidHideCommand { get; }
@@ -421,11 +451,11 @@ public sealed class SettingsViewModel : ObservableObject
         (HidHideStatus, HidHideLevel) = h.Availability switch
         {
             HidHideAvailability.Ready when h.Problem != null => (h.Problem, Level.Warn),
-            HidHideAvailability.Ready => ("HidHide is geïnstalleerd en klaar voor gebruik.", Level.Ok),
-            HidHideAvailability.NotInstalled => ("HidHide is niet geïnstalleerd. Download het gratis via de knop hieronder en klik daarna op Opnieuw controleren.", Level.Warn),
-            HidHideAvailability.Busy => ("HidHide is bezet: sluit de HidHide-configuratie (of DS4Windows) en klik op Opnieuw controleren.", Level.Warn),
-            HidHideAvailability.Error => ("HidHide gaf een onverwachte fout. Zie het logbestand.", Level.Bad),
-            _ => ("Bezig met controleren…", Level.Learning),
+            HidHideAvailability.Ready => (Loc.Get("Settings_HidHideReady"), Level.Ok),
+            HidHideAvailability.NotInstalled => (Loc.Get("Settings_HidHideMissing"), Level.Warn),
+            HidHideAvailability.Busy => (Loc.Get("Settings_HidHideBusy"), Level.Warn),
+            HidHideAvailability.Error => (Loc.Get("Settings_HidHideError"), Level.Bad),
+            _ => (Loc.Get("Settings_HidHideChecking"), Level.Learning),
         };
     }
 }

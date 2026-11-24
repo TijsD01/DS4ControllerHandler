@@ -47,8 +47,9 @@ public sealed record StickTuning
     public bool InvertY { get; init; }
 
     /// <summary>
-    /// Jitter filter: 0 = calm (smooths a shaky stick most, a little lag on slow moves), 1 = fast (least
-    /// lag, more of the shake gets through). Only matters when the app learned jitter on this stick. Range 0..1.
+    /// Jitter filter: 0 = calm (smooths a shaky stick most), 1 = fast (the start of a move and very slow
+    /// moves follow more closely, more of the shake gets through). Steady aiming has almost no lag either
+    /// way. Only matters when the app learned jitter on this stick. Range 0..1.
     /// </summary>
     public float FilterResponse { get; init; }
 }

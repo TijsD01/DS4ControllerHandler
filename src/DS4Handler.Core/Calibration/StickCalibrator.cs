@@ -228,7 +228,7 @@ public sealed record StickCalibrationData
 /// explains). The median of the last few windows is averaged into <see cref="LearnedJitter"/>. The still test for releases widens with the learned jitter, so
 /// drift is also learned on a shaky stick. It drives
 /// <see cref="StickJitterFilter"/> on the output of <see cref="Process(byte, byte, double)"/>: a
-/// clean stick is not filtered, a shaky one is smoothed while slow, and fast moves pass with
+/// clean stick is not filtered, a shaky one is smoothed, and steady aiming and flicks pass with
 /// almost no lag.</item>
 /// </list>
 /// </summary>

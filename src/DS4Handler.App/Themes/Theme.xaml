@@ -19,7 +19,7 @@
           (PageMargin) or let MainWindow's page host do that.
         • Section labels: write the text in CAPITALS (WPF has no text-transform or letter-spacing).
         • Status colours come from the Level converters in App.xaml: LevelBrush (dots; ConverterParameter
-          "text" for text), LevelWord (short Dutch status word).
+          "text" for text), LevelWord (short status word).
         • Every interactive element gets a ToolTip from ViewModels/Tips.cs, and icon-only buttons an
           AutomationProperties.Name.
     -->

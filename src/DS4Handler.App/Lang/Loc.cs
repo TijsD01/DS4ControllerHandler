@@ -18,9 +18,7 @@ public static class Loc
     /// <summary>Culture for numbers and percentages in UI text; follows the UI language.</summary>
     public static CultureInfo Culture => CultureInfo.CurrentUICulture;
 
-    private static readonly ResourceManager CodeStrings = new("DS4Handler.App.Lang.CodeStrings", typeof(Loc).Assembly); // TEMP: merged into Strings.resx
-
-    public static string Get(string key) => Strings.GetString(key) ?? CodeStrings.GetString(key) ?? key;
+    public static string Get(string key) => Strings.GetString(key) ?? key;
 
     public static string Format(string key, params object?[] args) => string.Format(Culture, Get(key), args);
 

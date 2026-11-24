@@ -1,4 +1,5 @@
 using System.Windows.Forms;
+using DS4Handler.App.Lang;
 
 namespace DS4Handler.App.Infrastructure;
 
@@ -12,20 +13,20 @@ public sealed class TrayIcon : IDisposable
 
     public TrayIcon(Action show, Action<bool> setLearning, Func<bool> isLearning, Action quit)
     {
-        var showItem = new ToolStripMenuItem("Tonen", null, (_, _) => show())
+        var showItem = new ToolStripMenuItem(Loc.Get("Tray_Show"), null, (_, _) => show())
         {
-            ToolTipText = "Opent het venster met je controllers en hun kalibratie.",
+            ToolTipText = Loc.Get("Tray_ShowTip"),
             Font = new System.Drawing.Font(SystemFonts(), System.Drawing.FontStyle.Bold),
         };
-        _learning = new ToolStripMenuItem("Leren")
+        _learning = new ToolStripMenuItem(Loc.Get("Tray_Learning"))
         {
             CheckOnClick = true,
-            ToolTipText = "Aan: de app blijft bijleren hoe je controllers zich gedragen (drift, versleten triggers). Uit: de huidige correctie blijft werken, maar verandert niet meer.",
+            ToolTipText = Loc.Get("Tray_LearningTip"),
         };
         _learning.Click += (_, _) => setLearning(_learning.Checked);
-        var quitItem = new ToolStripMenuItem("Afsluiten", null, (_, _) => quit())
+        var quitItem = new ToolStripMenuItem(Loc.Get("Common_Quit"), null, (_, _) => quit())
         {
-            ToolTipText = "Sluit DS4 Handler helemaal af. De virtuele controllers verdwijnen dan.",
+            ToolTipText = Loc.Get("Tray_QuitTip"),
         };
 
         var menu = new ContextMenuStrip { ShowItemToolTips = true };

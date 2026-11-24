@@ -1,5 +1,6 @@
 using DS4Handler.App.Engine;
 using DS4Handler.App.Infrastructure;
+using DS4Handler.App.Lang;
 using DS4Handler.Core.Input;
 using DS4Handler.Core.Profiles;
 
@@ -111,7 +112,7 @@ public sealed class ProfileLibrary
     /// <summary>
     /// Links a connected controller to another profile, or back to its own (null or its own id), and
     /// switches to it before returning (so a copy or import right after lands in the right profile).
-    /// Returns a Dutch reason when refused, null when done. Blocking file I/O: call from a worker.
+    /// Returns the reason (UI text) when refused, null when done. Blocking file I/O: call from a worker.
     /// </summary>
     public string? Link(ControllerSession session, string? profileId)
     {
@@ -120,36 +121,36 @@ public sealed class ProfileLibrary
         {
             var targetModel = ModelOf(target);
             if (targetModel != null && targetModel != session.Model)
-                return "Dat profiel hoort bij een ander type controller. Kies een profiel van een " + session.DisplayName + ", of kopieer de kalibratie.";
+                return Loc.Format("Library_OtherModel", session.DisplayName);
             if (!_manager.TryLinkProfile(session, target))
-                return "Dat profiel wordt al gebruikt door een andere aangesloten controller. Twee controllers kunnen niet tegelijk in hetzelfde profiel leren.";
+                return Loc.Get("Library_InUse");
             _settings.Update(s => s.For(session.Id).LinkedProfileId =
                 string.Equals(target, session.Id, StringComparison.OrdinalIgnoreCase) ? null : target);
             return null;
         }
     }
 
-    /// <summary>Copies the learned calibration of one profile onto another. Returns a Dutch error, or null when done.</summary>
+    /// <summary>Copies the learned calibration of one profile onto another. Returns an error (UI text), or null when done.</summary>
     public string? Copy(string sourceId, string targetId)
     {
-        if (string.Equals(sourceId, targetId, StringComparison.OrdinalIgnoreCase)) return "Bron en doel zijn hetzelfde profiel.";
+        if (string.Equals(sourceId, targetId, StringComparison.OrdinalIgnoreCase)) return Loc.Get("Library_SameProfile");
         lock (_gate)
         {
             var source = CurrentProfile(sourceId);
-            if (source == null) return "Er is voor dit profiel nog niets geleerd om te kopiëren.";
+            if (source == null) return Loc.Get("Library_NothingToCopy");
             var model = ModelOf(targetId) ?? source.Model;
             var copy = ProfileTransfer.CopyFor(source, targetId, model);
             return Write(copy);
         }
     }
 
-    /// <summary>Writes the profile of <paramref name="id"/> to an export file. Returns a Dutch error, or null when done.</summary>
+    /// <summary>Writes the profile of <paramref name="id"/> to an export file. Returns an error (UI text), or null when done.</summary>
     public string? Export(string id, string path)
     {
         lock (_gate)
         {
             var profile = CurrentProfile(id);
-            if (profile == null) return "Er is voor dit profiel nog niets geleerd om te exporteren.";
+            if (profile == null) return Loc.Get("Library_NothingToExport");
             try
             {
                 File.WriteAllText(path, ProfileTransfer.Serialize(profile, NameOrNull(id)));
@@ -158,7 +159,7 @@ public sealed class ProfileLibrary
             catch (Exception ex)
             {
                 Log.Warn($"Profiel {id} exporteren naar {path} mislukt", ex);
-                return "Het bestand kon niet worden opgeslagen: " + ex.Message;
+                return Loc.Format("Library_FileSaveFailed", ex.Message);
             }
         }
     }
@@ -170,7 +171,7 @@ public sealed class ProfileLibrary
     public bool Exists(string id) =>
         _store.Exists(id) || _manager.IsProfileInUse(id); // a damaged file counts too: never replace it unasked
 
-    /// <summary>Saves an imported profile under its own controller id. Returns a Dutch error, or null when done.</summary>
+    /// <summary>Saves an imported profile under its own controller id. Returns an error (UI text), or null when done.</summary>
     public string? Import(ImportedProfile imported)
     {
         lock (_gate)
@@ -189,13 +190,13 @@ public sealed class ProfileLibrary
         }
     }
 
-    /// <summary>Deletes a profile that no connected controller uses. Returns a Dutch error, or null when done.</summary>
+    /// <summary>Deletes a profile that no connected controller uses. Returns an error (UI text), or null when done.</summary>
     public string? Delete(string id)
     {
         lock (_gate)
         {
             if (_manager.IsProfileInUse(id) || _manager.Sessions.Any(s => string.Equals(s.Id, id, StringComparison.OrdinalIgnoreCase)))
-                return "Dit profiel is in gebruik door een aangesloten controller. Koppel die eerst los.";
+                return Loc.Get("Library_DeleteInUse");
             try
             {
                 _store.Delete(id);
@@ -203,7 +204,7 @@ public sealed class ProfileLibrary
             catch (Exception ex)
             {
                 Log.Warn($"Profiel {id} verwijderen mislukt", ex);
-                return "Het profiel kon niet worden verwijderd: " + ex.Message;
+                return Loc.Format("Library_DeleteFailed", ex.Message);
             }
             _settings.Update(s =>
             {
@@ -233,7 +234,7 @@ public sealed class ProfileLibrary
                 if (session.Model != profile.Model)
                     profile = ProfileTransfer.CopyFor(profile, profile.ControllerId, session.Model);
                 if (!session.ReplaceCalibration(profile))
-                    return "De controller die dit profiel gebruikt, kan het nu niet opslaan (het profiel kon niet worden gelezen). Sluit hem opnieuw aan en probeer het nog eens.";
+                    return Loc.Get("Library_UserCannotSave");
             }
             else
             {
@@ -244,7 +245,7 @@ public sealed class ProfileLibrary
         catch (Exception ex)
         {
             Log.Warn($"Profiel {profile.ControllerId} opslaan mislukt", ex);
-            return "Het profiel kon niet worden opgeslagen: " + ex.Message;
+            return Loc.Format("Library_SaveFailed", ex.Message);
         }
     }
 

@@ -4,6 +4,7 @@ using System.Windows.Interop;
 using System.Windows.Threading;
 using DS4Handler.App.Engine;
 using DS4Handler.App.Infrastructure;
+using DS4Handler.App.Lang;
 using DS4Handler.App.Services;
 using DS4Handler.App.ViewModels;
 using DS4Handler.App.Views;
@@ -35,6 +36,7 @@ public partial class App : Application
     private TrayIcon? _tray;
     private DispatcherTimer? _timer;
     private bool _quitting;
+    private bool _restart; // "Nu herstarten" (new language): start again once the mutex is released in OnExit
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -87,9 +89,16 @@ public partial class App : Application
         SchedulingBoost.ApplyToProcess();
 
         _host = new AppHost();
+        // Before any view model, window or tray exists: they read their text once.
+        Log.Info("Taal: " + Loc.Apply(_host.SettingsStore.Read(s => s.Language)));
         _viewModel = new MainViewModel(_host, new Dialogs(() => _window));
         _window = new MainWindow(_viewModel, AppIcon.ForWindow());
         _window.QuitRequested += (_, _) => Quit();
+        _window.RestartRequested += (_, _) =>
+        {
+            _restart = true;
+            Quit();
+        };
         _window.HiddenToTray += (_, _) => OnHiddenToTray();
         _window.IsVisibleChanged += (_, _) => UpdateTimerSpeed();
         _window.StateChanged += (_, _) => UpdateTimerSpeed();
@@ -258,8 +267,7 @@ public partial class App : Application
         if (_host == null || _tray == null) return;
         if (_host.SettingsStore.Read(s => s.TrayHintShown)) return;
         _host.SettingsStore.Update(s => s.TrayHintShown = true);
-        _tray.ShowBalloon("DS4 Handler draait door",
-            "Je controllers blijven werken. Klik op het icoon in het systeemvak om het venster weer te openen, of kies daar Afsluiten.");
+        _tray.ShowBalloon(Loc.Get("Tray_HintTitle"), Loc.Get("Tray_HintText"));
     }
 
     private void Quit()
@@ -305,6 +313,12 @@ public partial class App : Application
             try { _mutex.ReleaseMutex(); } catch { }
             _mutex.Dispose();
         }
+        // Only now: started earlier, the new instance would find the mutex taken and just ask this one to show itself.
+        if (_restart && Environment.ProcessPath is { } exe)
+        {
+            try { System.Diagnostics.Process.Start(exe); }
+            catch (Exception ex) { Log.Error("Herstarten mislukt", ex); }
+        }
         base.OnExit(e);
     }
 
@@ -312,8 +326,7 @@ public partial class App : Application
     {
         Log.Error("Onverwachte fout", e.Exception);
         e.Handled = true;
-        MessageBox.Show(
-            "Er ging iets mis: " + e.Exception.Message + "\n\nDe app draait door. Meer details staan in het logbestand:\n" + Log.FilePath,
+        MessageBox.Show(Loc.Format("App_ErrorText", e.Exception.Message, Log.FilePath),
             "DS4 Handler", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 }

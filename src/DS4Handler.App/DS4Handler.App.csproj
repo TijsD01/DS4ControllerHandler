@@ -31,7 +31,6 @@
   <ItemGroup>
     <!-- UI text: Lang/Strings.resx is Dutch (also the fallback), Lang/Strings.en.resx English. Read through Lang/Loc.cs. -->
     <EmbeddedResource Update="Lang\Strings.resx" LogicalName="DS4Handler.App.Lang.Strings.resources" />
-    <EmbeddedResource Update="Lang\CodeStrings.resx" LogicalName="DS4Handler.App.Lang.CodeStrings.resources" /><!-- TEMP: merged into Strings.resx -->
   </ItemGroup>
 
   <ItemGroup>

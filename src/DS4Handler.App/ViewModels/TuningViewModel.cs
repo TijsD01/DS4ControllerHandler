@@ -1,7 +1,7 @@
-using System.Globalization;
 using System.Windows.Input;
 using System.Windows.Threading;
 using DS4Handler.App.Engine;
+using DS4Handler.App.Lang;
 using DS4Handler.App.Services;
 using DS4Handler.Core.Tuning;
 
@@ -128,18 +128,18 @@ public abstract class TuningSection : ObservableObject
 
     protected static string Pct(double v) => Fmt.Pct(v);
 
-    protected static string Times(double v) => v.ToString("0.00", Fmt.Nl) + "×";
+    protected static string Times(double v) => v.ToString("0.00", Loc.Culture) + "×";
 
-    protected static string CurveText(double v) => v.ToString("0.00", Fmt.Nl);
+    protected static string CurveText(double v) => v.ToString("0.00", Loc.Culture);
 
-    /// <summary>Caption under the curve preview: "curve 1,40 · zachter in het midden".</summary>
+    /// <summary>Caption under the curve preview: "curve 1.40 · softer in the middle".</summary>
     public string CurveCaption
     {
         get
         {
             double v = CurveValue;
-            string how = Math.Abs(v - 1) < 0.025 ? "recht" : v > 1 ? "zachter in het midden" : "sneller uit het midden";
-            return $"curve {CurveText(v)} · {how}";
+            string how = Math.Abs(v - 1) < 0.025 ? Loc.Get("Tune_CurveStraight") : v > 1 ? Loc.Get("Tune_CurveSofter") : Loc.Get("Tune_CurveFaster");
+            return Loc.Format("Tune_CurveCaption", CurveText(v), how);
         }
     }
 
@@ -158,12 +158,12 @@ public sealed class StickTuningSection : TuningSection
 
     public StickTuningSection(string title, string group, Action changed) : base(title, group, changed)
     {
-        Inner = new TuningSlider("Extra deadzone", Tips.TuneInner, 0, InputShaper.MaxStickInnerDeadzone, 0.01, Pct, ChangedCallback);
-        Outer = new TuningSlider("Eindpunt", Tips.TuneOuter, 0, 0.5, 0.01, Pct, OuterChanged);
-        Anti = new TuningSlider("Anti-deadzone", Tips.TuneAnti, 0, 0.9, 0.01, Pct, ChangedCallback);
-        Curve = new TuningSlider("Curve", Tips.TuneCurve, 0.2, 5, 0.05, CurveText, ChangedCallback);
-        Sensitivity = new TuningSlider("Gevoeligheid", Tips.TuneSensitivity, 0.1, 3, 0.05, Times, ChangedCallback);
-        Response = new TuningSlider("Reactie", Tips.TuneFilterResponse, 0, 1, 0.05, ResponseText, ChangedCallback);
+        Inner = new TuningSlider(Loc.Get("Tune_Inner"), Tips.TuneInner, 0, InputShaper.MaxStickInnerDeadzone, 0.01, Pct, ChangedCallback);
+        Outer = new TuningSlider(Loc.Get("Tune_Outer"), Tips.TuneOuter, 0, 0.5, 0.01, Pct, OuterChanged);
+        Anti = new TuningSlider(Loc.Get("Tune_Anti"), Tips.TuneAnti, 0, 0.9, 0.01, Pct, ChangedCallback);
+        Curve = new TuningSlider(Loc.Get("Tune_Curve"), Tips.TuneCurve, 0.2, 5, 0.05, CurveText, ChangedCallback);
+        Sensitivity = new TuningSlider(Loc.Get("Tune_Sensitivity"), Tips.TuneSensitivity, 0.1, 3, 0.05, Times, ChangedCallback);
+        Response = new TuningSlider(Loc.Get("Tune_Response"), Tips.TuneFilterResponse, 0, 1, 0.05, ResponseText, ChangedCallback);
         Sliders = new[] { Inner, Outer, Anti, Curve, Sensitivity, Response };
         WatchCurve(Curve);
         LoadDefaults();
@@ -181,7 +181,7 @@ public sealed class StickTuningSection : TuningSection
     public TuningSlider Response { get; }
     public IReadOnlyList<TuningSlider> Sliders { get; }
 
-    private static string ResponseText(double v) => v < 0.025 ? "rustig" : v > 0.975 ? "snel" : Fmt.Pct(v);
+    private static string ResponseText(double v) => v < 0.025 ? Loc.Get("Tune_ResponseCalm") : v > 0.975 ? Loc.Get("Tune_ResponseFast") : Fmt.Pct(v);
 
     public bool ShapeRadial { get => _shape == DeadzoneShape.Radial; set { if (value) SetShape(DeadzoneShape.Radial); } }
     public bool ShapeSquare { get => _shape == DeadzoneShape.Square; set { if (value) SetShape(DeadzoneShape.Square); } }
@@ -262,10 +262,10 @@ public sealed class TriggerTuningSection : TuningSection
 {
     public TriggerTuningSection(string title, string group, Action changed) : base(title, group, changed)
     {
-        Inner = new TuningSlider("Extra deadzone", Tips.TuneTriggerInner, 0, InputShaper.MaxTriggerInnerDeadzone, 0.01, Pct, ChangedCallback);
-        Outer = new TuningSlider("Eindpunt", Tips.TuneTriggerOuter, 0, 0.5, 0.01, Pct, OuterChanged);
-        Anti = new TuningSlider("Anti-deadzone", Tips.TuneTriggerAnti, 0, 0.9, 0.01, Pct, ChangedCallback);
-        Curve = new TuningSlider("Curve", Tips.TuneCurve, 0.2, 5, 0.05, CurveText, ChangedCallback);
+        Inner = new TuningSlider(Loc.Get("Tune_Inner"), Tips.TuneTriggerInner, 0, InputShaper.MaxTriggerInnerDeadzone, 0.01, Pct, ChangedCallback);
+        Outer = new TuningSlider(Loc.Get("Tune_Outer"), Tips.TuneTriggerOuter, 0, 0.5, 0.01, Pct, OuterChanged);
+        Anti = new TuningSlider(Loc.Get("Tune_Anti"), Tips.TuneTriggerAnti, 0, 0.9, 0.01, Pct, ChangedCallback);
+        Curve = new TuningSlider(Loc.Get("Tune_Curve"), Tips.TuneCurve, 0.2, 5, 0.05, CurveText, ChangedCallback);
         Sliders = new[] { Inner, Outer, Anti, Curve };
         WatchCurve(Curve);
         LoadDefaults();
@@ -341,14 +341,14 @@ public sealed class TuningViewModel : ObservableObject
 
     public static IReadOnlyList<TuningChoice> PollChoices { get; } = new TuningChoice[]
     {
-        new(1, "1000 per seconde"), new(2, "500 per seconde"), new(4, "250 per seconde"),
-        new(8, "125 per seconde"), new(16, "62 per seconde"),
+        new(1, Loc.Format("Tune_PerSecond", 1000)), new(2, Loc.Format("Tune_PerSecond", 500)), new(4, Loc.Format("Tune_PerSecond", 250)),
+        new(8, Loc.Format("Tune_PerSecond", 125)), new(16, Loc.Format("Tune_PerSecond", 62)),
     };
 
     public static IReadOnlyList<TuningChoice> OutputChoices { get; } = new TuningChoice[]
     {
-        new(0, "Elke meting (standaard)"), new(1000, "1000 per seconde"), new(500, "500 per seconde"),
-        new(250, "250 per seconde"), new(125, "125 per seconde"),
+        new(0, Loc.Get("Tune_EveryReading")), new(1000, Loc.Format("Tune_PerSecond", 1000)), new(500, Loc.Format("Tune_PerSecond", 500)),
+        new(250, Loc.Format("Tune_PerSecond", 250)), new(125, Loc.Format("Tune_PerSecond", 125)),
     };
 
     public TuningViewModel(ControllerSession session, AppHost host)
@@ -358,8 +358,8 @@ public sealed class TuningViewModel : ObservableObject
         _timer = new DispatcherTimer { Interval = Throttle };
         _timer.Tick += (_, _) => { if (!Flush()) _timer.Stop(); };
 
-        Left = new StickTuningSection("Linker stick", "tune-left-" + session.Id, Changed);
-        Right = new StickTuningSection("Rechter stick", "tune-right-" + session.Id, Changed);
+        Left = new StickTuningSection(Loc.Get("Stick_Left"), "tune-left-" + session.Id, Changed);
+        Right = new StickTuningSection(Loc.Get("Stick_Right"), "tune-right-" + session.Id, Changed);
         L2 = new TriggerTuningSection("L2", "tune-l2-" + session.Id, Changed);
         R2 = new TriggerTuningSection("R2", "tune-r2-" + session.Id, Changed);
         ResetAllCommand = new RelayCommand(() =>
@@ -409,13 +409,13 @@ public sealed class TuningViewModel : ObservableObject
     public bool SupportsPoll { get => _supportsPoll; private set { if (SetField(ref _supportsPoll, value)) OnPropertyChanged(nameof(PollNote)); } }
 
     /// <summary>Shown next to the poll rate when the controller cannot change it.</summary>
-    public string PollNote => SupportsPoll ? "" : "Alleen te kiezen voor een DualShock 4 via Bluetooth. Via USB bepaalt de controller zelf hoe vaak hij meet.";
+    public string PollNote => SupportsPoll ? "" : Loc.Get("Tune_PollNote");
 
     private bool CanSave { get => _canSave; set { if (SetField(ref _canSave, value)) OnPropertyChanged(nameof(SaveNote)); } }
 
     public string SaveNote => CanSave ? ""
-        : _blocked ? "Wijzigingen werken nu, maar worden niet bewaard: dit profiel is in gebruik door een andere controller."
-        : "Wijzigingen werken nu, maar worden niet bewaard: het profielbestand kon niet worden gelezen. Het bestand blijft ongemoeid.";
+        : _blocked ? Loc.Get("Tune_SaveNoteBlocked")
+        : Loc.Get("Tune_SaveNoteUnreadable");
 
     private bool _blocked;
 

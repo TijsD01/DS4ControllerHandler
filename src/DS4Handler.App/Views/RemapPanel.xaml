@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:DS4Handler.App.Controls"
              xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
+             xmlns:l="clr-namespace:DS4Handler.App.Lang"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:RemapViewModel}">
 
@@ -14,7 +15,7 @@
         <DataTemplate x:Key="OptionItem" DataType="{x:Type vm:RemapOption}">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
-                <TextBlock x:Name="Default" Text=" · standaard" Foreground="{StaticResource TextMutedBrush}"
+                <TextBlock x:Name="Default" Text="{l:Loc Remap_DefaultSuffix}" Foreground="{StaticResource TextMutedBrush}"
                            Visibility="{Binding IsDefault, Converter={StaticResource BoolVis}}" />
             </StackPanel>
             <DataTemplate.Triggers>
@@ -100,7 +101,7 @@
                         <Border Grid.Column="3" Tag="capture" Focusable="True" FocusVisualStyle="{x:Null}" MinHeight="36"
                                 Background="{StaticResource InfoStripBrush}" BorderBrush="{StaticResource AccentBrush}" BorderThickness="2"
                                 CornerRadius="{StaticResource ControlRadius}" Padding="12,0" ToolTip="{x:Static vm:Tips.RemapCapture}"
-                                AutomationProperties.Name="{Binding Name, StringFormat='Druk op een toets voor {0}'}"
+                                AutomationProperties.Name="{Binding Name, StringFormat={l:Loc Remap_PressKeyFor}}"
                                 Visibility="{Binding IsCapturing, Converter={StaticResource BoolVis}}">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Ellipse x:Name="Pulse" Style="{StaticResource Dot}" Fill="{StaticResource LinkBrush}" Margin="0,0,10,0">
@@ -115,14 +116,14 @@
                                         </EventTrigger>
                                     </Ellipse.Triggers>
                                 </Ellipse>
-                                <TextBlock Text="Druk op een toets…" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource InfoStripTextBrush}" />
+                                <TextBlock Text="{l:Loc Remap_PressKey}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource InfoStripTextBrush}" />
                             </StackPanel>
                         </Border>
 
                         <!-- Standaard (only when changed; keeps its place so the drop-downs line up) / Annuleren while listening. -->
-                        <Button Grid.Column="4" Content="Standaard" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        <Button Grid.Column="4" Content="{l:Loc Common_Default}" HorizontalAlignment="Right" VerticalAlignment="Center"
                                 Command="{Binding ResetCommand}" ToolTip="{x:Static vm:Tips.RemapResetRow}"
-                                AutomationProperties.Name="{Binding Name, StringFormat='{}{0} op standaard'}">
+                                AutomationProperties.Name="{Binding Name, StringFormat={l:Loc Remap_RowDefault}}">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource LinkButton}">
                                     <Setter Property="Visibility" Value="Hidden" />
@@ -137,7 +138,7 @@
                                 </Style>
                             </Button.Style>
                         </Button>
-                        <Button Grid.Column="4" Style="{StaticResource LinkButton}" Content="Annuleren" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        <Button Grid.Column="4" Style="{StaticResource LinkButton}" Content="{l:Loc Common_Cancel}" HorizontalAlignment="Right" VerticalAlignment="Center"
                                 Command="{Binding CancelCaptureCommand}" ToolTip="{x:Static vm:Tips.RemapCapture}"
                                 Visibility="{Binding IsCapturing, Converter={StaticResource BoolVis}}" />
 
@@ -199,14 +200,14 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding SwapSticks}" Content="Sticks wisselen"
+            <CheckBox Style="{StaticResource Switch}" IsChecked="{Binding SwapSticks}" Content="{l:Loc Remap_SwapSticks}"
                       ToolTip="{x:Static vm:Tips.RemapSwapSticks}" VerticalAlignment="Center" />
             <TextBlock Grid.Column="1" Style="{StaticResource Dim}" VerticalAlignment="Center" Margin="24,0,20,0" Cursor="Help"
                        ToolTip="{x:Static vm:Tips.TuneSaved}">
                 <Run Text="{Binding ChangedText, Mode=OneWay}" />
-                <Run Text="Wijzigingen worden meteen opgeslagen." />
+                <Run Text="{l:Loc Remap_SavedNow}" />
             </TextBlock>
-            <Button Grid.Column="2" Content="Alles op standaard" Command="{Binding ResetAllCommand}" ToolTip="{x:Static vm:Tips.RemapResetAll}"
+            <Button Grid.Column="2" Content="{l:Loc Common_ResetAll}" Command="{Binding ResetAllCommand}" ToolTip="{x:Static vm:Tips.RemapResetAll}"
                     VerticalAlignment="Center" />
         </Grid>
         <TextBlock Text="{Binding SaveNote}" Style="{StaticResource Body}" Foreground="{StaticResource WarnBrush}" Margin="0,0,0,16"
@@ -225,19 +226,19 @@
                     <TranslateTransform x:Name="PictureShift" />
                 </Border.RenderTransform>
                 <StackPanel>
-                    <TextBlock Text="Jouw controller" Style="{StaticResource SectionLabel}" />
+                    <TextBlock Text="{l:Loc Remap_YourController}" Style="{StaticResource SectionLabel}" />
                     <c:ControllerView Height="190" Margin="0,14,0,0"
                                       Kind="{Binding Pad.InputKind, Mode=OneWay}" Buttons="{Binding Pad.RawButtons}"
                                       LeftX="{Binding Pad.Left.RawX}" LeftY="{Binding Pad.Left.RawY}"
                                       RightX="{Binding Pad.Right.RawX}" RightY="{Binding Pad.Right.RawY}"
                                       L2="{Binding Pad.L2.Raw}" R2="{Binding Pad.R2.Raw}"
                                       ToolTip="{x:Static vm:Tips.RemapPicture}"
-                                      AutomationProperties.Name="Ingedrukte knoppen op je controller"
+                                      AutomationProperties.Name="{l:Loc Common_PressedButtons}"
                                       AutomationProperties.HelpText="{Binding Pad.RawButtons, Mode=OneWay}" />
                     <Border Style="{StaticResource GuidedNote}" HorizontalAlignment="Stretch" Margin="0,16,0,0">
                         <StackPanel Orientation="Horizontal">
                             <Ellipse Style="{StaticResource Dot}" Fill="{StaticResource LinkBrush}" Margin="0,0,10,0" />
-                            <TextBlock Text="Druk een knop in om hem te vinden." FontSize="13" Foreground="{StaticResource InfoStripTextBrush}"
+                            <TextBlock Text="{l:Loc Remap_PressToFind}" FontSize="13" Foreground="{StaticResource InfoStripTextBrush}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                     </Border>
@@ -247,7 +248,7 @@
 
             <Border x:Name="ListCard" Grid.Column="2" Style="{StaticResource Card}" Padding="0,0,0,4">
                 <ItemsControl ItemsSource="{Binding Groups}" ItemTemplate="{StaticResource RemapGroupTemplate}" AlternationCount="100"
-                              Focusable="False" AutomationProperties.Name="Knoppen en wat de game krijgt" />
+                              Focusable="False" AutomationProperties.Name="{l:Loc Remap_List}" />
             </Border>
         </Grid>
     </StackPanel>

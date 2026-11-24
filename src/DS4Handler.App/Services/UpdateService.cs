@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Reflection;
 using DS4Handler.App.Infrastructure;
+using DS4Handler.App.Lang;
 using DS4Handler.Core.Updates;
 using Microsoft.Win32;
 
@@ -63,7 +64,7 @@ public sealed class UpdateService
     public async Task<string> DownloadAsync(ReleaseInfo release, IProgress<double>? progress, CancellationToken ct = default)
     {
         if (!UpdateCheck.IsTrustedDownload(release.SetupUrl))
-            throw new InvalidOperationException("Onverwacht downloadadres: " + release.SetupUrl);
+            throw new InvalidOperationException(Loc.Format("Update_UntrustedUrl", release.SetupUrl)); // message shown in the update banner
 
         var folder = Path.Combine(Path.GetTempPath(), "DS4Handler-Update");
         Directory.CreateDirectory(folder);
@@ -86,7 +87,7 @@ public sealed class UpdateService
                 if (total > 0) progress?.Report(Math.Min(1.0, (double)done / total));
             }
             if (release.SetupSize > 0 && done != release.SetupSize)
-                throw new IOException($"Download onvolledig ({done} van {release.SetupSize} bytes).");
+                throw new IOException(Loc.Format("Update_Incomplete", done, release.SetupSize));
         }
         File.Move(partial, target, overwrite: true);
         Log.Info($"Update gedownload: {target}");

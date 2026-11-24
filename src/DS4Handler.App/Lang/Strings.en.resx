@@ -5,4 +5,515 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_Default" xml:space="preserve"><value>Default</value></data>
+  <data name="Common_ResetAll" xml:space="preserve"><value>Reset all</value></data>
+  <data name="Common_ToGame" xml:space="preserve"><value>To the game</value></data>
+  <data name="Common_OpenProfileFolder" xml:space="preserve"><value>Open profile folder</value></data>
+  <data name="Common_OpenLog" xml:space="preserve"><value>Open log file</value></data>
+  <data name="Common_DownloadViGEm" xml:space="preserve"><value>Download ViGEmBus</value></data>
+  <data name="Common_DownloadHidHide" xml:space="preserve"><value>Download HidHide</value></data>
+  <data name="Common_Recheck" xml:space="preserve"><value>Check again</value></data>
+  <data name="Common_Quit" xml:space="preserve"><value>Quit</value></data>
+  <data name="Common_Checking" xml:space="preserve"><value>Checking…</value></data>
+  <data name="Common_PressedButtons" xml:space="preserve"><value>Pressed buttons on your controller</value></data>
+  <data name="Common_HideFromGames" xml:space="preserve"><value>Hide from games</value></data>
+  <data name="Common_Calibration" xml:space="preserve"><value>Calibration</value></data>
+  <data name="Common_Buttons" xml:space="preserve"><value>Buttons</value></data>
+  <data name="Common_Profiles" xml:space="preserve"><value>Profiles</value></data>
+  <data name="Common_Speed" xml:space="preserve"><value>Speed</value></data>
+  <data name="App_ErrorText" xml:space="preserve"><value>Something went wrong: {0}
+
+The app keeps running. More details are in the log file:
+{1}</value></data>
+  <data name="Dialog_CancelTip" xml:space="preserve"><value>Closes this window without changing anything.</value></data>
+  <data name="Dialog_ConfirmTip" xml:space="preserve"><value>Confirm: {0}.</value></data>
+  <data name="Dialog_OkTip" xml:space="preserve"><value>Closes this message.</value></data>
+  <data name="Dialog_ProfileFilter" xml:space="preserve"><value>DS4 Handler profile (*.json)|*.json|All files (*.*)|*.*</value></data>
+  <data name="Dialog_ExportTitle" xml:space="preserve"><value>Export profile</value></data>
+  <data name="Dialog_ImportTitle" xml:space="preserve"><value>Import profile</value></data>
+  <data name="Tray_Show" xml:space="preserve"><value>Show</value></data>
+  <data name="Tray_ShowTip" xml:space="preserve"><value>Opens the window with your controllers and their calibration.</value></data>
+  <data name="Tray_Learning" xml:space="preserve"><value>Learning</value></data>
+  <data name="Tray_LearningTip" xml:space="preserve"><value>On: the app keeps learning how your controllers behave (drift, worn triggers). Off: the current correction keeps working but no longer changes.</value></data>
+  <data name="Tray_QuitTip" xml:space="preserve"><value>Quits DS4 Handler completely. The virtual controllers go away too.</value></data>
+  <data name="Tray_HintTitle" xml:space="preserve"><value>DS4 Handler is still running</value></data>
+  <data name="Tray_HintText" xml:space="preserve"><value>Your controllers keep working. Click the icon in the notification area to open the window again, or choose Quit there.</value></data>
+  <data name="Tray_TextNone" xml:space="preserve"><value>DS4 Handler – no controller</value></data>
+  <data name="Tray_TextOne" xml:space="preserve"><value>DS4 Handler – 1 controller active</value></data>
+  <data name="Tray_TextMany" xml:space="preserve"><value>DS4 Handler – {0} controllers active</value></data>
+  <data name="Level_Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="Level_Warn" xml:space="preserve"><value>Attention</value></data>
+  <data name="Level_Bad" xml:space="preserve"><value>Problem</value></data>
+  <data name="Level_Learning" xml:space="preserve"><value>Learning</value></data>
+  <data name="Level_Info" xml:space="preserve"><value>Info</value></data>
+  <data name="Level_Off" xml:space="preserve"><value>Off</value></data>
+  <data name="Main_NoController" xml:space="preserve"><value>No controller connected</value></data>
+  <data name="Main_Drivers" xml:space="preserve"><value>Drivers</value></data>
+  <data name="Main_DriversOk" xml:space="preserve"><value>Drivers OK</value></data>
+  <data name="Main_EmptyTitle" xml:space="preserve"><value>No controller found yet</value></data>
+  <data name="Main_EmptyText" xml:space="preserve"><value>Connect a DualShock 4 or DualSense. It shows up as a tab at the top by itself.</value></data>
+  <data name="Main_EmptyUsb" xml:space="preserve"><value>Plug in the cable. That's all you need to do.</value></data>
+  <data name="Main_EmptyBluetooth" xml:space="preserve"><value>Hold PS and Share (or Create) until the light blinks fast. Then pair it in Windows under Settings › Bluetooth.</value></data>
+  <data name="Main_DriverOk" xml:space="preserve"><value>Xbox driver OK</value></data>
+  <data name="Main_DriverMissing" xml:space="preserve"><value>Xbox driver missing</value></data>
+  <data name="Main_DriverError" xml:space="preserve"><value>Xbox driver error</value></data>
+  <data name="Main_DriverErrorTip" xml:space="preserve"><value>ViGEmBus could not be opened: {0}</value></data>
+  <data name="Main_HidHideOff" xml:space="preserve"><value>HidHide off</value></data>
+  <data name="Main_HidHideOffTip" xml:space="preserve"><value>Hide from games is off (see Settings). Some games then see two controllers.</value></data>
+  <data name="Main_HidHideActive" xml:space="preserve"><value>HidHide active</value></data>
+  <data name="Main_HidHideActiveTip" xml:space="preserve"><value>HidHide hides your real controllers from games, so they only see the Xbox controller.</value></data>
+  <data name="Main_HidHideAttention" xml:space="preserve"><value>HidHide: attention</value></data>
+  <data name="Main_HidHideMissing" xml:space="preserve"><value>HidHide missing</value></data>
+  <data name="Main_HidHideMissingTip" xml:space="preserve"><value>HidHide is not installed. Without HidHide, some games see your controller twice.</value></data>
+  <data name="Main_HidHideBusy" xml:space="preserve"><value>HidHide busy</value></data>
+  <data name="Main_HidHideBusyTip" xml:space="preserve"><value>Another program (HidHide Configuration Client or DS4Windows) has HidHide open. Close it and click Check again.</value></data>
+  <data name="Main_HidHideError" xml:space="preserve"><value>HidHide error</value></data>
+  <data name="Main_HidHideErrorTip" xml:space="preserve"><value>HidHide did not respond as expected. See the log file (Settings).</value></data>
+  <data name="Main_HidHideCheckingTip" xml:space="preserve"><value>Checking whether HidHide is installed.</value></data>
+  <data name="Notice_ViGEmMissingTitle" xml:space="preserve"><value>The Xbox driver (ViGEmBus) is missing</value></data>
+  <data name="Notice_ViGEmMissingText" xml:space="preserve"><value>Without ViGEmBus, DS4 Handler can't create an Xbox controller, so games get no input. You can still see all values here. Install ViGEmBus (free), then restart the app.</value></data>
+  <data name="Notice_ViGEmFailedTitle" xml:space="preserve"><value>The Xbox driver (ViGEmBus) isn't working</value></data>
+  <data name="Notice_ViGEmFailedText" xml:space="preserve"><value>ViGEmBus could not be opened ({0}). Restart your PC; if that doesn't help, reinstall ViGEmBus.</value></data>
+  <data name="Notice_HidHideMissingTitle" xml:space="preserve"><value>HidHide is not installed</value></data>
+  <data name="Notice_HidHideMissingText" xml:space="preserve"><value>Without HidHide, some games see both your PlayStation controller and the Xbox controller, so buttons respond twice. Install HidHide (free), then click Check again. No double input? Then turn HidHide off in Settings.</value></data>
+  <data name="Notice_HidHideBusyTitle" xml:space="preserve"><value>HidHide is busy</value></data>
+  <data name="Notice_HidHideBusyText" xml:space="preserve"><value>Another program has HidHide open, usually the HidHide configuration tool or DS4Windows. Close that program and click Check again.</value></data>
+  <data name="Notice_HidHideErrorTitle" xml:space="preserve"><value>HidHide isn't responding</value></data>
+  <data name="Notice_HidHideErrorText" xml:space="preserve"><value>HidHide gave an unexpected error. Restart your PC or reinstall HidHide.</value></data>
+  <data name="Notice_HideFailedTitle" xml:space="preserve"><value>Controller could not be hidden</value></data>
+  <data name="Notice_TryAgain" xml:space="preserve"><value>Try again</value></data>
+  <data name="Notice_BlockedOne" xml:space="preserve"><value>A controller is in use by another program</value></data>
+  <data name="Notice_BlockedMany" xml:space="preserve"><value>{0} controllers are in use by another program</value></data>
+  <data name="Notice_BlockedText" xml:space="preserve"><value>DS4 Handler sees a controller but can't open it. Close DS4Windows or other controller software. The app tries again every few seconds.</value></data>
+  <data name="Settings_HidHideReady" xml:space="preserve"><value>HidHide is installed and ready to use.</value></data>
+  <data name="Settings_HidHideMissing" xml:space="preserve"><value>HidHide is not installed. Download it for free with the button below, then click Check again.</value></data>
+  <data name="Settings_HidHideBusy" xml:space="preserve"><value>HidHide is busy: close the HidHide configuration tool (or DS4Windows) and click Check again.</value></data>
+  <data name="Settings_HidHideError" xml:space="preserve"><value>HidHide gave an unexpected error. See the log file.</value></data>
+  <data name="Settings_HidHideChecking" xml:space="preserve"><value>Checking…</value></data>
+  <data name="Settings_Startup" xml:space="preserve"><value>Startup</value></data>
+  <data name="Settings_StartWithWindows" xml:space="preserve"><value>Start with Windows</value></data>
+  <data name="Settings_StartWithWindowsText" xml:space="preserve"><value>The app starts when you sign in, so your controller works right away.</value></data>
+  <data name="Settings_StartMinimized" xml:space="preserve"><value>Start minimized</value></data>
+  <data name="Settings_StartMinimizedText" xml:space="preserve"><value>Only as an icon in the notification area next to the clock.</value></data>
+  <data name="Settings_AutoUpdate" xml:space="preserve"><value>Check for new versions automatically</value></data>
+  <data name="Settings_AutoUpdateText" xml:space="preserve"><value>Your profiles and settings are kept when you update.</value></data>
+  <data name="Settings_CheckNow" xml:space="preserve"><value>Check for updates now</value></data>
+  <data name="Settings_HidHideSection" xml:space="preserve"><value>Hide from games (HidHide)</value></data>
+  <data name="Settings_UseHidHide" xml:space="preserve"><value>Use HidHide</value></data>
+  <data name="Settings_UseHidHideText" xml:space="preserve"><value>Games only see the virtual controller. Turn this on per controller with 'Hide from games'.</value></data>
+  <data name="Settings_UnhideOnExit" xml:space="preserve"><value>Unhide when quitting</value></data>
+  <data name="Settings_UnhideOnExitText" xml:space="preserve"><value>After quitting, games see your PlayStation controller as usual again.</value></data>
+  <data name="Settings_About" xml:space="preserve"><value>About</value></data>
+  <data name="Settings_AboutText" xml:space="preserve"><value>Your PlayStation controller works in games as an Xbox 360 or DualShock 4 controller. The app learns your stick drift and trigger wear by itself and corrects them.</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_LanguageText" xml:space="preserve"><value>For all text in the app.</value></data>
+  <data name="Settings_LanguageTip" xml:space="preserve"><value>Choose the language of the app. The new language is used after the app restarts.</value></data>
+  <data name="Settings_LanguageRestartNote" xml:space="preserve"><value>The new language is used after a restart.</value></data>
+  <data name="Settings_RestartNow" xml:space="preserve"><value>Restart now</value></data>
+  <data name="Settings_RestartNowTip" xml:space="preserve"><value>Closes DS4 Handler and starts it again right away, in the new language. Your profiles and settings are kept.</value></data>
+  <data name="Controller_Deadzone" xml:space="preserve"><value>deadzone</value></data>
+  <data name="Controller_Measure" xml:space="preserve"><value>Measure</value></data>
+  <data name="Controller_BatteryFormat" xml:space="preserve"><value> · battery {0}</value></data>
+  <data name="Controller_GamesSeeAs" xml:space="preserve"><value>Games see it as</value></data>
+  <data name="Controller_VirtualController" xml:space="preserve"><value>Virtual controller</value></data>
+  <data name="Controller_Parts" xml:space="preserve"><value>Sections for this controller</value></data>
+  <data name="Controller_RealPosition" xml:space="preserve"><value>Actual position</value></data>
+  <data name="Controller_RestAndEnd" xml:space="preserve"><value>Rest and end point</value></data>
+  <data name="Controller_PressedButtonsGame" xml:space="preserve"><value>Pressed buttons as the game sees them</value></data>
+  <data name="Controller_ViewCalibration" xml:space="preserve"><value>View calibration</value></data>
+  <data name="Controller_View" xml:space="preserve"><value>View</value></data>
+  <data name="Controller_CalibrationIntro" xml:space="preserve"><value>The app learns by itself while you play: where the center of your sticks is and how far your triggers really press. You don't need to do anything here, unless you want it to go faster.</value></data>
+  <data name="Controller_Recenter" xml:space="preserve"><value>Center sticks</value></data>
+  <data name="Controller_ReleaseSticks" xml:space="preserve"><value>Let go of both sticks…</value></data>
+  <data name="Controller_Learned" xml:space="preserve"><value>What the app has learned</value></data>
+  <data name="Controller_Learning" xml:space="preserve"><value>Learning</value></data>
+  <data name="Controller_KeepLearning" xml:space="preserve"><value>Keep learning while playing</value></data>
+  <data name="Controller_KeepLearningText" xml:space="preserve"><value>Drift and wear change slowly. The app keeps up with that.</value></data>
+  <data name="Controller_JitterFilter" xml:space="preserve"><value>Jitter filter</value></data>
+  <data name="Controller_JitterFilterText" xml:space="preserve"><value>Removes the small wobble when you let go of the stick.</value></data>
+  <data name="Controller_StartOver" xml:space="preserve"><value>Start over</value></data>
+  <data name="Controller_StartOverText" xml:space="preserve"><value>Throws away everything the app has learned about this controller.</value></data>
+  <data name="Controller_ResetCalibration" xml:space="preserve"><value>Reset calibration</value></data>
+  <data name="Controller_Tuning" xml:space="preserve"><value>Tuning</value></data>
+  <data name="Profiles_Import" xml:space="preserve"><value>Import…</value></data>
+  <data name="Profiles_Intro" xml:space="preserve"><value>Each controller gets its own profile, recognized by its MAC address. Bring along a friend's profile with Import.</value></data>
+  <data name="Profiles_Connected" xml:space="preserve"><value>Connected now</value></data>
+  <data name="Profiles_ProfileForController" xml:space="preserve"><value>Profile for this controller</value></data>
+  <data name="Profiles_All" xml:space="preserve"><value>All profiles</value></data>
+  <data name="Profiles_None" xml:space="preserve"><value>No profiles yet. Connect a controller or import a profile.</value></data>
+  <data name="Profiles_NameBox" xml:space="preserve"><value>Profile name</value></data>
+  <data name="Profiles_Rename" xml:space="preserve"><value>Rename</value></data>
+  <data name="Profiles_CopyTo" xml:space="preserve"><value>Copy to…</value></data>
+  <data name="Profiles_Export" xml:space="preserve"><value>Export…</value></data>
+  <data name="Profiles_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Remap_DefaultSuffix" xml:space="preserve"><value> · default</value></data>
+  <data name="Remap_PressKeyFor" xml:space="preserve"><value>Press a key for {0}</value></data>
+  <data name="Remap_PressKey" xml:space="preserve"><value>Press a key…</value></data>
+  <data name="Remap_RowDefault" xml:space="preserve"><value>Reset {0} to default</value></data>
+  <data name="Remap_SwapSticks" xml:space="preserve"><value>Swap sticks</value></data>
+  <data name="Remap_SavedNow" xml:space="preserve"><value>Changes are saved right away.</value></data>
+  <data name="Remap_YourController" xml:space="preserve"><value>Your controller</value></data>
+  <data name="Remap_PressToFind" xml:space="preserve"><value>Press a button to find it.</value></data>
+  <data name="Remap_List" xml:space="preserve"><value>Buttons and what the game gets</value></data>
+  <data name="Tuning_CurveName" xml:space="preserve"><value>Response curve {0}</value></data>
+  <data name="Tuning_Shape" xml:space="preserve"><value>Shape</value></data>
+  <data name="Tuning_Round" xml:space="preserve"><value>Round</value></data>
+  <data name="Tuning_Square" xml:space="preserve"><value>Square</value></data>
+  <data name="Tuning_Cross" xml:space="preserve"><value>Cross</value></data>
+  <data name="Tuning_SquareOutput" xml:space="preserve"><value>Square output</value></data>
+  <data name="Tuning_InvertX" xml:space="preserve"><value>Invert X</value></data>
+  <data name="Tuning_InvertY" xml:space="preserve"><value>Invert Y</value></data>
+  <data name="Tuning_SavedNow" xml:space="preserve"><value>Changes are saved right away to this controller's profile.</value></data>
+  <data name="Tuning_PollBluetooth" xml:space="preserve"><value>Polling over Bluetooth (DualShock 4)</value></data>
+  <data name="Tuning_PollBluetoothName" xml:space="preserve"><value>Polling over Bluetooth</value></data>
+  <data name="Tuning_SendToGame" xml:space="preserve"><value>Send to the game</value></data>
+  <data name="Tuning_SendToGameNote" xml:space="preserve"><value>Every reading is fastest and fine for almost everyone.</value></data>
+  <data name="Settings_AppLanguage" xml:space="preserve"><value>App language</value></data>
+
+  <data name="Tip_Brand" xml:space="preserve"><value>DS4 Handler makes your PlayStation controller work in games as an Xbox or DualShock 4 controller, and fixes stick drift and worn triggers by itself.</value></data>
+  <data name="Tip_NavSettings" xml:space="preserve"><value>Start with Windows, HidHide (hide your real controller from games), updates, info about the app, and quit.</value></data>
+  <data name="Tip_ControllerTab" xml:space="preserve"><value>Click to view this controller. The dot shows how it's doing: green works, orange is waiting or still learning, red is a problem.</value></data>
+  <data name="Tip_NoControllerTab" xml:space="preserve"><value>As soon as you connect a controller, it shows up here as a tab. Click to see how to connect a controller.</value></data>
+  <data name="Tip_DriversSection" xml:space="preserve"><value>The two free tools DS4 Handler uses. ViGEmBus creates the controller games see; HidHide hides your real controller so games don't see it twice. Click to open Settings.</value></data>
+  <data name="Tip_ControllerTitle" xml:space="preserve"><value>The name of this controller's profile. You can change it under Profiles.</value></data>
+  <data name="Tip_TabLive" xml:space="preserve"><value>See live what your sticks and triggers do, and what the game gets.</value></data>
+  <data name="Tip_TabCalibration" xml:space="preserve"><value>What the app has learned about drift and wear, centering the sticks and measuring the triggers.</value></data>
+  <data name="Tip_TabAdjust" xml:space="preserve"><value>Set how this controller responds: deadzones, curves, triggers and speed. Changes are saved to the controller's profile right away.</value></data>
+  <data name="Tip_TabButtons" xml:space="preserve"><value>Choose per button what the game gets: another button, a key on your keyboard, or nothing. You can also swap the sticks. Changes are saved to the controller's profile right away.</value></data>
+  <data name="Tip_CalibrationSummary" xml:space="preserve"><value>A short summary of what the app has learned about this controller. Click to open Calibration and see everything.</value></data>
+  <data name="Tip_ControllerName" xml:space="preserve"><value>The type of PlayStation controller. In games, the app makes it work as an Xbox 360 or DualShock 4 controller (see 'Games see it as').</value></data>
+  <data name="Tip_ControllerId" xml:space="preserve"><value>This controller's unique address. Its calibration is saved under it, so it uses the same profile over USB and Bluetooth.</value></data>
+  <data name="Tip_ControllerIdUnstable" xml:space="preserve"><value>This controller's address could not be read, so its calibration is tied to this USB port: on another port it starts learning from scratch.</value></data>
+  <data name="Tip_Usb" xml:space="preserve"><value>Connected with a USB cable. That gives the fastest response and charges the controller at the same time.</value></data>
+  <data name="Tip_Bluetooth" xml:space="preserve"><value>Connected wirelessly over Bluetooth. Noticing lag? Use a cable or move the controller closer to your PC.</value></data>
+  <data name="Tip_ReportRate" xml:space="preserve"><value>How many times per second the controller sends its state. Higher is smoother; 250 or more is fine.</value></data>
+  <data name="Tip_Latency" xml:space="preserve"><value>How long the app takes from a controller reading until the virtual controller for games is updated. Under 0.1 ms is excellent; over 1 ms points to a busy PC.
+The longest gap shows whether the connection stutters: over USB it should be around 4 ms, over Bluetooth around your chosen polling rate. Much higher means interference or a weak Bluetooth signal.</value></data>
+  <data name="Tip_StickView" xml:space="preserve"><value>Live view of the stick.
+• Gray dot: where the stick really is.
+• Blue dot: what the game gets after correction.
+• Orange dashed ring: the deadzone around the learned rest point.</value></data>
+  <data name="Tip_Deadzone" xml:space="preserve"><value>Stick movement inside this circle is ignored, so drift doesn't move your character. The size is learned automatically: as small as possible, as large as needed.</value></data>
+  <data name="Tip_TriggerBar" xml:space="preserve"><value>Thin gray line: how far you really press the trigger.
+Thick blue bar: what the game gets.
+Orange marks: the learned rest point and end point (your 100%).</value></data>
+  <data name="Tip_LegendRaw" xml:space="preserve"><value>Gray: the controller's real position, without correction.</value></data>
+  <data name="Tip_LegendOutput" xml:space="preserve"><value>Blue: what the game gets, after correcting for drift and wear.</value></data>
+  <data name="Tip_LegendDeadzone" xml:space="preserve"><value>Orange: the rest point and end point the app has learned for this trigger.</value></data>
+  <data name="Tip_Pad" xml:space="preserve"><value>Which buttons are pressed right now. Choose whether you see your real controller or the virtual controller the game gets.</value></data>
+  <data name="Tip_PadInput" xml:space="preserve"><value>What you're pressing on your controller right now, without correction.</value></data>
+  <data name="Tip_PadOutput" xml:space="preserve"><value>What the game gets from the virtual controller right now.
+Xbox 360 has no touchpad click or Mute button, so those never reach the game.</value></data>
+  <data name="Tip_CalibrationSection" xml:space="preserve"><value>This shows in plain words what the app has learned about this controller. It happens by itself while you play and is saved per controller.</value></data>
+  <data name="Tip_Learning" xml:space="preserve"><value>On: the app keeps learning how this controller behaves while you play (drift, worn triggers).
+Off: what was already learned keeps working, but nothing changes anymore.</value></data>
+  <data name="Tip_JitterFilter" xml:space="preserve"><value>On: stick jitter is filtered out. The app measures how much a stick shakes when you hold it still (released or at a fixed position) and filters exactly as much as needed. A good stick won't notice a thing.
+Fast movements pass through without noticeable delay; only holding still and aiming very slowly get calmer.
+Off: the stick goes to the game unfiltered, as before.</value></data>
+  <data name="Tip_HideFromGames" xml:space="preserve"><value>Hides your real PlayStation controller from games, so they only see this app's Xbox controller. That prevents double input.
+Works through HidHide. A game that's already running needs a restart (or reconnect the controller).</value></data>
+  <data name="Tip_HideUnavailable" xml:space="preserve"><value>Hiding works through the free program HidHide. Turn HidHide on in Settings, or install it first.</value></data>
+  <data name="Tip_Output" xml:space="preserve"><value>What kind of controller games see this controller as.</value></data>
+  <data name="Tip_OutputXbox" xml:space="preserve"><value>Xbox 360: works in almost every PC game. Pick this if you're not sure. Games then show Xbox buttons (A, B, X, Y).</value></data>
+  <data name="Tip_OutputDs4" xml:space="preserve"><value>DualShock 4: for games that support PlayStation controllers themselves (for example through Steam's PlayStation support); they then show PlayStation buttons.
+Note: the motion sensor and touchpad are not passed on (yet). Turn on 'Hide from games' so games only see the virtual DualShock 4 and not your real controller too.</value></data>
+  <data name="Tip_Reset" xml:space="preserve"><value>Forget everything learned for this controller and start over with factory values. Handy after a repair or when the correction is no longer right.</value></data>
+  <data name="Tip_Recenter" xml:space="preserve"><value>Use this if your stick suddenly has much more drift than before. Then let go of both sticks; the new rest point is measured right away.
+Normal drift is learned automatically, you don't need to do anything for that.</value></data>
+  <data name="Tip_CancelGuided" xml:space="preserve"><value>Stops the assistant. What was already learned stays.</value></data>
+  <data name="Tip_CalibrateTrigger" xml:space="preserve"><value>The fastest way to fix a trigger that no longer reaches 100%: press it all the way a few times and that point becomes your new 100%.
+Automatic learning works too, but needs more presses.</value></data>
+  <data name="Tip_StickSummary" xml:space="preserve"><value>What was learned for this stick: where it rests (drift), how big the deadzone is, and whether it reaches the edge in every direction.</value></data>
+  <data name="Tip_TriggerSummary" xml:space="preserve"><value>What was learned for this trigger: how far it still goes and whether that is scaled up to 100%.</value></data>
+  <data name="Tip_EmptyState" xml:space="preserve"><value>As soon as you connect a DualShock 4 or DualSense, it shows up here by itself. Bluetooth? Pair the controller in Windows settings first (hold PS + Share until the light blinks).</value></data>
+  <data name="Tip_StartWithWindows" xml:space="preserve"><value>Start DS4 Handler automatically when you sign in, so your controller works in games right away.</value></data>
+  <data name="Tip_StartMinimized" xml:space="preserve"><value>Start without a window, only with an icon in the system tray (bottom right, by the clock). Double-click that icon to open the window.</value></data>
+  <data name="Tip_HidHideEnabled" xml:space="preserve"><value>Use HidHide to hide your real controllers from games. Without hiding, some games see two controllers and buttons respond twice.
+DS4 Handler adds itself to the exceptions list, so the app itself can still see the controller.
+Note: this also turns on HidHide's general hide switch. That also applies to devices you hid in HidHide yourself before.</value></data>
+  <data name="Tip_UnhideOnExit" xml:space="preserve"><value>On: when you quit DS4 Handler, games and other programs (like Steam or an emulator) see your controller normally again.
+Off: the controller stays hidden after quitting too. Handy if the app always runs, but without the app it won't work in games.</value></data>
+  <data name="Tip_RecheckHidHide" xml:space="preserve"><value>Check again whether HidHide is available, for example after you installed it or closed the HidHide configuration.</value></data>
+  <data name="Tip_DownloadHidHide" xml:space="preserve"><value>Opens the HidHide download page (free, from the same maker as ViGEmBus).</value></data>
+  <data name="Tip_DownloadViGEm" xml:space="preserve"><value>Opens the download page of ViGEmBus, the driver that creates the virtual Xbox controller. Restart the app after installing.</value></data>
+  <data name="Tip_OpenProfiles" xml:space="preserve"><value>Opens the folder with each controller's learned calibration.</value></data>
+  <data name="Tip_CheckForUpdates" xml:space="preserve"><value>At startup (and then twice a day), checks GitHub for a new version of DS4 Handler. You'll see what's new at the top and can update with one click. Nothing is ever installed without you clicking.</value></data>
+  <data name="Tip_CheckNow" xml:space="preserve"><value>Check right now whether there's a new version.</value></data>
+  <data name="Tip_UpdateNow" xml:space="preserve"><value>Downloads the new version and installs it over the old one. The app closes briefly and then restarts by itself. Your profiles, calibration and settings are kept.</value></data>
+  <data name="Tip_UpdateLater" xml:space="preserve"><value>Hide this message until the next time the app starts.</value></data>
+  <data name="Tip_UpdateDownloadPage" xml:space="preserve"><value>Opens the download page of the new version on GitHub.</value></data>
+  <data name="Tip_OpenLog" xml:space="preserve"><value>Opens the log file. Handy to send along when something doesn't work.</value></data>
+  <data name="Tip_Quit" xml:space="preserve"><value>Quits DS4 Handler completely. The virtual Xbox controllers then disappear.</value></data>
+  <data name="Tip_DriverReady" xml:space="preserve"><value>ViGEmBus is installed: games see your controller as an Xbox 360 controller.</value></data>
+  <data name="Tip_DriverMissing" xml:space="preserve"><value>ViGEmBus is missing. Without this driver the app can't create an Xbox controller and games get no input.</value></data>
+  <data name="Tip_DriverChecking" xml:space="preserve"><value>Checking whether the Xbox driver (ViGEmBus) is present.</value></data>
+  <data name="Tip_NavProfiles" xml:space="preserve"><value>All controllers this PC knows, with their learned calibration. Name them, share or copy a profile, or bring in a friend's profile.</value></data>
+  <data name="Tip_ProfilesIntro" xml:space="preserve"><value>Every controller gets its own profile, recognized by its MAC address. So it uses the same profile over USB and Bluetooth.</value></data>
+  <data name="Tip_ProfileName" xml:space="preserve"><value>A name you choose, for example 'Sam's controller'. Leave it empty to show the controller type. The name doesn't change the calibration.</value></data>
+  <data name="Tip_ProfileRename" xml:space="preserve"><value>Give this profile a different name. Press Enter or click elsewhere to save.</value></data>
+  <data name="Tip_ProfileMac" xml:space="preserve"><value>The MAC address: this controller's unique address. The app recognizes it by this, over USB and over Bluetooth.</value></data>
+  <data name="Tip_ProfileNoMac" xml:space="preserve"><value>No MAC address could be read from this controller. So the profile is tied to the USB port it was on.</value></data>
+  <data name="Tip_ProfileModel" xml:space="preserve"><value>The controller type of this profile.</value></data>
+  <data name="Tip_ProfileConnected" xml:space="preserve"><value>This controller is connected now.</value></data>
+  <data name="Tip_ProfileLastSeen" xml:space="preserve"><value>When this controller was last connected to this PC.</value></data>
+  <data name="Tip_ProfileSummary" xml:space="preserve"><value>A short summary of what was learned for this controller: how far the triggers go and whether the sticks have drift.</value></data>
+  <data name="Tip_ProfileUsedBy" xml:space="preserve"><value>Other connected controllers that share this profile: they learn together in the same calibration.</value></data>
+  <data name="Tip_ProfileCopy" xml:space="preserve"><value>Copy what was learned for this controller to another controller. Whatever was learned there is overwritten.</value></data>
+  <data name="Tip_ProfileCopyNone" xml:space="preserve"><value>Copying is only possible once something has been learned for this profile and there's another profile.</value></data>
+  <data name="Tip_ProfileExport" xml:space="preserve"><value>Save this profile as a file, for example to give to a friend or as a backup.</value></data>
+  <data name="Tip_ProfileImport" xml:space="preserve"><value>Load a profile file, for example a friend's. It's tied to their controller (MAC address): connect it and it works right away with its own calibration.</value></data>
+  <data name="Tip_ProfileDelete" xml:space="preserve"><value>Delete this profile and its name. If you connect the controller again later, it starts learning from scratch.</value></data>
+  <data name="Tip_ProfileDeleteBlocked" xml:space="preserve"><value>A profile used by a connected controller can't be deleted. Disconnect the controller first or pick another profile for it.</value></data>
+  <data name="Tip_ProfileChoose" xml:space="preserve"><value>Choose which profile this controller learns into. By default its own profile; you can also let it share the profile of another controller of the same type.
+Two connected controllers can't use the same profile at the same time.</value></data>
+  <data name="Tip_LinkOwn" xml:space="preserve"><value>The controller learns into its own profile (recommended).</value></data>
+  <data name="Tip_LinkShared" xml:space="preserve"><value>The controller uses and improves the calibration of this other profile.</value></data>
+  <data name="Tip_ProfileOnCard" xml:space="preserve"><value>The profile this controller learns into. You can change it under Profiles.</value></data>
+  <data name="Tip_ProfileOwnOnCard" xml:space="preserve"><value>This profile belongs to this controller. What the app learns and what you tune is saved here. You can pick another profile under Profiles.</value></data>
+  <data name="Tip_ProfileBlockedOnCard" xml:space="preserve"><value>This controller's profile is already used by another connected controller. To keep both from overwriting the same file, this controller runs on factory values for now and nothing is saved. Pick another profile under Profiles or reconnect it later.</value></data>
+  <data name="Tip_OpenProfileFolder" xml:space="preserve"><value>Opens the folder with the profile files.</value></data>
+  <data name="Tip_TunePicker" xml:space="preserve"><value>Choose what you want to tune. You see one part at a time.</value></data>
+  <data name="Tip_TuneSticks" xml:space="preserve"><value>Deadzones, shape, curve and sensitivity of both sticks.</value></data>
+  <data name="Tip_TuneTriggers" xml:space="preserve"><value>Deadzone, end point and curve of L2 and R2.</value></data>
+  <data name="Tip_TuneSpeed" xml:space="preserve"><value>How often the controller measures and how often the game gets an update.</value></data>
+  <data name="Tip_TuneSaved" xml:space="preserve"><value>No need to save. Every change goes into this controller's profile right away.</value></data>
+  <data name="Tip_CurveStick" xml:space="preserve"><value>How the stick responds: to the right is how far you push, up is what the game gets. The gray part is the extra deadzone, the dotted line is 1 to 1. Updates as you move the sliders.</value></data>
+  <data name="Tip_CurveTrigger" xml:space="preserve"><value>How the trigger responds: to the right is how far you press, up is what the game gets. The gray part is the extra deadzone, the dotted line is 1 to 1. Updates as you move the sliders.</value></data>
+  <data name="Tip_TuneSection" xml:space="preserve"><value>These settings come on top of what the app has learned by itself. They're saved in the controller's profile.</value></data>
+  <data name="Tip_TuneResetAll" xml:space="preserve"><value>Set all Tuning settings for this controller back to default. What the app has learned stays.</value></data>
+  <data name="Tip_TuneResetSection" xml:space="preserve"><value>Set only this part back to default.</value></data>
+  <data name="Tip_TuneShape" xml:space="preserve"><value>The shape of the extra deadzone around the center of the stick.</value></data>
+  <data name="Tip_TuneShapeRadial" xml:space="preserve"><value>Round: the stick first has to leave a circle around the center before anything happens. Feels the same in every direction. This is the normal choice.</value></data>
+  <data name="Tip_TuneShapeSquare" xml:space="preserve"><value>Square: the stick only counts once you push far enough on at least one axis; small diagonal movements around the center are ignored. Many Rocket League players use this for calm, straight steering.</value></data>
+  <data name="Tip_TuneShapeAxial" xml:space="preserve"><value>Cross: each direction (left-right and up-down) has its own deadzone, so a small sideways wobble doesn't leak into a straight push. Anti-deadzone and sensitivity then also work per axis. Diagonals do feel a bit more angular.</value></data>
+  <data name="Tip_TuneInner" xml:space="preserve"><value>Extra deadzone: the stick has to move this far before the game notices anything. Comes on top of the deadzone the app has learned by itself. Handy if your character or camera still moves slightly while you do nothing. With Square and Cross it can be less large, and the higher the end point, the lower the maximum, so you always keep a working range.</value></data>
+  <data name="Tip_TuneOuter" xml:space="preserve"><value>End point: the stick gives full output before it hits the edge. Handy if the edge of the stick is hard to reach, for example because of a thick stick cap or a worn stick.</value></data>
+  <data name="Tip_TuneAnti" xml:space="preserve"><value>Anti-deadzone: as soon as the stick leaves the deadzone, the output jumps straight to at least this percentage. Use this if the game has its own deadzone: then your stick responds right away, instead of you having to push a bit first. Start small, around 10%. With Cross this applies per axis.</value></data>
+  <data name="Tip_TuneTriggerAnti" xml:space="preserve"><value>Anti-deadzone: as soon as you press the trigger past its deadzone, the output jumps straight to at least this percentage. Handy if the game itself only responds after pressing a bit. Start small, around 10%.</value></data>
+  <data name="Tip_TuneCurve" xml:space="preserve"><value>Curve: how the stick or trigger responds between start and end. 1.00 is straight: 1 to 1. Above 1 is calmer at the start (precise aiming) and stronger at the end. Below 1 is quick on small movements instead.</value></data>
+  <data name="Tip_TuneSensitivity" xml:space="preserve"><value>Sensitivity: multiplies the stick's movement. Above 1× you reach full output before the stick hits the edge; below 1× you never quite reach full. The result never goes above 100%. With Cross this works per axis.</value></data>
+  <data name="Tip_TuneFilterResponse" xml:space="preserve"><value>Response: the app filters out jitter from a worn stick. Calm (left) removes the most jitter, but when aiming slowly the stick lags a fraction behind. Fast (right) follows your thumb almost instantly, but more jitter gets through. Only has an effect if the app has measured jitter on this stick; a new stick won't notice a thing.</value></data>
+  <data name="Tip_TuneSquareOutput" xml:space="preserve"><value>Square output: pushing diagonally gives 100% on both axes, instead of about 70% per axis at most. Handy for games where you want full speed diagonally. Don't turn this on if a game already uses a square range itself.</value></data>
+  <data name="Tip_TuneInvertX" xml:space="preserve"><value>Swaps left and right for this stick.</value></data>
+  <data name="Tip_TuneInvertY" xml:space="preserve"><value>Swaps up and down for this stick. Handy for flying or an 'inverted' camera.</value></data>
+  <data name="Tip_TuneTriggerInner" xml:space="preserve"><value>Extra deadzone: the trigger has to be pressed this far before the game notices anything. Handy if a trigger still responds slightly while you release it.</value></data>
+  <data name="Tip_TuneTriggerOuter" xml:space="preserve"><value>End point: the trigger gives full output before it's pressed all the way. Handy for faster accelerating or shooting.</value></data>
+  <data name="Tip_TunePoll" xml:space="preserve"><value>How many times per second the controller sends its state. Higher gives less lag but uses more battery. 250 or more is fine for most games.
+Only available for a DualShock 4 over Bluetooth. Over USB the controller sets the speed itself.</value></data>
+  <data name="Tip_TunePollUnavailable" xml:space="preserve"><value>This is only possible for a DualShock 4 over Bluetooth. Over USB, and with a DualSense, the controller decides itself how often it measures.</value></data>
+  <data name="Tip_TuneOutputRate" xml:space="preserve"><value>How many times per second the virtual controller is updated for games.
+'Every reading' is the fastest and fine for almost everyone. Limiting it is only needed on a slow PC or a game that chokes on lots of updates.</value></data>
+  <data name="Tip_RemapPicture" xml:space="preserve"><value>Your controller, live. Press a button: that button's row lights up in the list, so you find it right away.</value></data>
+  <data name="Tip_RemapTarget" xml:space="preserve"><value>What the game gets when you press this button. Pick another button, 'Keyboard…' for a key (for example for a voice or chat key), or 'Off' to ignore the button. Two buttons may have the same target.</value></data>
+  <data name="Tip_RemapTriggerTarget" xml:space="preserve"><value>A button on a trigger gives that trigger fully pressed. A trigger on the other trigger stays analog (L2 and R2 swap). A trigger on a button counts from half pressed.</value></data>
+  <data name="Tip_RemapResetRow" xml:space="preserve"><value>This button does what's printed on it again.</value></data>
+  <data name="Tip_RemapResetAll" xml:space="preserve"><value>Set all buttons and the sticks for this controller back to default. Tuning and calibration stay as they are.</value></data>
+  <data name="Tip_RemapSwapSticks" xml:space="preserve"><value>Swaps the left and right stick: what you do with the left, the game gets as the right, and vice versa. Your Tuning settings stay with your real stick. L3 and R3 don't swap along; you choose those per button below.</value></data>
+  <data name="Tip_RemapCapture" xml:space="preserve"><value>Press the key the game should get when you press this button. Esc stops without changing anything.</value></data>
+  <data name="Tip_RemapChanged" xml:space="preserve"><value>This button does something other than what's printed on it.</value></data>
+  <data name="Common_Now" xml:space="preserve"><value>Now: {0}</value></data>
+  <data name="Stick_Left" xml:space="preserve"><value>Left stick</value></data>
+  <data name="Stick_LeftShort" xml:space="preserve"><value>Left</value></data>
+  <data name="Stick_Right" xml:space="preserve"><value>Right stick</value></data>
+  <data name="Stick_RightShort" xml:space="preserve"><value>Right</value></data>
+  <data name="Calib_DeadzoneNow" xml:space="preserve"><value>Now: {0} of the stick range.</value></data>
+  <data name="Calib_StickGuided" xml:space="preserve"><value>{0}: let go of the stick… measuring the rest point.</value></data>
+  <data name="Calib_StickLearning" xml:space="preserve"><value>{0}: still learning — let go of the stick now and then.</value></data>
+  <data name="Calib_StickRestsAt" xml:space="preserve"><value>{0} rests at ({1}, {2}) instead of the center — that point now counts as the center.</value></data>
+  <data name="Calib_StickCentered" xml:space="preserve"><value>{0} rests nicely in the center.</value></data>
+  <data name="Calib_StickDeadzone" xml:space="preserve"><value>Deadzone {0}.</value></data>
+  <data name="Calib_StickWeakReach" xml:space="preserve"><value>Only reaches {0} of the edge in some directions — scaled up to 100%.</value></data>
+  <data name="Calib_StickJitterFiltered" xml:space="preserve"><value>Jitter on the {0}: {1} (filtered out).</value></data>
+  <data name="Calib_StickJitterOff" xml:space="preserve"><value>Jitter on the {0}: {1} (jitter filter is off).</value></data>
+  <data name="Calib_CalibrateTrigger" xml:space="preserve"><value>Calibrate {0}</value></data>
+  <data name="Calib_TriggerPressMore" xml:space="preserve"><value>Press {0} all the way {1}× more</value></data>
+  <data name="Calib_TriggerRelease" xml:space="preserve"><value>Let go of {0}…</value></data>
+  <data name="Calib_TriggerLearnedEnd" xml:space="preserve"><value>Learned end point: {0}.</value></data>
+  <data name="Calib_TriggerGuided" xml:space="preserve"><value>{0}: assistant running — press the trigger all the way a few times.</value></data>
+  <data name="Calib_TriggerLearning" xml:space="preserve"><value>{0}: still learning — press it all the way a few times while playing. Until then, the full range is used.</value></data>
+  <data name="Calib_TriggerSetByAssistant" xml:space="preserve"><value>Set with the assistant.</value></data>
+  <data name="Calib_TriggerLearnedAuto" xml:space="preserve"><value>Learned automatically while playing.</value></data>
+  <data name="Calib_TriggerFullRange" xml:space="preserve"><value>{0} reaches the full range — no correction needed. {1}</value></data>
+  <data name="Calib_TriggerScaled" xml:space="preserve"><value>{0} goes up to {1} — scaled up to 100%. {2}</value></data>
+  <data name="Calib_TriggerRestIgnored" xml:space="preserve"><value>Rest value {0} is ignored.</value></data>
+  <data name="Calib_ResetTitle" xml:space="preserve"><value>Reset calibration?</value></data>
+  <data name="Calib_ResetMessage" xml:space="preserve"><value>Everything the app has learned about this {0} (drift, deadzone, trigger end points) will be forgotten. The controller starts over with factory values and then learns again.</value></data>
+  <data name="Calib_ResetConfirm" xml:space="preserve"><value>Reset</value></data>
+  <data name="Latency_Text" xml:space="preserve"><value>processing {0} ms</value></data>
+  <data name="Latency_Now" xml:space="preserve"><value>Now: {0} ms on average, slowest {1} ms. Longest gap from the controller: {2} ms.</value></data>
+  <data name="Battery_Low" xml:space="preserve"><value>Battery: {0}%. Almost empty: plug in the cable to charge.</value></data>
+  <data name="Battery_Wireless" xml:space="preserve"><value>Battery: {0}%. Lasts about 4 to 8 hours on a full charge.</value></data>
+  <data name="Battery_Usb" xml:space="preserve"><value>Battery: {0}%. The controller charges over the USB cable.</value></data>
+  <data name="Status_WaitingInput" xml:space="preserve"><value>Waiting for input…</value></data>
+  <data name="Status_WaitingInputTip" xml:space="preserve"><value>The controller is connected but isn't sending input (yet). On Bluetooth: press the PS button. If this stays, reconnect it.</value></data>
+  <data name="Status_Ds4Active" xml:space="preserve"><value>Virtual DualShock 4 active</value></data>
+  <data name="Status_Ds4ActiveTip" xml:space="preserve"><value>Games now see this controller as a (virtual) DualShock 4, with rumble. The calibration corrections are already applied. Turn on 'Hide from games' so games don't also see your real controller.</value></data>
+  <data name="Status_XboxActive" xml:space="preserve"><value>Virtual Xbox 360 active</value></data>
+  <data name="Status_XboxActiveTip" xml:space="preserve"><value>Games now see this controller as an Xbox 360 controller, with rumble. The calibration corrections are already applied.</value></data>
+  <data name="Status_MeasureOnly" xml:space="preserve"><value>Measuring only</value></data>
+  <data name="Status_MeasureOnlyTip" xml:space="preserve"><value>ViGEmBus is missing, so there's no virtual controller for games. You still see all values here and the app keeps learning. Install ViGEmBus (see the message at the top).</value></data>
+  <data name="Status_VirtualFailed" xml:space="preserve"><value>Virtual controller failed</value></data>
+  <data name="Status_VirtualFailedTip" xml:space="preserve"><value>The virtual controller couldn't be created: {0}. Reconnect the controller or restart your PC.</value></data>
+  <data name="Status_UnknownError" xml:space="preserve"><value>unknown error</value></data>
+  <data name="Status_Starting" xml:space="preserve"><value>Starting…</value></data>
+  <data name="Status_StartingTip" xml:space="preserve"><value>Creating the virtual controller.</value></data>
+  <data name="Profile_CardBlocked" xml:space="preserve"><value>Profile in use — running without saving</value></data>
+  <data name="Profile_CardShared" xml:space="preserve"><value>Profile: {0}</value></data>
+  <data name="Profile_CardOwn" xml:space="preserve"><value>Profile: own profile</value></data>
+  <data name="Profile_NoMacFound" xml:space="preserve"><value>(no MAC found)</value></data>
+  <data name="Hide_Hidden" xml:space="preserve"><value>Hidden from games</value></data>
+  <data name="Hide_HiddenTip" xml:space="preserve"><value>Games only see the Xbox controller, not your real PlayStation controller. A game that was already running: restart it or reconnect the controller.</value></data>
+  <data name="Hide_Working" xml:space="preserve"><value>Working…</value></data>
+  <data name="Hide_WorkingTip" xml:space="preserve"><value>Setting up HidHide.</value></data>
+  <data name="Hide_Failed" xml:space="preserve"><value>Not hidden</value></data>
+  <data name="Hide_FailedTip" xml:space="preserve"><value>Hiding didn't work, so games may see this controller twice. {0}</value></data>
+  <data name="Hide_FailedSeeNotice" xml:space="preserve"><value>Check the message at the top or Settings › HidHide.</value></data>
+  <data name="Profile_UnknownModel" xml:space="preserve"><value>Unknown type</value></data>
+  <data name="Profile_ConnectedVia" xml:space="preserve"><value>Connected now via {0}</value></data>
+  <data name="Profile_LastSeen" xml:space="preserve"><value>Last seen {0}</value></data>
+  <data name="Profile_NeverConnected" xml:space="preserve"><value>Not connected to this PC yet</value></data>
+  <data name="Profile_AlsoUsedBy" xml:space="preserve"><value>Shared: also used by {0}</value></data>
+  <data name="Profile_LinkBlocked" xml:space="preserve"><value>Profile in use by another controller: running without saving</value></data>
+  <data name="Profile_LinkOwn" xml:space="preserve"><value>Uses its own profile</value></data>
+  <data name="Profile_LinkShared" xml:space="preserve"><value>Uses shared profile: {0}</value></data>
+  <data name="Profile_ChoiceOwn" xml:space="preserve"><value>Own profile ({0})</value></data>
+  <data name="Profile_ChoiceShared" xml:space="preserve"><value>Shared: {0}</value></data>
+  <data name="Profile_NoMac" xml:space="preserve"><value>no MAC</value></data>
+  <data name="Profile_ChooseErrorTitle" xml:space="preserve"><value>Choose profile</value></data>
+  <data name="Profile_CopyTitle" xml:space="preserve"><value>Copy calibration?</value></data>
+  <data name="Profile_CopyMessage" xml:space="preserve"><value>What was learned for '{0}' is copied to '{1}'. Whatever was learned there is overwritten. Names and links stay as they are.</value></data>
+  <data name="Profile_CopyConfirm" xml:space="preserve"><value>Copy</value></data>
+  <data name="Profile_CopyDone" xml:space="preserve"><value>Calibration copied.</value></data>
+  <data name="Profile_ExportDone" xml:space="preserve"><value>Profile saved. Send the file to your friend; in DS4 Handler they choose Profiles › Import.</value></data>
+  <data name="Profile_DeleteTitle" xml:space="preserve"><value>Delete profile?</value></data>
+  <data name="Profile_DeleteMessage" xml:space="preserve"><value>Everything learned for '{0}' ({1}) is deleted, along with the name. If you connect this controller again later, it starts learning from scratch.</value></data>
+  <data name="Profile_DeleteConfirm" xml:space="preserve"><value>Delete</value></data>
+  <data name="Profile_ImportFailed" xml:space="preserve"><value>Import failed</value></data>
+  <data name="Profile_ImportTooLarge" xml:space="preserve"><value>This file is far too large for a DS4 Handler profile.</value></data>
+  <data name="Profile_ImportUnreadable" xml:space="preserve"><value>The file couldn't be read.</value></data>
+  <data name="Profile_ImportInvalid" xml:space="preserve"><value>This file isn't a valid DS4 Handler profile, or it couldn't be read.</value></data>
+  <data name="Profile_UnknownError" xml:space="preserve"><value>Unknown error.</value></data>
+  <data name="Profile_OverwriteTitle" xml:space="preserve"><value>Overwrite existing profile?</value></data>
+  <data name="Profile_OverwriteMessage" xml:space="preserve"><value>There's already a profile for this controller ({0}). What was learned there is replaced by the imported profile '{1}'.</value></data>
+  <data name="Profile_OverwriteConfirm" xml:space="preserve"><value>Overwrite</value></data>
+  <data name="Profile_ImportDone" xml:space="preserve"><value>Profile '{0}' ({1}) imported. Connect that controller and it uses it right away.</value></data>
+  <data name="Profile_ErrorTitle" xml:space="preserve"><value>That didn't work</value></data>
+  <data name="Profile_SomethingWentWrong" xml:space="preserve"><value>Something went wrong: {0}</value></data>
+  <data name="Profile_DoneTitle" xml:space="preserve"><value>Done</value></data>
+  <data name="Profile_FileNameFallback" xml:space="preserve"><value>profile</value></data>
+  <data name="Profile_SumNothing" xml:space="preserve"><value>Nothing saved yet.</value></data>
+  <data name="Profile_SumLeftStick" xml:space="preserve"><value>Left stick</value></data>
+  <data name="Profile_SumRightStick" xml:space="preserve"><value>right stick</value></data>
+  <data name="Profile_SumNotLearned" xml:space="preserve"><value>{0} not learned yet</value></data>
+  <data name="Profile_SumFullRange" xml:space="preserve"><value>{0} full range</value></data>
+  <data name="Profile_SumReaches" xml:space="preserve"><value>{0} reaches {1}</value></data>
+  <data name="Profile_SumDrift" xml:space="preserve"><value>{0} drift {1}</value></data>
+  <data name="Profile_SumNoDrift" xml:space="preserve"><value>{0} no drift</value></data>
+  <data name="Remap_GroupButtons" xml:space="preserve"><value>CONTROLLER BUTTONS</value></data>
+  <data name="Remap_GroupTriggers" xml:space="preserve"><value>TRIGGERS</value></data>
+  <data name="Remap_Keyboard" xml:space="preserve"><value>Keyboard…</value></data>
+  <data name="Remap_Off" xml:space="preserve"><value>Off</value></data>
+  <data name="Remap_Nothing" xml:space="preserve"><value>Nothing</value></data>
+  <data name="Remap_AutomationName" xml:space="preserve"><value>{0}: what the game gets</value></data>
+  <data name="Remap_KeyLabel" xml:space="preserve"><value>Key {0}</value></data>
+  <data name="Remap_GroupSymbols" xml:space="preserve"><value>FACE BUTTONS</value></data>
+  <data name="Remap_GroupShoulders" xml:space="preserve"><value>Shoulder buttons and triggers</value></data>
+  <data name="Remap_GroupDpad" xml:space="preserve"><value>D-pad</value></data>
+  <data name="Remap_GroupStickClicks" xml:space="preserve"><value>Stick clicks</value></data>
+  <data name="Remap_GroupMiddle" xml:space="preserve"><value>Center</value></data>
+  <data name="Remap_NoneChanged" xml:space="preserve"><value>Every button does what's printed on it.</value></data>
+  <data name="Remap_OneChanged" xml:space="preserve"><value>1 button changed.</value></data>
+  <data name="Remap_ManyChanged" xml:space="preserve"><value>{0} buttons changed.</value></data>
+  <data name="Remap_OutputHintXbox" xml:space="preserve"><value>On the right you see what the game gets, with Xbox names (the game sees an Xbox 360 controller).</value></data>
+  <data name="Remap_OutputHintDs4" xml:space="preserve"><value>On the right you see what the game gets, with PlayStation names (the game sees a DualShock 4).</value></data>
+  <data name="Remap_ResetAllTitle" xml:space="preserve"><value>Reset all buttons to default?</value></data>
+  <data name="Remap_ResetAllMessage" xml:space="preserve"><value>Every button on this {0} does what's printed on it again, keys are unlinked and the sticks go back to their own place. Tuning and calibration stay as they are.</value></data>
+  <data name="Remap_ResetAllConfirm" xml:space="preserve"><value>Reset to default</value></data>
+  <data name="Remap_CaptureHint" xml:space="preserve"><value>Esc stops without changing anything.</value></data>
+  <data name="Remap_KeyNotSupported" xml:space="preserve"><value>This key isn't supported. Pick another one, or press Esc to stop.</value></data>
+  <data name="Remap_Cross" xml:space="preserve"><value>Cross</value></data>
+  <data name="Remap_Circle" xml:space="preserve"><value>Circle</value></data>
+  <data name="Remap_Square" xml:space="preserve"><value>Square</value></data>
+  <data name="Remap_Triangle" xml:space="preserve"><value>Triangle</value></data>
+  <data name="Remap_SourceL1" xml:space="preserve"><value>Left shoulder button</value></data>
+  <data name="Remap_SourceR1" xml:space="preserve"><value>Right shoulder button</value></data>
+  <data name="Remap_SourceL2" xml:space="preserve"><value>Left trigger</value></data>
+  <data name="Remap_SourceR2" xml:space="preserve"><value>Right trigger</value></data>
+  <data name="Remap_SourceL3" xml:space="preserve"><value>Left stick click</value></data>
+  <data name="Remap_SourceR3" xml:space="preserve"><value>Right stick click</value></data>
+  <data name="Remap_SourcePS" xml:space="preserve"><value>PlayStation button</value></data>
+  <data name="Remap_TouchpadClick" xml:space="preserve"><value>Touchpad click</value></data>
+  <data name="Remap_SourceMute" xml:space="preserve"><value>Mic button</value></data>
+  <data name="Remap_Up" xml:space="preserve"><value>Up</value></data>
+  <data name="Remap_Down" xml:space="preserve"><value>Down</value></data>
+  <data name="Remap_Left" xml:space="preserve"><value>Left</value></data>
+  <data name="Remap_Right" xml:space="preserve"><value>Right</value></data>
+  <data name="Remap_LeftStickIn" xml:space="preserve"><value>(left stick click)</value></data>
+  <data name="Remap_RightStickIn" xml:space="preserve"><value>(right stick click)</value></data>
+  <data name="Remap_TouchpadNotXbox" xml:space="preserve"><value>Touchpad (not on Xbox)</value></data>
+  <data name="Remap_DpadUp" xml:space="preserve"><value>D-pad up</value></data>
+  <data name="Remap_DpadDown" xml:space="preserve"><value>D-pad down</value></data>
+  <data name="Remap_DpadLeft" xml:space="preserve"><value>D-pad left</value></data>
+  <data name="Remap_DpadRight" xml:space="preserve"><value>D-pad right</value></data>
+  <data name="Remap_TargetPS" xml:space="preserve"><value>PS button</value></data>
+  <data name="Tune_CurveStraight" xml:space="preserve"><value>straight</value></data>
+  <data name="Tune_CurveSofter" xml:space="preserve"><value>softer in the middle</value></data>
+  <data name="Tune_CurveFaster" xml:space="preserve"><value>quicker off center</value></data>
+  <data name="Tune_CurveCaption" xml:space="preserve"><value>curve {0} · {1}</value></data>
+  <data name="Tune_Inner" xml:space="preserve"><value>Extra deadzone</value></data>
+  <data name="Tune_Outer" xml:space="preserve"><value>End point</value></data>
+  <data name="Tune_Anti" xml:space="preserve"><value>Anti-deadzone</value></data>
+  <data name="Tune_Curve" xml:space="preserve"><value>Curve</value></data>
+  <data name="Tune_Sensitivity" xml:space="preserve"><value>Sensitivity</value></data>
+  <data name="Tune_Response" xml:space="preserve"><value>Response</value></data>
+  <data name="Tune_ResponseCalm" xml:space="preserve"><value>calm</value></data>
+  <data name="Tune_ResponseFast" xml:space="preserve"><value>fast</value></data>
+  <data name="Tune_PerSecond" xml:space="preserve"><value>{0} per second</value></data>
+  <data name="Tune_EveryReading" xml:space="preserve"><value>Every reading (default)</value></data>
+  <data name="Tune_PollNote" xml:space="preserve"><value>Only available for a DualShock 4 over Bluetooth. Over USB the controller decides itself how often it measures.</value></data>
+  <data name="Tune_SaveNoteBlocked" xml:space="preserve"><value>Changes work now, but aren't saved: this profile is in use by another controller.</value></data>
+  <data name="Tune_SaveNoteUnreadable" xml:space="preserve"><value>Changes work now, but aren't saved: the profile file couldn't be read. The file is left untouched.</value></data>
+  <data name="Update_ChangelogLink" xml:space="preserve"><value>See all changes</value></data>
+  <data name="Update_NotChecked" xml:space="preserve"><value>Not checked yet.</value></data>
+  <data name="Update_Version" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="Update_UpdatedTitle" xml:space="preserve"><value>DS4 Handler was updated to version {0}</value></data>
+  <data name="Update_NewInThisVersion" xml:space="preserve"><value>New in this version:</value></data>
+  <data name="Update_SettingsKept" xml:space="preserve"><value>Your profiles and settings were kept.</value></data>
+  <data name="Update_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Update_CloseTip" xml:space="preserve"><value>Hide this message.</value></data>
+  <data name="Update_NewIn" xml:space="preserve"><value>New in {0}:</value></data>
+  <data name="Update_Downloading" xml:space="preserve"><value>Downloading version {0}… {1}%</value></data>
+  <data name="Update_DownloadingText" xml:space="preserve"><value>Then the app closes briefly and the new version is installed. Your profiles and settings are kept.</value></data>
+  <data name="Update_AvailableTitle" xml:space="preserve"><value>New version available: {0}</value></data>
+  <data name="Update_Failed" xml:space="preserve"><value>Updating didn't work: {0}</value></data>
+  <data name="Update_InstalledText" xml:space="preserve"><value>You have version {0} now. Updating takes about a minute; the app closes briefly and then restarts by itself. Your profiles and settings are kept.</value></data>
+  <data name="Update_TryAgain" xml:space="preserve"><value>Try again</value></data>
+  <data name="Update_UpdateNow" xml:space="preserve"><value>Update now</value></data>
+  <data name="Update_Later" xml:space="preserve"><value>Later</value></data>
+  <data name="Update_PortableText" xml:space="preserve"><value>You're using the portable version {0}. Download the new version and replace this file, or install with the Setup; your profiles are kept.</value></data>
+  <data name="Update_OpenDownloadPage" xml:space="preserve"><value>Open download page</value></data>
+  <data name="Update_Checking" xml:space="preserve"><value>Checking for a new version…</value></data>
+  <data name="Update_StatusAvailable" xml:space="preserve"><value>Version {0} is available (you have {1}).</value></data>
+  <data name="Update_StatusUpToDate" xml:space="preserve"><value>You have the latest version. Last checked at {0}.</value></data>
+  <data name="Update_Cancelled" xml:space="preserve"><value>you cancelled the installation.</value></data>
+  <data name="Update_MoreNotes" xml:space="preserve"><value>and {0} other improvements</value></data>
+  <data name="Update_UntrustedUrl" xml:space="preserve"><value>Unexpected download address: {0}</value></data>
+  <data name="Update_Incomplete" xml:space="preserve"><value>Download incomplete ({0} of {1} bytes).</value></data>
+  <data name="HidHide_SettingsReadOnly" xml:space="preserve"><value>Settings couldn't be read or saved safely, so the app isn't hiding any controllers right now (otherwise they could stay hidden). Restart the app; the log file has more details.</value></data>
+  <data name="HidHide_SharedHost" xml:space="preserve"><value>The app is running through dotnet.exe. Start DS4Handler.exe itself, otherwise HidHide can't add the app as an exception and the controller stays visible.</value></data>
+  <data name="HidHide_PathFailed" xml:space="preserve"><value>The folder DS4 Handler is in couldn't be passed to HidHide (for example a network drive). Put the app on a local drive.</value></data>
+  <data name="HidHide_NotInstalled" xml:space="preserve"><value>HidHide isn't installed.</value></data>
+  <data name="HidHide_Busy" xml:space="preserve"><value>HidHide is busy: another program (like HidHide Configuration Client or DS4Windows) has it open. Close that program and click Check again.</value></data>
+  <data name="HidHide_Error" xml:space="preserve"><value>HidHide reported an error: {0}</value></data>
+  <data name="Library_OtherModel" xml:space="preserve"><value>That profile belongs to a different type of controller. Pick a profile of a {0}, or copy the calibration.</value></data>
+  <data name="Library_InUse" xml:space="preserve"><value>That profile is already used by another connected controller. Two controllers can't learn into the same profile at the same time.</value></data>
+  <data name="Library_SameProfile" xml:space="preserve"><value>Source and target are the same profile.</value></data>
+  <data name="Library_NothingToCopy" xml:space="preserve"><value>Nothing has been learned for this profile yet to copy.</value></data>
+  <data name="Library_NothingToExport" xml:space="preserve"><value>Nothing has been learned for this profile yet to export.</value></data>
+  <data name="Library_FileSaveFailed" xml:space="preserve"><value>The file couldn't be saved: {0}</value></data>
+  <data name="Library_DeleteInUse" xml:space="preserve"><value>This profile is in use by a connected controller. Disconnect it first.</value></data>
+  <data name="Library_DeleteFailed" xml:space="preserve"><value>The profile couldn't be deleted: {0}</value></data>
+  <data name="Library_UserCannotSave" xml:space="preserve"><value>The controller using this profile can't save it right now (the profile couldn't be read). Reconnect it and try again.</value></data>
+  <data name="Library_SaveFailed" xml:space="preserve"><value>The profile couldn't be saved: {0}</value></data>
 </root>

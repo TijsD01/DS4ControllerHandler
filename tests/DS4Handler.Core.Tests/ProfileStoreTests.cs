@@ -181,11 +181,9 @@ public sealed class ProfileStoreTests : IDisposable
     }
 
     [Fact]
-    public void DefaultDirectory_IsUnderDataRoot()
+    public void DefaultDirectory_IsUnderApplicationData()
     {
-        // macOS: ~/Library/Application Support (LocalApplicationData); elsewhere %APPDATA% / ~/.config.
-        var folder = OperatingSystem.IsMacOS() ? Environment.SpecialFolder.LocalApplicationData : Environment.SpecialFolder.ApplicationData;
-        var expected = Path.Combine(Environment.GetFolderPath(folder), "DS4ControllerHandler", "profiles");
+        var expected = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DS4ControllerHandler", "profiles");
         Assert.Equal(expected, ProfileStore.DefaultDirectory);
     }
 

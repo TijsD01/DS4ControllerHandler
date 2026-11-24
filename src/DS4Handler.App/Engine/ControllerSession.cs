@@ -241,7 +241,7 @@ public sealed class ControllerSession : IDisposable
         _stream = stream;
         stream.ReadTimeout = ReadTimeoutMs;
         stream.WriteTimeout = WriteTimeoutMs;
-        if (OperatingSystem.IsWindows() && HidInputQueue.Shorten(stream) is { } why && Interlocked.Exchange(ref _queueWarned, 1) == 0) // once per process, not per reconnect
+        if (HidInputQueue.Shorten(stream) is { } why && Interlocked.Exchange(ref _queueWarned, 1) == 0) // once per process, not per reconnect
             Log.Info($"{DisplayName}: invoerwachtrij niet ingekort ({why}); na een hapering kan oude invoer even naijlen.");
 
         var identity = ControllerIdentity.Read(_device, stream, Model, Connection);
@@ -686,7 +686,7 @@ public sealed class ControllerSession : IDisposable
 
         // Ask Windows for game-grade scheduling on this thread (MMCSS); undone in finally.
         var mmcss = SchedulingBoost.EnterGamesThread();
-        if (mmcss == IntPtr.Zero && OperatingSystem.IsWindows()) Log.Info($"{Id}: Windows-voorrang (MMCSS) geweigerd; lezen werkt op normale prioriteit.");
+        if (mmcss == IntPtr.Zero) Log.Info($"{Id}: Windows-voorrang (MMCSS) geweigerd; lezen werkt op normale prioriteit.");
 
         try
         {

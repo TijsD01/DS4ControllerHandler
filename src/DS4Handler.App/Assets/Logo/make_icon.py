@@ -5,15 +5,14 @@ filled, with the DualShock 4 light bar glowing along its top and both stick caps
 centre (the app's job is keeping them there). Sizes up to 24 px drop the glow and use bigger
 details, so the taskbar and tray stay crisp.
 
-Run: python3 make_icon.py   (needs Pillow). Writes app.ico, AppIcon.icns (the macOS app icon, used by
-installer/mac/make-app.sh) and preview.png next to this file; preview.png is only for looking at and is not shipped.
+Run: python3 make_icon.py   (needs Pillow). Writes app.ico and preview.png next to this file;
+preview.png is only for looking at and is not shipped.
 """
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter
 
 HERE = Path(__file__).parent
 SIZES = [16, 20, 24, 32, 40, 48, 64, 96, 128, 256]
-MAC_SIZES = [32, 64, 128, 256, 512, 1024]
 SUPERSAMPLE = 8
 
 TILE_TOP = (0x1A, 0x27, 0x45)
@@ -48,8 +47,7 @@ def outline_points() -> list[tuple[float, float]]:
 
 
 def draw(size: int) -> Image.Image:
-    # Same 2048 px canvas for the big macOS sizes as for 256 px; 8x of 1024 px would need gigabytes.
-    s = size * min(SUPERSAMPLE, max(1, 2048 // size))
+    s = size * SUPERSAMPLE
     small = size <= 24
     img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
 
@@ -96,8 +94,6 @@ def draw(size: int) -> Image.Image:
 def main() -> None:
     frames = [draw(n) for n in SIZES]
     frames[-1].save(HERE / "app.ico", format="ICO", sizes=[(n, n) for n in SIZES], append_images=frames[:-1])
-    mac = [draw(n) for n in MAC_SIZES]
-    mac[-1].save(HERE / "AppIcon.icns", format="ICNS", append_images=mac[:-1])
 
     # Every size on a light and a dark taskbar colour.
     width = sum(SIZES) + 12 * (len(SIZES) + 1)

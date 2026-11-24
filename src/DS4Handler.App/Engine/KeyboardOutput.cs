@@ -23,7 +23,6 @@ internal static class KeyboardOutput
 
     private static void Send(ushort scanCode, uint flags)
     {
-        if (!OperatingSystem.IsWindows()) return; // shortcut: no key output on macOS yet; needs CGEvent plus the Accessibility permission
         flags |= KeyeventfScanCode;
         if ((scanCode >> 8) == 0xE0) flags |= KeyeventfExtendedKey;
         var input = new Input

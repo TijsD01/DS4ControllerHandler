@@ -23,16 +23,11 @@ public sealed class ProfileStore
         _directory = directory;
     }
 
-    /// <summary>
-    /// App data folder: %APPDATA%\DS4ControllerHandler on Windows, ~/Library/Application Support/DS4ControllerHandler
-    /// on macOS (.NET maps LocalApplicationData there; ApplicationData would be ~/.config).
-    /// </summary>
-    public static string DataRoot { get; } = Path.Combine(
-        Environment.GetFolderPath(OperatingSystem.IsMacOS() ? Environment.SpecialFolder.LocalApplicationData : Environment.SpecialFolder.ApplicationData),
-        "DS4ControllerHandler");
-
-    /// <summary>The profiles folder inside <see cref="DataRoot"/>.</summary>
-    public static string DefaultDirectory => Path.Combine(DataRoot, "profiles");
+    /// <summary>%APPDATA%/DS4ControllerHandler/profiles (or the platform equivalent).</summary>
+    public static string DefaultDirectory => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "DS4ControllerHandler",
+        "profiles");
 
     public string Directory => _directory;
 

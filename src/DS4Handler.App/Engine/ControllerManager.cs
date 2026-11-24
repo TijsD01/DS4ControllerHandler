@@ -93,13 +93,6 @@ public sealed class ControllerManager : IDisposable
 
     private void ConnectDriver()
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            // ViGEmBus is Windows only; on macOS the session runs without a virtual pad (see ControllerSession).
-            DriverState = VirtualDriverState.Missing;
-            Bump();
-            return;
-        }
         try
         {
             _vigem = new ViGEmClient();

@@ -10,8 +10,7 @@ public static class Log
 {
     private static readonly object Gate = new();
 
-    public static string DataDirectory { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DS4ControllerHandler");
+    public static string DataDirectory => DS4Handler.Core.Profiles.ProfileStore.DataRoot;
 
     public static string FilePath { get; } = Path.Combine(DataDirectory, "log.txt");
 

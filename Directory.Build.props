@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
     <HidSharpVersion>2.6.4</HidSharpVersion>
+    <AvaloniaVersion>11.2.3</AvaloniaVersion>
   </PropertyGroup>
 </Project>

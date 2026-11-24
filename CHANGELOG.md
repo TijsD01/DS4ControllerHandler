@@ -3,6 +3,12 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
+## 2.4.0
+
+- De app is er nu ook in het Engels. Kies de taal bij Instellingen → Taal; standaard volgt de app de taal van Windows. The app is now available in English too: pick it under Settings → Language.
+- Een versleten stick loopt bij rustig richten niet meer achter: het trillingsfilter volgt je beweging nu vrijwel zonder vertraging (ongeveer 1–2 ms in plaats van 16 ms), en stilgehouden blijft de stick even rustig.
+- Het schuifje "Reactie" kiest nu alleen nog tussen zoveel mogelijk trillen wegfilteren (rustig) en stoppen en van richting wisselen iets strakker volgen (snel). Achterlopen doet de stick bij beide niet meer.
+
 ## 2.3.1
 
 - Knoppen geven nu een klein, kort indrukeffect als je erop klikt.

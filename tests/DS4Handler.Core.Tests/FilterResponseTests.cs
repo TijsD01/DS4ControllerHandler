@@ -35,50 +35,133 @@ public class FilterResponseTests
         return c;
     }
 
-    /// <summary>Slow aiming: a 0.5 Hz sweep of +-0.3 around 0.4. Returns (lag in seconds, output spread around the true path).</summary>
-    private static (double Lag, double Noise) SlowAim(StickCalibrator c)
+    /// <summary>
+    /// Slow aiming: a 0.5 Hz sweep of +-0.3 around 0.4. Returns (lag in seconds, output spread around the
+    /// true path shifted by that lag), each averaged over a few noise seeds: one seed alone is off by
+    /// up to about 2 ms.
+    /// </summary>
+    private static (double Lag, double Noise) SlowAim(float response)
     {
-        var rng = new Random(7);
-        int n = 4 * Hz;
-        var reference = new double[n];
-        var output = new double[n];
-        for (int i = 0; i < n; i++)
+        double lagSum = 0, noiseSum = 0;
+        const int seeds = 8;
+        for (int seed = 0; seed < seeds; seed++)
         {
-            double x = 0.4 + 0.3 * Math.Sin(2 * Math.PI * 0.5 * i * Dt);
-            var r = Raw(x, 0, rng, 3);
-            output[i] = c.Process(r.X, r.Y, Dt).X;
-            reference[i] = c.Map(B(x * 127.5 + 127.5), 128).X; // the path without shake
+            var c = Worn(response);
+            var rng = new Random(100 + seed);
+            int n = 4 * Hz;
+            var reference = new double[n];
+            var output = new double[n];
+            for (int i = 0; i < n; i++)
+            {
+                double x = 0.4 + 0.3 * Math.Sin(2 * Math.PI * 0.5 * i * Dt);
+                var r = Raw(x, 0, rng, 3);
+                output[i] = c.Process(r.X, r.Y, Dt).X;
+                reference[i] = c.Map(B(x * 127.5 + 127.5), 128).X; // the path without shake
+            }
+            var (lag, noise) = Lag(reference, output);
+            lagSum += lag;
+            noiseSum += noise;
         }
-        double lag = Lag(reference, output);
-        int shift = (int)Math.Round(lag / Dt);
-        double sum = 0;
-        int count = 0;
-        for (int i = Hz + shift; i < n; i++) { double d = output[i] - reference[i - shift]; sum += d * d; count++; }
-        return (lag, Math.Sqrt(sum / count));
+        return (lagSum / seeds, noiseSum / seeds);
     }
 
-    private static double Lag(double[] reference, double[] output)
+    /// <summary>Delay (to 0.05 sample) that best aligns output with reference after the first second, and the RMS error left.</summary>
+    private static (double Lag, double Noise) Lag(double[] reference, double[] output)
     {
         double best = double.MaxValue, bestShift = 0;
-        for (int shift = 0; shift <= 50; shift++)
+        for (double shift = -2; shift <= 12; shift += 0.05)
         {
             double err = 0;
-            for (int i = Hz; i < reference.Length; i++) { double d = output[i] - reference[i - shift]; err += d * d; }
+            int count = 0;
+            for (int i = Hz; i < reference.Length - 3; i++)
+            {
+                double t = i - shift;
+                int i0 = (int)Math.Floor(t);
+                double v = reference[i0] + (reference[i0 + 1] - reference[i0]) * (t - i0);
+                err += (output[i] - v) * (output[i] - v);
+                count++;
+            }
+            err /= count;
             if (err < best) { best = err; bestShift = shift; }
         }
-        return bestShift * Dt;
+        return (bestShift * Dt, Math.Sqrt(best));
     }
 
     [Fact]
-    public void Fast_response_cuts_slow_aim_lag_at_least_in_half()
+    public void Slow_aim_has_almost_no_lag_at_any_setting()
     {
-        var (calmLag, calmNoise) = SlowAim(Worn(0f));
-        var (midLag, midNoise) = SlowAim(Worn(0.5f));
-        var (fastLag, fastNoise) = SlowAim(Worn(1f));
-        _out.WriteLine($"calm: lag {calmLag * 1000:F0} ms, noise {calmNoise:F4}; half: lag {midLag * 1000:F0} ms, noise {midNoise:F4}; fast: lag {fastLag * 1000:F0} ms, noise {fastNoise:F4}");
-        Assert.True(midLag < calmLag && midLag >= fastLag, "lag must fall steadily with the setting");
-        Assert.True(fastLag <= calmLag / 2, $"lag {calmLag * 1000:F0} ms -> {fastLag * 1000:F0} ms");
-        Assert.True(fastLag <= 0.024, $"fast lag {fastLag * 1000:F0} ms");
+        var (calmLag, calmNoise) = SlowAim(0f);
+        var (midLag, midNoise) = SlowAim(0.5f);
+        var (fastLag, fastNoise) = SlowAim(1f);
+        _out.WriteLine($"calm: lag {calmLag * 1000:F1} ms, noise {calmNoise:F4}; half: lag {midLag * 1000:F1} ms, noise {midNoise:F4}; fast: lag {fastLag * 1000:F1} ms, noise {fastNoise:F4}");
+        // The old one-pole filter lagged 16 / 8 / 4 ms here (noise 0.0086 / 0.0106 / 0.0135).
+        foreach (var lag in new[] { calmLag, midLag, fastLag })
+            Assert.True(lag <= 0.0025, $"lag {lag * 1000:F1} ms");
+        Assert.True(calmNoise <= 0.0100, $"calm noise {calmNoise:F4}");
+        // The setting now only trades leftover shake for following turns and stops more closely.
+        Assert.True(calmNoise < midNoise && midNoise < fastNoise, "noise must rise with the setting");
+    }
+
+    [Theory]
+    [InlineData(0f)]
+    [InlineData(1f)]
+    public void Steady_move_has_no_lag(float response)
+    {
+        // Noise-free so only the filter itself is measured; the old low-pass trailed by ~15 ms here.
+        var c = Worn(response);
+        const double speed = 1;
+        double sum = 0;
+        int count = 0;
+        for (int i = 0; i < 0.75 * Hz; i++)
+        {
+            double x = 0.1 + speed * i * Dt;
+            var raw = Raw(x, 0, new Random(0), 0);
+            float o = c.Process(raw.X, raw.Y, Dt).X;
+            if (i >= 0.4 * Hz) { sum += c.Map(raw.X, raw.Y).X - o; count++; }
+        }
+        double lagMs = sum / count / speed * 1000;
+        _out.WriteLine($"response {response}: steady lag {lagMs:F2} ms");
+        Assert.True(Math.Abs(lagMs) <= 0.5, $"steady lag {lagMs:F2} ms");
+    }
+
+    /// <summary>
+    /// Sweeps from -0.5 to 0.4 at <paramref name="speed"/> units per second (infinity: one step), then
+    /// holds, noise-free. Returns the largest overshoot past the target and the number of reports
+    /// after the stop until the overshoot stays below 0.25%.
+    /// </summary>
+    private static (double Overshoot, int Reports) Stop(float response, double speed)
+    {
+        var c = Worn(response);
+        var none = new Random(0);
+        for (int i = 0; i < Hz / 2; i++) { var r = Raw(-0.5, 0, none, 0); c.Process(r.X, r.Y, Dt); }
+        double x = -0.5;
+        while (x < 0.4) { x = Math.Min(0.4, x + speed * Dt); var r = Raw(x, 0, none, 0); c.Process(r.X, r.Y, Dt); }
+        double target = c.Map(B(0.4 * 127.5 + 127.5), 128).X, worst = 0;
+        int last = 0;
+        for (int i = 1; i <= 50; i++)
+        {
+            var r = Raw(0.4, 0, none, 0);
+            double over = c.Process(r.X, r.Y, Dt).X - target;
+            worst = Math.Max(worst, over);
+            if (over > 0.0025) last = i;
+        }
+        return (worst, last);
+    }
+
+    [Fact]
+    public void Sudden_stop_overshoots_little_and_briefly()
+    {
+        foreach (float response in new[] { 0f, 1f })
+            foreach (double speed in new[] { 1, 3, 10, 30, 100, double.PositiveInfinity })
+            {
+                var (over, reports) = Stop(response, speed);
+                _out.WriteLine($"response {response}, stop from {speed} u/s: overshoot {over * 100:F2}% for {reports} report(s)");
+                // A flick or step (the motion threshold sees it) is taken at once: no overshoot.
+                if (speed >= 100) Assert.True(over <= 0.0025 && reports == 0, $"{speed} u/s: {over:F4} for {reports}");
+                // A stop out of a sweep is only seen over a few reports, the price of no lag while moving.
+                Assert.True(over <= 0.012, $"{speed} u/s: overshoot {over:F4}");
+                Assert.True(reports <= (response > 0 ? 4 : 10), $"{speed} u/s: overshoot lasts {reports} reports");
+            }
     }
 
     [Fact]

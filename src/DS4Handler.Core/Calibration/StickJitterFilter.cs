@@ -1,17 +1,17 @@
 namespace DS4Handler.Core.Calibration;
 
 /// <summary>
-/// Adaptive low-pass filter for a calibrated 2D stick position, after the One Euro filter
-/// (Casiez, Roussel and Vogel, CHI 2012), tuned from a learned jitter amplitude.
+/// Adaptive jitter filter for a calibrated 2D stick position, tuned from a learned jitter amplitude:
+/// a constant-velocity (alpha-beta) tracker whose bandwidth rises with speed, as in the One Euro
+/// filter (Casiez, Roussel and Vogel, CHI 2012).
 ///
 /// <list type="bullet">
-/// <item>The position is filtered as one vector with one shared speed estimate, so the
-/// direction does not wobble.</item>
-/// <item>The cutoff rises with speed: while the stick is still or moving slowly, a low cutoff
-/// removes jitter; during fast moves the cutoff is high, so there is almost no lag.</item>
-/// <item>A jump far bigger than the jitter (a flick) counts as fast motion straight away, so
-/// it is followed within a sample or two.</item>
-/// <item>While slow, a tiny moving deadband (hysteresis, a fraction of the jitter, about what is left after the low-pass) holds the
+/// <item>The position is filtered as one vector, so the direction does not wobble.</item>
+/// <item>The tracker predicts the next position from its velocity, so a steady move has no lag;
+/// only the jitter around it is smoothed. While the stick is held it acts as a plain low-pass.</item>
+/// <item>A jump far bigger than the jitter (a flick) is taken at once, so it is followed within a
+/// sample or two.</item>
+/// <item>While still or very slow, a small moving deadband (a fraction of the jitter) holds the
 /// output still until the filtered position really moves away.</item>
 /// <item>How strong all this is follows from the jitter: a clean stick is passed through
 /// unchanged, a shaky one gets more filtering.</item>
@@ -24,8 +24,10 @@ public sealed class StickJitterFilter
 {
     private readonly StickCalibrationOptions _o;
 
-    private float _fx, _fy;   // low-passed position
-    private float _vx, _vy;   // low-passed velocity (units per second)
+    private float _fx, _fy;   // tracked position
+    private float _vx, _vy;   // tracked velocity (units per second)
+    private float _sx, _sy;   // slow tracker for the speed estimate
+    private float _svx, _svy;
     private float _ox, _oy;   // output (deadband reference)
     private bool _primed;
 
@@ -37,7 +39,7 @@ public sealed class StickJitterFilter
     /// <summary>Forgets the filter state; the next input passes through unchanged.</summary>
     public void Reset()
     {
-        _fx = _fy = _vx = _vy = _ox = _oy = 0f;
+        _fx = _fy = _vx = _vy = _sx = _sy = _svx = _svy = _ox = _oy = 0f;
         _primed = false;
         Speed = 0f;
     }
@@ -61,16 +63,16 @@ public sealed class StickJitterFilter
     /// <param name="strength">Filter strength 0..1, see <see cref="StrengthFor"/>.</param>
     /// <param name="dt">Seconds since the previous sample.</param>
     /// <param name="response">
-    /// User choice 0..1, already clamped by the caller, between calm and fast (see <see cref="Tuning.StickTuning.FilterResponse"/>). 0 is the
-    /// learned default; 1 raises the cutoff 5×, makes it follow speed 4× sooner, halves the motion threshold
-    /// and drops the moving deadband (slow aiming on a worn stick: about 4 ms lag instead of 16 ms).
+    /// User choice 0..1, already clamped by the caller, between calm and fast (see <see cref="Tuning.StickTuning.FilterResponse"/>).
+    /// Steady moves have no lag either way; 1 follows changes of direction and stops more closely
+    /// at the cost of more leftover tremble (higher bandwidth, lower motion threshold, no deadband).
     /// </param>
     public (float X, float Y) Filter(float x, float y, float jitter, float strength, float dt, float response = 0f)
     {
         if (x == 0f && y == 0f)
         {
             // Inside the deadzone: exactly zero, and start fresh from zero.
-            _fx = _fy = _vx = _vy = _ox = _oy = 0f;
+            _fx = _fy = _vx = _vy = _sx = _sy = _svx = _svy = _ox = _oy = 0f;
             _primed = true;
             Speed = 0f;
             return (0f, 0f);
@@ -78,52 +80,52 @@ public sealed class StickJitterFilter
 
         if (!_primed || strength <= 0f)
         {
-            // Clean stick (or first sample): pass through, but keep the state in step so that
-            // switching the filter on later is seamless.
-            if (_primed && dt > 0f)
-            {
-                float a0 = Alpha(_o.JitterSpeedCutoffHz, dt);
-                _vx += ((x - _fx) / dt - _vx) * a0;
-                _vy += ((y - _fy) / dt - _vy) * a0;
-            }
+            // Clean stick (or first sample): pass through, but keep the speed estimate in step so
+            // that switching the filter on later is seamless.
+            if (_primed) TrackSpeed(x, y, dt);
+            else { _sx = x; _sy = y; }
             _fx = _ox = x;
             _fy = _oy = y;
+            _vx = _vy = 0f;
             _primed = true;
-            Speed = MathF.Sqrt(_vx * _vx + _vy * _vy);
             return (x, y);
         }
 
-        // Velocity from the change against the filtered position, low-passed (One Euro "dcutoff").
-        float ex = x - _fx, ey = y - _fy;
-        float rawVx = ex / dt, rawVy = ey / dt;
-        float ad = Alpha(_o.JitterSpeedCutoffHz, dt);
-        _vx += (rawVx - _vx) * ad;
-        _vy += (rawVy - _vy) * ad;
-        float speed = MathF.Sqrt(_vx * _vx + _vy * _vy);
+        // Bandwidth follows a slow, low-noise speed estimate. Using the tracker's own velocity would
+        // feed back: more bandwidth, noisier velocity, more bandwidth.
+        float speed = TrackSpeed(x, y, dt);
 
-        // A jump well outside the jitter is real motion: react on this very sample.
+        // Constant-velocity (alpha-beta) tracker: predict where the stick is now and correct by the
+        // surprise. A steady move is predicted exactly, so unlike a plain low-pass it has no lag;
+        // only the noise in the surprise is smoothed.
+        float px = _fx + _vx * dt, py = _fy + _vy * dt;
+        float ex = x - px, ey = y - py;
         float err = MathF.Sqrt(ex * ex + ey * ey);
-        float motionFactor = _o.JitterMotionFactor * (1f - 0.5f * response);
-        if (err > motionFactor * jitter + _o.JitterMotionMargin && err / dt > speed)
-        {
-            // Remember it, so the rest of the move is followed closely too.
-            _vx = rawVx;
-            _vy = rawVy;
-            speed = err / dt;
-        }
-        Speed = speed;
+        // A surprise well outside the jitter (a flick, or a sudden stop) is real: from the motion
+        // threshold up to twice that, the step is taken more and more fully and the velocity is
+        // dropped, so a flick that stops does not overshoot. Graded rather than all-or-nothing, so
+        // one wild sample does not reset the filter to a noisy position (which would set off the next).
+        float threshold = _o.JitterMotionFactor * (1f - 0.5f * response) * jitter + _o.JitterMotionMargin;
+        float jump = Math.Clamp(err / threshold - 1f, 0f, 1f);
 
-        // One Euro: cutoff = min cutoff + beta * speed. A weak filter has a very high min cutoff.
+        // One Euro style: the bandwidth rises with speed. A weak filter has a very high bandwidth.
         float s2 = Math.Max(strength * strength, 1e-4f);
-        float cutoff = _o.JitterMinCutoffHz * (1f + 4f * response) / s2 + _o.JitterBeta * (1f + 3f * response) * speed;
-        float a = Alpha(cutoff, dt);
-        _fx += ex * a;
-        _fy += ey * a;
+        float cutoff = (_o.JitterMinCutoffHz / s2 + _o.JitterBeta * speed) * (1f + 2f * response);
+        // Benedict-Bordner gains (least noise for how fast the velocity follows). While the stick is
+        // held the position gain is that of a plain low-pass of this bandwidth (calmest); while it
+        // moves, that of a critically damped tracker (twice as quick to follow).
+        float slow = Math.Clamp(1f - speed / _o.JitterSlowSpeed, 0f, 1f);
+        float a = Alpha(cutoff, dt), g = a * (2f - a - slow * (1f - a)), h = g * g / (2f - g);
+        g += (1f - g) * jump;
+        _fx = px + g * ex;
+        _fy = py + g * ey;
+        _vx = (_vx + h * ex / dt) * (1f - jump);
+        _vy = (_vy + h * ey / dt) * (1f - jump);
 
-        // Moving deadband while slow: the output only follows once the filtered position moves
-        // further than the jitter; it fades out as the stick speeds up.
-        float band = _o.JitterDeadbandFactor * jitter * strength * (1f - response)
-                     * Math.Clamp(1f - speed / _o.JitterSlowSpeed, 0f, 1f);
+        // Moving deadband while slow: the output only follows once the tracked position moves
+        // further than a fraction of the jitter; it is gone at aiming speed (and on a jump), so it
+        // adds no lag there.
+        float band = _o.JitterDeadbandFactor * jitter * strength * (1f - response) * slow * (1f - jump);
         float dx = _fx - _ox, dy = _fy - _oy;
         float d = MathF.Sqrt(dx * dx + dy * dy);
         if (d > band)
@@ -155,6 +157,22 @@ public sealed class StickJitterFilter
             ry *= target / r;
         }
         return (rx, ry);
+    }
+
+    /// <summary>Fixed-bandwidth tracker of the input; returns its speed, held at peaks and decaying slowly.</summary>
+    private float TrackSpeed(float x, float y, float dt)
+    {
+        // Critically damped: the speed estimate does not ring after a flick.
+        float a = Alpha(_o.JitterSpeedCutoffHz, dt), g = a * (2f - a), h = a * a;
+        float ex = x - (_sx + _svx * dt), ey = y - (_sy + _svy * dt);
+        _sx += _svx * dt + g * ex;
+        _sy += _svy * dt + g * ey;
+        _svx += h * ex / dt;
+        _svy += h * ey / dt;
+        // Held at peaks so the bandwidth does not drop at every turn of a slow aim.
+        float s = MathF.Sqrt(_svx * _svx + _svy * _svy);
+        Speed = Math.Max(s, Speed + (s - Speed) * a);
+        return Speed;
     }
 
     private static float Alpha(float cutoffHz, float dt)

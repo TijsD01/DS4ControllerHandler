@@ -49,6 +49,9 @@ public sealed class AppSettings
     /// <summary>Look on GitHub for a newer version when the app starts (and every 12 hours after that).</summary>
     public bool CheckForUpdates { get; set; } = true;
 
+    /// <summary>UI language ("nl" or "en"); null = the Windows language (Dutch when Windows is Dutch, else English).</summary>
+    public string? Language { get; set; }
+
     /// <summary>Version that ran last time, to show "what's new" once after an update.</summary>
     public string? LastRunVersion { get; set; }
 

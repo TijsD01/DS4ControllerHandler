@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:DS4Handler.App.ViewModels"
              xmlns:c="clr-namespace:DS4Handler.App.Controls"
+             xmlns:l="clr-namespace:DS4Handler.App.Lang"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}">
     <UserControl.Resources>
@@ -37,7 +38,7 @@
     </UserControl.Resources>
 
     <StackPanel>
-        <TextBlock Text="Instellingen" Style="{StaticResource H1}" Margin="0,0,0,20" />
+        <TextBlock Text="{l:Loc Settings_Title}" Style="{StaticResource H1}" Margin="0,0,0,20" />
 
         <Grid>
             <Grid.ColumnDefinitions>

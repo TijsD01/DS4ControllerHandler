@@ -90,7 +90,12 @@ public partial class App : Application
 
         _host = new AppHost();
         // Before any view model, window or tray exists: they read their text once.
-        Log.Info("Taal: " + Loc.Apply(_host.SettingsStore.Read(s => s.Language)));
+        // No choice saved yet: a new user gets the Windows language, a user from before 2.4.0 keeps the Dutch app
+        // they had. Saved right away, so it never flips later (e.g. on the next start, when the file does exist).
+        string? saved = _host.SettingsStore.Read(s => s.Language);
+        string language = Loc.Apply(saved ?? (_host.SettingsStore.ExistedAtStartup ? "nl" : null));
+        if (saved == null) _host.SettingsStore.Update(s => s.Language = language);
+        Log.Info("Taal: " + language);
         _viewModel = new MainViewModel(_host, new Dialogs(() => _window));
         _window = new MainWindow(_viewModel, AppIcon.ForWindow());
         _window.QuitRequested += (_, _) => Quit();
@@ -118,8 +123,9 @@ public partial class App : Application
         // Keep the Run entry pointing at this exe (the app may have been moved or updated).
         if (_host.SettingsStore.Read(s => s.StartWithWindows)) _host.SetStartWithWindows(true);
 
-        bool startHidden = _host.SettingsStore.Read(s => s.StartMinimized)
-                           || e.Args.Contains("--minimized", StringComparer.OrdinalIgnoreCase);
+        bool startHidden = (_host.SettingsStore.Read(s => s.StartMinimized)
+                            || e.Args.Contains("--minimized", StringComparer.OrdinalIgnoreCase))
+                           && !e.Args.Contains("--show", StringComparer.OrdinalIgnoreCase); // a restart from Settings comes back visible
         if (!startHidden) ShowWindow();
     }
 
@@ -316,7 +322,7 @@ public partial class App : Application
         // Only now: started earlier, the new instance would find the mutex taken and just ask this one to show itself.
         if (_restart && Environment.ProcessPath is { } exe)
         {
-            try { System.Diagnostics.Process.Start(exe); }
+            try { System.Diagnostics.Process.Start(exe, "--show"); }
             catch (Exception ex) { Log.Error("Herstarten mislukt", ex); }
         }
         base.OnExit(e);

@@ -49,7 +49,7 @@ public sealed class AppSettings
     /// <summary>Look on GitHub for a newer version when the app starts (and every 12 hours after that).</summary>
     public bool CheckForUpdates { get; set; } = true;
 
-    /// <summary>UI language ("nl" or "en"); null = the Windows language (Dutch when Windows is Dutch, else English).</summary>
+    /// <summary>UI language ("nl" or "en"). Null only before the first start of 2.4.0, which saves the Windows language (new users) or "nl" (existing users).</summary>
     public string? Language { get; set; }
 
     /// <summary>Version that ran last time, to show "what's new" once after an update.</summary>

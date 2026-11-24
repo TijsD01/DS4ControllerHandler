@@ -20,6 +20,7 @@ cp "$here/../../src/DS4Handler.App/Assets/Logo/AppIcon.icns" "$app/Contents/Reso
 # Ad-hoc signature: no Apple account needed, but without any signature Apple-chip Macs
 # call the app "damaged" instead of offering to open it anyway.
 codesign --force --deep -s - "$app"
+codesign --verify --deep --verbose=2 "$app" # fail here, not on the user's Mac ("is damaged")
 
 mkdir -p "$(dirname "$zip")"
 # ditto keeps the signature and the executable bit, which plain zip tools can lose.

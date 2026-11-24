@@ -1,13 +1,9 @@
 using System.Globalization;
-using DS4Handler.App.Engine;
 using DS4Handler.Core.Calibration;
 
-namespace DS4Handler.Mac;
+namespace DS4Handler.App.Engine;
 
-/// <summary>
-/// What was learned, in plain Dutch. Same wording as StickViewModel / TriggerViewModel in the Windows app
-/// (those live in the WPF project, so they cannot be linked).
-/// </summary>
+/// <summary>What was learned, in plain Dutch. Shared by the Windows view models and the Mac app.</summary>
 internal static class CalibrationText
 {
     private static readonly StickCalibrationOptions Defaults = new();

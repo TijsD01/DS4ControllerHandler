@@ -37,6 +37,11 @@ permissions:
 jobs:
   package-mac:
     runs-on: macos-latest
+    # The version is worked out once, here; the Windows job uses these so all files carry the same number.
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+      numeric: ${{ steps.version.outputs.numeric }}
     env:
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
@@ -107,28 +112,6 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Bepaal versie
-        id: version
-        shell: pwsh
-        run: |
-          # Tag to publish to: a pushed tag, a hand-made release, or the "Run workflow" input.
-          $tag = "${{ github.event.release.tag_name || inputs.tag }}"
-          if (-not $tag -and "${{ github.ref_type }}" -eq "tag") { $tag = "${{ github.ref_name }}" }
-          if ($tag -match '^v?(\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?)$') {
-            $v = $Matches[1]
-          } elseif ($tag) {
-            # A tag that is not a version number (e.g. "release1") still gets a usable version.
-            $v = "1.0.${{ github.run_number }}"
-          } else {
-            $v = "0.0.0-dev.${{ github.run_number }}"
-          }
-          # Assembly versions only take numbers; drop any "-beta" style suffix there.
-          $numeric = ($v -split '-')[0]
-          "tag=$tag" >> $env:GITHUB_OUTPUT
-          "version=$v" >> $env:GITHUB_OUTPUT
-          "numeric=$numeric" >> $env:GITHUB_OUTPUT
-          Write-Host "Versie: $v (tag: '$tag')"
-
       - name: Tests
         run: dotnet test tests/DS4Handler.Core.Tests -c Release
 
@@ -141,8 +124,8 @@ jobs:
           -p:IncludeNativeLibrariesForSelfExtract=true
           -p:EnableCompressionInSingleFile=true
           -p:DebugType=none
-          -p:Version=${{ steps.version.outputs.numeric }}
-          -p:InformationalVersion=${{ steps.version.outputs.version }}
+          -p:Version=${{ needs.package-mac.outputs.numeric }}
+          -p:InformationalVersion=${{ needs.package-mac.outputs.version }}
           -o build/publish
 
       - name: Download ViGEmBus- en HidHide-installers
@@ -178,12 +161,12 @@ jobs:
         run: |
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
           & $iscc installer/DS4Handler.iss `
-            "/DAppVersion=${{ steps.version.outputs.version }}" `
+            "/DAppVersion=${{ needs.package-mac.outputs.version }}" `
             "/DSourceDir=$PWD\build\publish" `
             "/DDriverDir=$PWD\build\drivers" `
             "/DOutputDir=$PWD\build\dist"
           if ($LASTEXITCODE -ne 0) { throw "ISCC faalde ($LASTEXITCODE)" }
-          Copy-Item build/publish/DS4Handler.exe "build/dist/DS4Handler-${{ steps.version.outputs.version }}-portable.exe"
+          Copy-Item build/publish/DS4Handler.exe "build/dist/DS4Handler-${{ needs.package-mac.outputs.version }}-portable.exe"
           Get-ChildItem build/dist | Format-Table Name, Length
 
       - name: Haal de Mac-zips op
@@ -194,7 +177,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: DS4Handler-${{ steps.version.outputs.version }}
+          name: DS4Handler-${{ needs.package-mac.outputs.version }}
           path: |
             build/dist/*.exe
             build/dist/*.zip
@@ -202,8 +185,8 @@ jobs:
       - name: Schrijf releasetekst
         shell: pwsh
         env:
-          VERSION: ${{ steps.version.outputs.version }}
-          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ needs.package-mac.outputs.version }}
+          TAG: ${{ needs.package-mac.outputs.tag }}
           REPO: ${{ github.repository }}
         run: |
           # "Nieuw in deze versie" = the top "## " section of CHANGELOG.md. The app reads this list
@@ -239,12 +222,12 @@ jobs:
           Get-Content build/release-body.md
 
       - name: Maak GitHub-release
-        if: steps.version.outputs.tag != ''
+        if: needs.package-mac.outputs.tag != ''
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: DS4 Handler ${{ steps.version.outputs.version }}
-          prerelease: ${{ contains(steps.version.outputs.version, '-') }}
+          tag_name: ${{ needs.package-mac.outputs.tag }}
+          name: DS4 Handler ${{ needs.package-mac.outputs.version }}
+          prerelease: ${{ contains(needs.package-mac.outputs.version, '-') }}
           files: |
             build/dist/*.exe
             build/dist/*.zip

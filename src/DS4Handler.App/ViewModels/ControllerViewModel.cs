@@ -24,9 +24,9 @@ internal static class Fmt
 {
     public static readonly CultureInfo Nl = CultureInfo.GetCultureInfo("nl-NL");
 
-    public static string Pct(double fraction) => Math.Round(fraction * 100).ToString("0", Nl) + "%";
+    public static string Pct(double fraction) => CalibrationText.Pct(fraction);
 
-    public static string Signed(double v) => v.ToString("+0.00;−0.00;0.00", Nl);
+    public static string Signed(double v) => CalibrationText.Signed(v);
 }
 
 internal static class Words
@@ -42,7 +42,6 @@ internal static class Words
 /// <summary>Live view and learned facts of one stick.</summary>
 public sealed class StickViewModel : ObservableObject
 {
-    private static readonly StickCalibrationOptions Defaults = new();
     private double _rawX, _rawY, _outX, _outY, _centerX, _centerY, _deadzone;
     private bool _guided;
     private string _valueText = "";
@@ -91,37 +90,8 @@ public sealed class StickViewModel : ObservableObject
     internal void UpdateSummary(StickSummary s, bool guided)
     {
         DeadzoneTip = Tips.Deadzone + $"\n\nNu: {Fmt.Pct(s.Deadzone)} van de stickuitslag.";
-        if (guided)
-        {
-            Summary = $"{Name}: laat de stick los… het rustpunt wordt gemeten.";
-            SummaryLevel = Level.Learning;
-            return;
-        }
-
-        var text = new System.Text.StringBuilder();
-        double drift = Math.Sqrt(s.CenterX * s.CenterX + s.CenterY * s.CenterY);
-        bool learning = s.Releases < Defaults.BootstrapReleases;
-        if (learning)
-            text.Append($"{Name}: nog aan het leren — laat de stick af en toe even los. ");
-        else if (drift >= 0.02)
-            text.Append($"{Name} rust op ({Fmt.Signed(s.CenterX)}; {Fmt.Signed(s.CenterY)}) in plaats van in het midden — dat punt telt nu als midden. ");
-        else
-            text.Append($"{Name} rust netjes in het midden. ");
-
-        text.Append($"Deadzone {Fmt.Pct(s.Deadzone)}.");
-
-        if (s.WeakestReach is { } reach && reach < 0.97)
-            text.Append($" Haalt in sommige richtingen maar {Fmt.Pct(reach)} van de rand — wordt bijgeschaald naar 100%.");
-
-        if (s.JitterFilterStrength > 0)
-        {
-            string jitter = "±" + (s.Jitter * 100).ToString(s.Jitter < 0.1 ? "0.0" : "0", Fmt.Nl) + "%";
-            text.Append(s.JitterFilterEnabled
-                ? $" Trilling {Name.ToLower(Fmt.Nl)}: {jitter} (wordt weggefilterd)."
-                : $" Trilling {Name.ToLower(Fmt.Nl)}: {jitter} (trillingsfilter staat uit).");
-        }
-
-        Summary = text.ToString();
+        var (text, learning) = CalibrationText.Stick(Name, s, guided);
+        Summary = text;
         SummaryLevel = learning ? Level.Learning : Level.Ok;
     }
 }
@@ -174,11 +144,7 @@ public sealed class TriggerViewModel : ObservableObject
         Rest = live.Rest / 255.0;
         ValueText = $"{Fmt.Pct(raw / 255.0)} → {Fmt.Pct(output)}";
         GuidedActive = live.GuidedInProgress;
-        GuidedText = live.GuidedInProgress
-            ? (live.GuidedPressesRemaining > 0
-                ? $"Druk {Name} nog {live.GuidedPressesRemaining}× helemaal in"
-                : $"Laat {Name} los…")
-            : "";
+        GuidedText = CalibrationText.GuidedHint(Name, live);
     }
 
     internal void UpdateSummary(in TriggerLive t)
@@ -186,33 +152,9 @@ public sealed class TriggerViewModel : ObservableObject
         double reach = t.EndStop / 255.0;
         BarTip = Tips.TriggerBar + $"\n\nGeleerd eindpunt: {Fmt.Pct(reach)}.";
 
-        if (t.GuidedInProgress)
-        {
-            Summary = $"{Name}: assistent loopt — druk de trigger een paar keer helemaal in.";
-            SummaryLevel = Level.Learning;
-            return;
-        }
-
-        string text;
-        string level = Level.Ok;
-        if (!t.EndStopLearned)
-        {
-            text = $"{Name}: nog aan het leren — druk hem tijdens het spelen een paar keer helemaal in. Tot dan geldt het volle bereik.";
-            level = Level.Learning;
-        }
-        else
-        {
-            string how = t.EndStopKind == PlateauKind.Guided
-                ? "Ingesteld met de assistent."
-                : "Automatisch geleerd tijdens het spelen.";
-            text = t.EndStop >= 250
-                ? $"{Name} haalt het volle bereik — geen correctie nodig. {how}"
-                : $"{Name} komt tot {Fmt.Pct(reach)} — wordt opgeschaald naar 100%. {how}";
-        }
-
-        if (t.Rest > 4) text += $" Rustwaarde {Fmt.Pct(t.Rest / 255.0)} wordt genegeerd.";
+        var (text, learning) = CalibrationText.Trigger(Name, t);
         Summary = text;
-        SummaryLevel = level;
+        SummaryLevel = learning ? Level.Learning : Level.Ok;
     }
 }
 

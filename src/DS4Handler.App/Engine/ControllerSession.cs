@@ -241,7 +241,7 @@ public sealed class ControllerSession : IDisposable
         _stream = stream;
         stream.ReadTimeout = ReadTimeoutMs;
         stream.WriteTimeout = WriteTimeoutMs;
-        if (HidInputQueue.Shorten(stream) is { } why && Interlocked.Exchange(ref _queueWarned, 1) == 0) // once per process, not per reconnect
+        if (OperatingSystem.IsWindows() && HidInputQueue.Shorten(stream) is { } why && Interlocked.Exchange(ref _queueWarned, 1) == 0) // once per process, not per reconnect
             Log.Info($"{DisplayName}: invoerwachtrij niet ingekort ({why}); na een hapering kan oude invoer even naijlen.");
 
         var identity = ControllerIdentity.Read(_device, stream, Model, Connection);

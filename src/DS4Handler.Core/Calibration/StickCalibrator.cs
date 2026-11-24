@@ -132,29 +132,26 @@ public sealed record StickCalibrationOptions
     /// <summary>Rate (per window) at which the jitter estimate falls towards the median of recent windows.</summary>
     public float JitterFallRate { get; init; } = 0.05f;
 
-    /// <summary>Bandwidth (Hz) of the jitter filter at rest and full strength; it is higher for weaker filtering.</summary>
-    public float JitterMinCutoffHz { get; init; } = 1.8f;
+    /// <summary>Min cutoff (Hz) of the One Euro filter at full strength; it is higher for weaker filtering.</summary>
+    public float JitterMinCutoffHz { get; init; } = 2.0f;
 
-    /// <summary>How fast the bandwidth rises with speed (Hz per output unit per second).</summary>
-    public float JitterBeta { get; init; } = 5f;
+    /// <summary>How fast the cutoff rises with speed (Hz per output unit per second).</summary>
+    public float JitterBeta { get; init; } = 1.5f;
 
-    /// <summary>Bandwidth (Hz) of the slow tracker behind the speed estimate, and how fast a peak in it decays.</summary>
-    public float JitterSpeedCutoffHz { get; init; } = 3f;
+    /// <summary>Cutoff (Hz) of the low-pass on the speed estimate.</summary>
+    public float JitterSpeedCutoffHz { get; init; } = 2f;
 
-    /// <summary>A jump larger than this many times the jitter (plus <see cref="JitterMotionMargin"/>) starts to count as motion; twice that is taken at once.</summary>
+    /// <summary>A jump larger than this many times the jitter (plus <see cref="JitterMotionMargin"/>) counts as motion at once.</summary>
     public float JitterMotionFactor { get; init; } = 3.5f;
 
     /// <summary>Fixed part of the motion threshold.</summary>
     public float JitterMotionMargin { get; init; } = 0.01f;
 
     /// <summary>Size of the moving deadband while slow, as a multiple of the jitter.</summary>
-    public float JitterDeadbandFactor { get; init; } = 0.4f;
+    public float JitterDeadbandFactor { get; init; } = 0.3f;
 
-    /// <summary>
-    /// Speed (output units per second) at which the deadband has faded out and the filter has gone
-    /// from a plain low-pass (held stick) to a lag-free tracker (aiming).
-    /// </summary>
-    public float JitterSlowSpeed { get; init; } = 0.5f;
+    /// <summary>Speed (output units per second) at which the deadband has faded out completely.</summary>
+    public float JitterSlowSpeed { get; init; } = 3f;
 
     /// <summary>Within this distance of full input, the output radius blends to exactly 1.</summary>
     public float JitterSaturationBand { get; init; } = 0.02f;
@@ -231,7 +228,7 @@ public sealed record StickCalibrationData
 /// explains). The median of the last few windows is averaged into <see cref="LearnedJitter"/>. The still test for releases widens with the learned jitter, so
 /// drift is also learned on a shaky stick. It drives
 /// <see cref="StickJitterFilter"/> on the output of <see cref="Process(byte, byte, double)"/>: a
-/// clean stick is not filtered, a shaky one is smoothed, and steady moves and flicks pass with
+/// clean stick is not filtered, a shaky one is smoothed, and steady aiming and flicks pass with
 /// almost no lag.</item>
 /// </list>
 /// </summary>

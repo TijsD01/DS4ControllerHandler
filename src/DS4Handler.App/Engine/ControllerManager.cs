@@ -34,7 +34,7 @@ public sealed class ControllerManager : IDisposable
     private readonly HashSet<ControllerSession> _starting = new();                                          // opened, profile reserved, not yet in _sessions
     private readonly HashSet<string> _duplicates = new(StringComparer.OrdinalIgnoreCase);                     // second interface of an open pad
     private readonly ProfileStore _store;
-    private readonly Func<string, (bool Learning, OutputMode Output, bool JitterFilter)> _optionsFor;
+    private readonly Func<string, (bool Learning, OutputMode Output, bool JitterFilter, int LightBar)> _optionsFor;
     private ViGEmClient? _vigem;
     private ControllerSession[] _sessionList = Array.Empty<ControllerSession>();
     private int _scanRequested;
@@ -43,8 +43,8 @@ public sealed class ControllerManager : IDisposable
     private bool _disposed;
     private Timer? _rescanTimer;
 
-    /// <param name="optionsFor">Per controller id (from the settings): whether learning starts on, which virtual pad to make, and whether the stick jitter filter is on.</param>
-    public ControllerManager(ProfileStore store, Func<string, (bool Learning, OutputMode Output, bool JitterFilter)> optionsFor)
+    /// <param name="optionsFor">Per controller id (from the settings): whether learning starts on, which virtual pad to make, whether the stick jitter filter is on, and the DS4 light bar colour.</param>
+    public ControllerManager(ProfileStore store, Func<string, (bool Learning, OutputMode Output, bool JitterFilter, int LightBar)> optionsFor)
     {
         _store = store;
         _optionsFor = optionsFor;
@@ -232,6 +232,7 @@ public sealed class ControllerManager : IDisposable
             try
             {
                 var options = _optionsFor(session.Id);
+                session.LightBarColor = options.LightBar;
                 session.Start(_store, _vigem, options.Learning, options.Output, options.JitterFilter);
             }
             catch (Exception ex)

@@ -132,6 +132,8 @@ De app draait door. Meer details staan in het logbestand:
   <data name="Controller_KeepLearningText" xml:space="preserve"><value>Drift en slijtage veranderen langzaam. De app houdt dat bij.</value></data>
   <data name="Controller_JitterFilter" xml:space="preserve"><value>Trillingsfilter</value></data>
   <data name="Controller_JitterFilterText" xml:space="preserve"><value>Haalt het kleine heen-en-weer weg als je de stick loslaat.</value></data>
+  <data name="Controller_LightBar" xml:space="preserve"><value>Lichtbalk</value></data>
+  <data name="Controller_LightBarText" xml:space="preserve"><value>Kleur van de lichtbalk op je controller.</value></data>
   <data name="Controller_StartOver" xml:space="preserve"><value>Opnieuw beginnen</value></data>
   <data name="Controller_StartOverText" xml:space="preserve"><value>Gooit alles weg wat de app over deze controller geleerd heeft.</value></data>
   <data name="Controller_ResetCalibration" xml:space="preserve"><value>Kalibratie resetten</value></data>
@@ -211,6 +213,7 @@ Uit: wat al geleerd is blijft gewoon werken, maar er verandert niets meer.</valu
   <data name="Tip_JitterFilter" xml:space="preserve"><value>Aan: trillen van een stick wordt weggefilterd. De app meet zelf hoeveel een stick trilt als je hem stilhoudt (los of op een vaste stand) en filtert precies zoveel als nodig. Een goede stick merkt er niets van.
 Snelle bewegingen gaan er zonder merkbare vertraging doorheen; alleen stilhouden en heel langzaam richten wordt rustiger.
 Uit: de stick gaat ongefilterd naar de game, net als vroeger.</value></data>
+  <data name="Tip_LightBar" xml:space="preserve"><value>Kies de kleur van de lichtbalk. Zwart zet hem uit. Kies je bij "Games zien hem als" DualShock 4, dan mag een game de kleur ook zelf veranderen.</value></data>
   <data name="Tip_HideFromGames" xml:space="preserve"><value>Verbergt je echte PlayStation-controller voor games, zodat ze alleen de Xbox-controller van deze app zien. Dat voorkomt dubbele input.
 Werkt via HidHide. Een game die al draait moet je opnieuw starten (of sluit de controller opnieuw aan).</value></data>
   <data name="Tip_HideUnavailable" xml:space="preserve"><value>Verbergen werkt via het gratis programma HidHide. Zet HidHide aan bij Instellingen, of installeer het eerst.</value></data>

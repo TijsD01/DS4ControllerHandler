@@ -49,8 +49,6 @@ public sealed class ControllerSession : IDisposable
     private static readonly TimeSpan SaveInterval = TimeSpan.FromSeconds(30);
     private const int ReadTimeoutMs = 1000;
     private const int WriteTimeoutMs = 200;
-    private static readonly int LightbarDefault =
-        (OutputReports.LightBar.R << 16) | (OutputReports.LightBar.G << 8) | OutputReports.LightBar.B;
 
     private readonly HidDevice _device;
     private readonly object _sync = new();          // guards the calibration and the snapshot fields
@@ -64,7 +62,8 @@ public sealed class ControllerSession : IDisposable
     private Thread? _rumbleThread;
     private readonly AutoResetEvent _rumbleSignal = new(false);
     private int _rumbleWanted;                       // (large << 8) | small, written by the ViGEm callback
-    private int _lightbarWanted = LightbarDefault;   // 0xRRGGBB, set by a virtual DS4's game
+    private int _lightbarChosen = OutputReports.LightBarDefault; // 0xRRGGBB picked by the user
+    private int _lightbarWanted = OutputReports.LightBarDefault;  // 0xRRGGBB, the chosen one or a virtual DS4's game
     private byte[] _outputBuffer = Array.Empty<byte>();
     private byte _outputSequence;
 
@@ -165,6 +164,21 @@ public sealed class ControllerSession : IDisposable
     {
         get { lock (_sync) return _calibration?.LearningEnabled ?? false; }
         set { lock (_sync) if (_calibration != null) _calibration.LearningEnabled = value; }
+    }
+
+    /// <summary>
+    /// DS4 light bar colour (0xRRGGBB) chosen by the user; shown at once. A game talking to a virtual
+    /// DS4 may still change it until the next pick or output switch. Ignored by a DualSense.
+    /// </summary>
+    public int LightBarColor
+    {
+        get => Volatile.Read(ref _lightbarChosen);
+        set
+        {
+            Volatile.Write(ref _lightbarChosen, value);
+            Volatile.Write(ref _lightbarWanted, value);
+            try { _rumbleSignal.Set(); } catch (ObjectDisposedException) { }
+        }
     }
 
     /// <summary>Stick jitter filter on/off for both sticks (see <see cref="StickCalibrator.JitterFilterEnabled"/>).</summary>
@@ -571,7 +585,7 @@ public sealed class ControllerSession : IDisposable
             if (mode == OutputMode && VirtualState is VirtualPadState.Active) return;
             DisconnectVirtualPad();
             OutputMode = mode;
-            Volatile.Write(ref _lightbarWanted, LightbarDefault);
+            Volatile.Write(ref _lightbarWanted, Volatile.Read(ref _lightbarChosen));
             Volatile.Write(ref _rumbleWanted, 0);
             ConnectVirtualPad();
         }
@@ -977,7 +991,7 @@ public sealed class ControllerSession : IDisposable
         _saveTimer?.Dispose();
         _rumbleSignal.Set();
         if (_rumbleThread != null && _rumbleThread != Thread.CurrentThread) _rumbleThread.Join(500);
-        if (_outputBuffer.Length > 0) WriteOutput(0, 0, LightbarDefault, 1); // never leave the motors running; poll interval back to 1 ms
+        if (_outputBuffer.Length > 0) WriteOutput(0, 0, Volatile.Read(ref _lightbarChosen), 1); // never leave the motors running; poll interval back to 1 ms
 
         try { _stream?.Dispose(); } catch { }
         if (_readThread != null && _readThread != Thread.CurrentThread) _readThread.Join(2000);

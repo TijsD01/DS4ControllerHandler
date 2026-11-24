@@ -49,6 +49,7 @@ public static class Tips
     public static string CalibrationSection => Loc.Get("Tip_CalibrationSection");
     public static string Learning => Loc.Get("Tip_Learning");
     public static string JitterFilter => Loc.Get("Tip_JitterFilter");
+    public static string LightBar => Loc.Get("Tip_LightBar");
     public static string HideFromGames => Loc.Get("Tip_HideFromGames");
     public static string HideUnavailable => Loc.Get("Tip_HideUnavailable");
     public static string Output => Loc.Get("Tip_Output");

@@ -246,6 +246,7 @@ public sealed class ControllerViewModel : ObservableObject
     private int _selectedTab;
     private string _sticksLevel = Level.Learning;
     private OutputMode _output;
+    private string _lightBar;
     private bool _showOutput;
     private Buttons _rawButtons;
     private Buttons _outButtons;
@@ -263,6 +264,7 @@ public sealed class ControllerViewModel : ObservableObject
         _jitterFilter = host.SettingsStore.Read(s => s.For(session.Id).JitterFilterEnabled);
         _hide = host.SettingsStore.Read(s => s.For(session.Id).HideFromGames);
         _output = host.SettingsStore.Read(s => s.For(session.Id).Output);
+        _lightBar = $"#{OutputReports.ParseLightBar(host.SettingsStore.Read(s => s.For(session.Id).LightBar)):X6}";
         _tabMeta = IsBluetooth ? "BT" : "USB";
 
         Tuning = new TuningViewModel(session, host);
@@ -377,6 +379,26 @@ public sealed class ControllerViewModel : ObservableObject
             if (!SetField(ref _jitterFilter, value)) return;
             _host.SetJitterFilter(Session, value);
             _tick = 0; // refresh the summary soon
+        }
+    }
+
+    /// <summary>Light bar colours to pick from; the first is the app's blue. Black switches it off.</summary>
+    public static IReadOnlyList<string> LightBarColors { get; } = new[]
+    {
+        "#0030FF", "#00C8FF", "#00FF40", "#FFE000", "#FF6000", "#FF0000", "#FF00A0", "#8000FF", "#FFFFFF", "#000000",
+    };
+
+    /// <summary>Only a DualShock 4 gets its light bar set by the app.</summary>
+    public bool HasLightBar => Session.Model == ControllerModel.DualShock4;
+
+    /// <summary>Chosen light bar colour, "#RRGGBB".</summary>
+    public string LightBarColor
+    {
+        get => _lightBar;
+        set
+        {
+            if (value == null || !SetField(ref _lightBar, value)) return;
+            _host.SetLightBar(Session, value);
         }
     }
 

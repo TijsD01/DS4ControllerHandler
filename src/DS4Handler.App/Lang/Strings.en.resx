@@ -132,6 +132,8 @@ The app keeps running. More details are in the log file:
   <data name="Controller_KeepLearningText" xml:space="preserve"><value>Drift and wear change slowly. The app keeps up with that.</value></data>
   <data name="Controller_JitterFilter" xml:space="preserve"><value>Jitter filter</value></data>
   <data name="Controller_JitterFilterText" xml:space="preserve"><value>Removes the small wobble when you let go of the stick.</value></data>
+  <data name="Controller_LightBar" xml:space="preserve"><value>Light bar</value></data>
+  <data name="Controller_LightBarText" xml:space="preserve"><value>Colour of the light bar on your controller.</value></data>
   <data name="Controller_StartOver" xml:space="preserve"><value>Start over</value></data>
   <data name="Controller_StartOverText" xml:space="preserve"><value>Throws away everything the app has learned about this controller.</value></data>
   <data name="Controller_ResetCalibration" xml:space="preserve"><value>Reset calibration</value></data>
@@ -211,6 +213,7 @@ Off: what was already learned keeps working, but nothing changes anymore.</value
   <data name="Tip_JitterFilter" xml:space="preserve"><value>On: stick jitter is filtered out. The app measures how much a stick shakes when you hold it still (released or at a fixed position) and filters exactly as much as needed. A good stick won't notice a thing.
 Fast movements pass through without noticeable delay; only holding still and aiming very slowly get calmer.
 Off: the stick goes to the game unfiltered, as before.</value></data>
+  <data name="Tip_LightBar" xml:space="preserve"><value>Pick the colour of the light bar. Black turns it off. With "Games see it as" set to DualShock 4, a game may change the colour too.</value></data>
   <data name="Tip_HideFromGames" xml:space="preserve"><value>Hides your real PlayStation controller from games, so they only see this app's Xbox controller. That prevents double input.
 Works through HidHide. A game that's already running needs a restart (or reconnect the controller).</value></data>
   <data name="Tip_HideUnavailable" xml:space="preserve"><value>Hiding works through the free program HidHide. Turn HidHide on in Settings, or install it first.</value></data>

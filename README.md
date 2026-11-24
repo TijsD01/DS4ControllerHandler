@@ -41,7 +41,7 @@ De app is er in het Nederlands en het Engels; kies bij *Instellingen → Taal* (
 - **Een kaart per controller** met type, MAC-adres, USB/Bluetooth, batterij, updates per seconde en een statuslabel ("Actief als Xbox-controller" / "Actief als DualShock 4-controller").
 - **Live weergave.** Per stick een cirkel met de echte stand (grijs), wat de game krijgt (blauw) en de geleerde deadzone (oranje). Per trigger een balk met de echte stand en het geleerde eindpunt, en daaronder wat de game krijgt (groen = 100%).
 - **Kalibratie in gewone woorden**, bijvoorbeeld "R2 komt tot 78% — wordt opgeschaald naar 100%", inclusief of dat automatisch of met de assistent is geleerd. Knoppen *Kalibreer L2/R2* ("Druk R2 nog 3× helemaal in") en *Sticks opnieuw centreren* voor snelle handmatige correctie.
-- **Per controller:** Leren aan/uit, Trillingsfilter aan/uit, Verberg voor games (HidHide), Uitvoer Xbox 360 of DualShock 4, Kalibratie resetten (met bevestiging).
+- **Per controller:** Leren aan/uit, Trillingsfilter aan/uit, Verberg voor games (HidHide), Uitvoer Xbox 360 of DualShock 4, kleur van de lichtbalk (DualShock 4; zwart = uit), Kalibratie resetten (met bevestiging).
 - **Instellingen:** start met Windows, geminimaliseerd starten (systeemvak), HidHide gebruiken, controllers weer zichtbaar maken bij afsluiten, profielmap en logbestand openen.
 - **Systeemvak:** Tonen / Leren / Afsluiten. Het venster sluiten laat de app doordraaien.
 

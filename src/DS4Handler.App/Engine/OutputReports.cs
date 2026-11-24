@@ -10,8 +10,15 @@ namespace DS4Handler.App.Engine;
 /// </summary>
 internal static class OutputReports
 {
-    /// <summary>Light bar colour a DS4 gets while this app handles it (matches the app accent).</summary>
-    public static readonly (byte R, byte G, byte B) LightBar = (0x00, 0x30, 0xFF);
+    /// <summary>Light bar colour (0xRRGGBB) a DS4 gets while this app handles it, unless the user picks another (matches the app accent).</summary>
+    public const int LightBarDefault = 0x0030FF;
+
+    /// <summary>"#RRGGBB" from the settings as 0xRRGGBB; null or garbage gives the default.</summary>
+    public static int ParseLightBar(string? hex) =>
+        hex is ['#', .. var digits] && digits.Length == 6
+        && int.TryParse(digits, System.Globalization.NumberStyles.AllowHexSpecifier, null, out int rgb)
+            ? rgb
+            : LightBarDefault;
 
     /// <summary>Bytes the report itself needs; the write buffer is at least this long.</summary>
     public static int RequiredLength(ControllerModel model, ConnectionType connection) => (model, connection) switch

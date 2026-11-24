@@ -177,7 +177,7 @@ public sealed class ControllerSession : IDisposable
         {
             Volatile.Write(ref _lightbarChosen, value);
             Volatile.Write(ref _lightbarWanted, value);
-            try { _rumbleSignal.Set(); } catch (ObjectDisposedException) { }
+            WakeOutputWriter();
         }
     }
 

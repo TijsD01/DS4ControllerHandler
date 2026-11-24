@@ -134,6 +134,16 @@ The app keeps running. More details are in the log file:
   <data name="Controller_JitterFilterText" xml:space="preserve"><value>Removes the small wobble when you let go of the stick.</value></data>
   <data name="Controller_LightBar" xml:space="preserve"><value>Light bar</value></data>
   <data name="Controller_LightBarText" xml:space="preserve"><value>Colour of the light bar on your controller.</value></data>
+  <data name="LightBar_Blue" xml:space="preserve"><value>Blue</value></data>
+  <data name="LightBar_Cyan" xml:space="preserve"><value>Light blue</value></data>
+  <data name="LightBar_Green" xml:space="preserve"><value>Green</value></data>
+  <data name="LightBar_Yellow" xml:space="preserve"><value>Yellow</value></data>
+  <data name="LightBar_Orange" xml:space="preserve"><value>Orange</value></data>
+  <data name="LightBar_Red" xml:space="preserve"><value>Red</value></data>
+  <data name="LightBar_Pink" xml:space="preserve"><value>Pink</value></data>
+  <data name="LightBar_Purple" xml:space="preserve"><value>Purple</value></data>
+  <data name="LightBar_White" xml:space="preserve"><value>White</value></data>
+  <data name="LightBar_Off" xml:space="preserve"><value>Off (black)</value></data>
   <data name="Controller_StartOver" xml:space="preserve"><value>Start over</value></data>
   <data name="Controller_StartOverText" xml:space="preserve"><value>Throws away everything the app has learned about this controller.</value></data>
   <data name="Controller_ResetCalibration" xml:space="preserve"><value>Reset calibration</value></data>

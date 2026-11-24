@@ -2,7 +2,132 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="DS4Handler.Mac.App"
              RequestedThemeVariant="Dark">
+    <!-- Same colour tokens as src/DS4Handler.App/Themes/Theme.xaml. -->
+    <Application.Resources>
+        <SolidColorBrush x:Key="BgBrush" Color="#0F172A" />
+        <SolidColorBrush x:Key="CardBrush" Color="#151E31" />
+        <SolidColorBrush x:Key="CardBorderBrush" Color="#222D42" />
+        <SolidColorBrush x:Key="InsetBrush" Color="#0A1020" />
+        <SolidColorBrush x:Key="InsetBorderBrush" Color="#26324A" />
+        <SolidColorBrush x:Key="ControlBrush" Color="#1B2539" />
+        <SolidColorBrush x:Key="ControlBorderBrush" Color="#5E6E8A" />
+        <SolidColorBrush x:Key="ControlHoverBrush" Color="#243049" />
+        <SolidColorBrush x:Key="ControlHoverBorderBrush" Color="#7A8CAA" />
+        <SolidColorBrush x:Key="PopupBrush" Color="#1B2539" />
+        <SolidColorBrush x:Key="PopupBorderBrush" Color="#45577A" />
+        <SolidColorBrush x:Key="TextBrush" Color="#F1F5F9" />
+        <SolidColorBrush x:Key="TextDimBrush" Color="#A8B6CA" />
+        <SolidColorBrush x:Key="TextMutedBrush" Color="#93A3BA" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#4C8DFF" />
+        <SolidColorBrush x:Key="LinkBrush" Color="#7FB0FF" />
+        <SolidColorBrush x:Key="LinkHoverBrush" Color="#A9C9FF" />
+        <SolidColorBrush x:Key="FocusBrush" Color="#8DB8FF" />
+        <SolidColorBrush x:Key="OkBrush" Color="#22C55E" />
+        <SolidColorBrush x:Key="WarnBrush" Color="#F5A524" />
+        <SolidColorBrush x:Key="DangerTextBrush" Color="#FF8A85" />
+        <SolidColorBrush x:Key="DangerBorderBrush" Color="#5A2B33" />
+        <SolidColorBrush x:Key="DangerSoftBrush" Color="#2A1519" />
+        <SolidColorBrush x:Key="RawBrush" Color="#6B7C96" />
+        <SolidColorBrush x:Key="GateBrush" Color="#2C3A55" />
+        <SolidColorBrush x:Key="CrosshairBrush" Color="#1E2940" />
+        <SolidColorBrush x:Key="InfoStripBrush" Color="#13254A" />
+        <SolidColorBrush x:Key="InfoStripBorderBrush" Color="#24427A" />
+        <SolidColorBrush x:Key="InfoStripTextBrush" Color="#DCE8FF" />
+        <SolidColorBrush x:Key="WarnStripBrush" Color="#2A2113" />
+        <SolidColorBrush x:Key="WarnStripBorderBrush" Color="#5A4318" />
+        <SolidColorBrush x:Key="WarnStripTextBrush" Color="#FBE7C2" />
+        <FontFamily x:Key="UiFont">avares://DS4Handler/Assets/Fonts#IBM Plex Sans</FontFamily>
+        <FontFamily x:Key="MonoFont">avares://DS4Handler/Assets/Fonts#JetBrains Mono</FontFamily>
+    </Application.Resources>
+
     <Application.Styles>
-        <FluentTheme />
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <ColorPaletteResources x:Key="Dark" Accent="#4C8DFF" RegionColor="#0F172A" />
+            </FluentTheme.Palettes>
+        </FluentTheme>
+
+        <Style Selector="Window">
+            <Setter Property="Background" Value="{StaticResource BgBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+        <!-- Tooltips live in their own popup, so they do not inherit the window font. -->
+        <Style Selector="ToolTip">
+            <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+            <Setter Property="Background" Value="{StaticResource PopupBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PopupBorderBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="MaxWidth" Value="380" />
+        </Style>
+
+        <Style Selector="TextBlock.dim">
+            <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="TextBlock.mono">
+            <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <Style Selector="Button">
+            <Setter Property="Background" Value="{StaticResource ControlBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="14,7" />
+        </Style>
+        <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource ControlHoverBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource ControlHoverBorderBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        </Style>
+        <Style Selector="Button.danger">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{StaticResource DangerBorderBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource DangerTextBrush}" />
+        </Style>
+        <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource DangerSoftBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource DangerTextBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource DangerTextBrush}" />
+        </Style>
+        <Style Selector="Button.link">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="{StaticResource LinkBrush}" />
+            <Setter Property="Padding" Value="4,2" />
+        </Style>
+        <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource LinkHoverBrush}" />
+        </Style>
+
+        <!-- A clear keyboard focus ring, drawn in the control template: the Fluent focus adorner is faint on this dark
+             theme and did not show up in the test renders. Last, so it wins over the hover styles above. -->
+        <Style Selector="Button, ToggleSwitch">
+            <Setter Property="FocusAdorner" Value="{x:Null}" />
+        </Style>
+        <Style Selector="Button:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="BorderBrush" Value="{StaticResource FocusBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+        <Style Selector="ToggleSwitch:focus-visible /template/ Border#OuterBorder">
+            <Setter Property="BorderBrush" Value="{StaticResource FocusBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+        <!-- On the blue "on" track the light-blue ring would barely show; white does. -->
+        <Style Selector="ToggleSwitch:focus-visible:checked /template/ Border#SwitchKnobBounds">
+            <Setter Property="BorderBrush" Value="{StaticResource TextBrush}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
     </Application.Styles>
 </Application>

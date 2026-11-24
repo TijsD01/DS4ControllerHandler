@@ -1,0 +1,155 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:DS4Handler.Mac.Controls"
+             x:Class="DS4Handler.Mac.ControllerCard">
+    <Border Background="{StaticResource CardBrush}" BorderBrush="{StaticResource CardBorderBrush}"
+            BorderThickness="1" CornerRadius="10" Padding="24">
+        <StackPanel Spacing="20">
+
+            <!-- Name, connection, address -->
+            <DockPanel>
+                <TextBlock x:Name="NoInput" DockPanel.Dock="Right" VerticalAlignment="Center" IsVisible="False"
+                           Text="Wacht op invoer…" Foreground="{StaticResource WarnBrush}"
+                           ToolTip.Tip="De controller is verbonden maar stuurt (nog) geen standen. Bij Bluetooth: druk op de PS-knop. Blijft dit staan, sluit hem dan opnieuw aan." />
+                <WrapPanel VerticalAlignment="Center">
+                    <TextBlock x:Name="Title" FontSize="20" FontWeight="SemiBold" Margin="0,0,16,0" VerticalAlignment="Center" />
+                    <TextBlock x:Name="ConnectionText" Classes="mono" FontSize="13" Margin="0,0,16,0" VerticalAlignment="Center" />
+                    <TextBlock x:Name="MacText" Classes="mono" FontSize="13" VerticalAlignment="Center" />
+                </WrapPanel>
+            </DockPanel>
+
+            <Border x:Name="Blocked" IsVisible="False" Background="{StaticResource WarnStripBrush}"
+                    BorderBrush="{StaticResource WarnStripBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,8"
+                    ToolTip.Tip="Het profiel van deze controller is al in gebruik door een andere verbinding (bijvoorbeeld dezelfde controller via USB én Bluetooth). Om te voorkomen dat beide hetzelfde bestand overschrijven, draait hij tijdelijk met fabriekswaarden en wordt er niets opgeslagen. Sluit hem later opnieuw aan.">
+                <TextBlock Text="Profiel in gebruik — draait zonder opslaan." Foreground="{StaticResource WarnStripTextBrush}" TextWrapping="Wrap" />
+            </Border>
+
+            <!-- Live view -->
+            <Grid ColumnDefinitions="Auto,Auto,*">
+                <StackPanel Width="168" Spacing="8">
+                    <c:StickView x:Name="LeftStick" Width="168" Height="168"
+                                 ToolTip.Tip="Live weergave van de stick.&#x0a;• Grijze stip: waar de stick werkelijk staat.&#x0a;• Blauwe stip: de stand na correctie met je profiel.&#x0a;• Oranje stippelring: de deadzone rond het geleerde rustpunt." />
+                    <DockPanel>
+                        <TextBlock Text="Links" Classes="label" />
+                        <TextBlock x:Name="LeftValue" Classes="mono" HorizontalAlignment="Right" />
+                    </DockPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Width="168" Spacing="8" Margin="24,0,0,0">
+                    <c:StickView x:Name="RightStick" Width="168" Height="168"
+                                 ToolTip.Tip="Live weergave van de stick.&#x0a;• Grijze stip: waar de stick werkelijk staat.&#x0a;• Blauwe stip: de stand na correctie met je profiel.&#x0a;• Oranje stippelring: de deadzone rond het geleerde rustpunt." />
+                    <DockPanel>
+                        <TextBlock Text="Rechts" Classes="label" />
+                        <TextBlock x:Name="RightValue" Classes="mono" HorizontalAlignment="Right" />
+                    </DockPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Margin="40,0,0,0" Spacing="22" VerticalAlignment="Center">
+                    <StackPanel Spacing="8">
+                        <DockPanel>
+                            <TextBlock Text="L2" Classes="label" />
+                            <TextBlock x:Name="L2Value" Classes="mono" HorizontalAlignment="Right" />
+                        </DockPanel>
+                        <c:TriggerBar x:Name="L2Bar"
+                                      ToolTip.Tip="Dunne grijze lijn: hoe ver je de trigger echt indrukt.&#x0a;Dikke blauwe balk: de stand na correctie met je profiel.&#x0a;Oranje streepjes: het geleerde rustpunt en eindpunt (jouw 100%)." />
+                    </StackPanel>
+                    <StackPanel Spacing="8">
+                        <DockPanel>
+                            <TextBlock Text="R2" Classes="label" />
+                            <TextBlock x:Name="R2Value" Classes="mono" HorizontalAlignment="Right" />
+                        </DockPanel>
+                        <c:TriggerBar x:Name="R2Bar"
+                                      ToolTip.Tip="Dunne grijze lijn: hoe ver je de trigger echt indrukt.&#x0a;Dikke blauwe balk: de stand na correctie met je profiel.&#x0a;Oranje streepjes: het geleerde rustpunt en eindpunt (jouw 100%)." />
+                    </StackPanel>
+                    <WrapPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,18,0">
+                            <Ellipse Width="8" Height="8" Fill="{StaticResource RawBrush}" VerticalAlignment="Center" />
+                            <TextBlock Text="Echte stand" FontSize="12" Foreground="{StaticResource TextDimBrush}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,18,0">
+                            <Ellipse Width="8" Height="8" Fill="{StaticResource AccentBrush}" VerticalAlignment="Center" />
+                            <TextBlock Text="Na correctie" FontSize="12" Foreground="{StaticResource TextDimBrush}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <Ellipse Width="8" Height="8" Fill="{StaticResource WarnBrush}" VerticalAlignment="Center" />
+                            <TextBlock Text="Geleerd: deadzone, rust- en eindpunt" FontSize="12" Foreground="{StaticResource TextDimBrush}" />
+                        </StackPanel>
+                    </WrapPanel>
+                </StackPanel>
+            </Grid>
+
+            <Border Height="1" Background="{StaticResource CardBorderBrush}" />
+
+            <!-- What was learned -->
+            <StackPanel Spacing="10">
+                <TextBlock Text="Wat de app geleerd heeft" Classes="label" />
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto">
+                    <Ellipse x:Name="LeftDot" Width="8" Height="8" Margin="0,6,12,0" VerticalAlignment="Top" />
+                    <TextBlock x:Name="LeftSummary" Grid.Column="1" Classes="dim" Margin="0,0,0,8" Text="Wordt gemeten…" />
+                    <Ellipse x:Name="RightDot" Grid.Row="1" Width="8" Height="8" Margin="0,6,12,0" VerticalAlignment="Top" />
+                    <TextBlock x:Name="RightSummary" Grid.Row="1" Grid.Column="1" Classes="dim" Margin="0,0,0,8" />
+                    <Ellipse x:Name="L2Dot" Grid.Row="2" Width="8" Height="8" Margin="0,6,12,0" VerticalAlignment="Top" />
+                    <TextBlock x:Name="L2Summary" Grid.Row="2" Grid.Column="1" Classes="dim" Margin="0,0,0,8" />
+                    <Ellipse x:Name="R2Dot" Grid.Row="3" Width="8" Height="8" Margin="0,6,12,0" VerticalAlignment="Top" />
+                    <TextBlock x:Name="R2Summary" Grid.Row="3" Grid.Column="1" Classes="dim" />
+                </Grid>
+            </StackPanel>
+
+            <!-- Switches -->
+            <Grid ColumnDefinitions="*,*">
+                <DockPanel Margin="0,0,24,0" VerticalAlignment="Top">
+                    <ToggleSwitch x:Name="Learning" DockPanel.Dock="Right" OnContent="Aan" OffContent="Uit" VerticalAlignment="Center"
+                                  AutomationProperties.Name="Leren"
+                                  ToolTip.Tip="Aan: de app blijft tijdens het spelen bijleren hoe deze controller zich gedraagt (drift, versleten triggers).&#x0a;Uit: wat al geleerd is blijft gewoon staan, maar er verandert niets meer." />
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                        <TextBlock Text="Leren" FontWeight="SemiBold" />
+                        <TextBlock Text="Blijven leren tijdens het spelen." Classes="dim" />
+                    </StackPanel>
+                </DockPanel>
+                <DockPanel Grid.Column="1" VerticalAlignment="Top">
+                    <ToggleSwitch x:Name="Jitter" DockPanel.Dock="Right" OnContent="Aan" OffContent="Uit" VerticalAlignment="Center"
+                                  AutomationProperties.Name="Trillingsfilter"
+                                  ToolTip.Tip="Aan: trillen van een stick wordt weggefilterd. De app meet zelf hoeveel een stick trilt als je hem stilhoudt en filtert precies zoveel als nodig. Een goede stick merkt er niets van.&#x0a;Uit: de stick wordt niet gefilterd." />
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                        <TextBlock Text="Trillingsfilter" FontWeight="SemiBold" />
+                        <TextBlock Text="Haalt het kleine heen-en-weer weg als je de stick loslaat." Classes="dim" />
+                    </StackPanel>
+                </DockPanel>
+            </Grid>
+
+            <!-- Guided assistants -->
+            <StackPanel Spacing="10">
+                <WrapPanel>
+                    <Button x:Name="CalibrateL2" Margin="0,0,10,0" Click="OnCalibrateL2" />
+                    <Button x:Name="CalibrateR2" Margin="0,0,10,0" Click="OnCalibrateR2" />
+                    <Button x:Name="Recenter" Click="OnRecenter" />
+                </WrapPanel>
+                <TextBlock x:Name="GuidedHint" IsVisible="False" Foreground="{StaticResource LinkBrush}" FontWeight="SemiBold" />
+            </StackPanel>
+
+            <Border Height="1" Background="{StaticResource CardBorderBrush}" />
+
+            <!-- Reset, with a confirm step in place -->
+            <StackPanel Spacing="12">
+                <DockPanel>
+                    <Button x:Name="Reset" DockPanel.Dock="Right" Classes="danger" Content="Kalibratie resetten" VerticalAlignment="Center" Click="OnReset"
+                            ToolTip.Tip="Vergeet alles wat voor deze controller is geleerd en begin opnieuw met fabriekswaarden. Handig na een reparatie of als de correctie niet meer klopt." />
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,24,0">
+                        <TextBlock Text="Opnieuw beginnen" FontWeight="SemiBold" />
+                        <TextBlock Text="Gooit alles weg wat de app over deze controller geleerd heeft." Classes="dim" />
+                    </StackPanel>
+                </DockPanel>
+                <Border x:Name="Confirm" IsVisible="False" Background="{StaticResource InsetBrush}" BorderBrush="{StaticResource DangerBorderBrush}"
+                        BorderThickness="1" CornerRadius="6" Padding="16,12">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <Button x:Name="ConfirmReset" Classes="danger" Content="Resetten" Click="OnConfirmReset"
+                                    ToolTip.Tip="Vergeet de kalibratie van deze controller nu." />
+                            <Button x:Name="CancelReset" Content="Annuleren" Click="OnCancelReset"
+                                    ToolTip.Tip="Niets veranderen." />
+                        </StackPanel>
+                        <TextBlock x:Name="ConfirmText" Classes="dim" Margin="0,0,16,0" VerticalAlignment="Center" />
+                    </DockPanel>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

@@ -1,0 +1,43 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DS4Handler.Mac.MainWindow"
+        Title="DS4 Handler" Width="980" Height="860" MinWidth="760" MinHeight="520"
+        Icon="avares://DS4Handler/Assets/Logo/app.ico">
+    <DockPanel>
+        <!-- Header with the one honest line about what the Mac version does -->
+        <StackPanel DockPanel.Dock="Top" Margin="32,24,32,0" Spacing="14">
+            <TextBlock Text="DS4 Handler" FontSize="22" FontWeight="SemiBold" />
+            <Border Background="{StaticResource InfoStripBrush}" BorderBrush="{StaticResource InfoStripBorderBrush}"
+                    BorderThickness="1" CornerRadius="6" Padding="14,10">
+                <TextBlock Foreground="{StaticResource InfoStripTextBrush}" TextWrapping="Wrap"
+                           Text="Op de Mac lezen games je controller zelf, zonder deze correcties. DS4 Handler leert hoe hij zich gedraagt en bewaart dat in een profiel dat ook op Windows werkt." />
+            </Border>
+        </StackPanel>
+
+        <!-- Footer links -->
+        <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,1,0,0" Padding="28,8">
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <Button Classes="link" Content="Profielenmap openen" Click="OnOpenProfiles"
+                        ToolTip.Tip="Opent de map waarin per controller de geleerde kalibratie staat. Kopieer een profiel naar dezelfde map op een Windows-pc om het daar te gebruiken." />
+                <Button Classes="link" Content="Logmap openen" Click="OnOpenLog"
+                        ToolTip.Tip="Opent de map met het logbestand. Handig om mee te sturen als iets niet werkt." />
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer Margin="0,20,0,0">
+            <Panel Margin="32,0,32,24">
+                <Border x:Name="Empty" Background="{StaticResource CardBrush}" BorderBrush="{StaticResource CardBorderBrush}"
+                        BorderThickness="1" CornerRadius="10" Padding="32,40" Margin="0,40,0,0"
+                        HorizontalAlignment="Center" VerticalAlignment="Top" MaxWidth="560">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Geen controller gevonden" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                        <TextBlock Text="Sluit je controller aan via USB of Bluetooth." Classes="dim" TextAlignment="Center" />
+                        <TextBlock Classes="dim" TextAlignment="Center" FontSize="13" Margin="0,6,0,0"
+                                   Text="Bluetooth? Koppel hem eerst in Systeeminstellingen › Bluetooth: houd PS + Share (DualSense: PS + Create) ingedrukt tot het lampje knippert." />
+                    </StackPanel>
+                </Border>
+                <StackPanel x:Name="Cards" Spacing="20" />
+            </Panel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

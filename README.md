@@ -20,6 +20,14 @@ Windows SmartScreen kan "Onbekende uitgever" tonen, omdat de app niet digitaal o
 
 **Bijwerken.** De app kijkt bij het opstarten (en daarna twee keer per dag) of er een nieuwe versie is. Is die er, dan zie je bovenin wat er nieuw is en klik je op *Nu bijwerken*: de nieuwe versie wordt over de oude heen geïnstalleerd en start vanzelf, en na het bijwerken zie je één keer wat er nieuw is. Je profielen, kalibratie en instellingen blijven bewaard, want die staan in `%APPDATA%\DS4ControllerHandler` en niet in de installatiemap; ook verwijderen laat ze staan. Zelf een nieuwere Setup starten werkt net zo. Automatisch zoeken zet je uit bij *Instellingen → Updates*. Met de portable exe opent de knop de downloadpagina.
 
+## Op de Mac
+
+Er is ook een versie voor macOS 12 of nieuwer. Download bij **[Releases](https://github.com/TijsD01/DS4ControllerHandler/releases/latest)** `DS4Handler-<versie>-macOS-arm64.zip` als je Mac een Apple-chip heeft (M1 of nieuwer), of `DS4Handler-<versie>-macOS-x64.zip` bij een Intel-processor (je ziet het bij *Apple-menu → Over deze Mac*). Dubbelklik de zip en sleep *DS4 Handler* naar je map Apps.
+
+De app is niet bij Apple ondertekend, daarom houdt macOS hem de eerste keer tegen. Klik met de rechtermuisknop op de app en kies *Open*. Lukt dat niet (zoals op nieuwere macOS-versies), ga dan naar *Systeeminstellingen → Privacy en beveiliging* en klik onderaan op *Open toch*. Daarna start hij gewoon.
+
+Op de Mac laat de app je controller live zien, leert hij de kalibratie en bewaart hij profielen in hetzelfde formaat als op Windows, zodat een profiel op beide werkt. Wat games krijgen verandert hij niet: macOS laat een app zonder speciale toestemming van Apple geen virtuele controller maken, en games op de Mac lezen de PlayStation-controller zelf. Profielen, instellingen en het log staan in `~/Library/Application Support/DS4ControllerHandler` (`profiles/`, `settings.json`, `log.txt`). Bijwerken gaat met de hand: download de nieuwe zip en vervang de app; je profielen blijven staan.
+
 ## Hoe het leren werkt
 
 Het is een klein online model dat bij elke input-update bijleert, zonder trainingsfase.
@@ -79,6 +87,7 @@ Net als Afstellen werkt alles meteen en wordt het in het profiel van de controll
 | `src/DS4Handler.Core` | Platformonafhankelijke kern: HID-rapporten parsen, kalibratie, profielen, Xbox 360- en DS4-mapping |
 | `src/DS4Handler.HidHide` | Koppeling met de HidHide-driver om de echte controller voor games te verbergen |
 | `src/DS4Handler.App` | Windows-app (WPF, systeemvak): HID-invoer via HidSharp, virtuele Xbox 360- of DualShock 4-controller via ViGEmBus, HidHide-koppeling. Zie [De Windows-app](#de-windows-app) |
+| `src/DS4Handler.Mac` | Mac-app (Avalonia) met dezelfde engine als de Windows-app: controller live bekijken, kalibratie leren en profielen bewaren, zonder virtuele controller. Zie [Op de Mac](#op-de-mac) |
 | `tests/DS4Handler.Core.Tests` | Unit tests met gesimuleerde controllers (versleten trigger, driftende stick) |
 
 ## Vereisten (Windows)
@@ -95,6 +104,8 @@ De installer uit [Downloaden](#downloaden) regelt dit allemaal. Bouw je de app z
 dotnet test                       # kern + tests, werkt ook op Linux/macOS
 dotnet build src/DS4Handler.App   # Windows-app
 dotnet run --project src/DS4Handler.App   # alleen op Windows
+dotnet build src/DS4Handler.Mac   # Mac-app, bouwt ook op Windows en Linux
+dotnet run --project src/DS4Handler.Mac   # op de Mac
 ```
 
 Profielen staan in `%APPDATA%\DS4ControllerHandler\profiles`.
@@ -106,7 +117,7 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-De workflow `Release` bouwt dan de installer (`installer/DS4Handler.iss`, Inno Setup) en de portable exe, en zet beide op de Releases-pagina. Een tag met een streepje, zoals `v1.1.0-beta1`, wordt een pre-release.
+De workflow `Release` bouwt dan de installer (`installer/DS4Handler.iss`, Inno Setup), de portable exe en de twee Mac-zips (`installer/mac/make-app.sh`), en zet ze op de Releases-pagina. Een tag met een streepje, zoals `v1.1.0-beta1`, wordt een pre-release.
 
 Zet vóór de release bovenaan in [CHANGELOG.md](CHANGELOG.md) een kopje `## <versie>` met in gewone woorden wat er nieuw is. Die lijst komt als *Nieuw in deze versie* in de release, de app toont hem in de update-melding en na het bijwerken. Kies een hoger versienummer dan de vorige release (na 1.0.2 bijvoorbeeld `v1.1.0`), anders ziet de app het niet als update.
 

@@ -14,6 +14,8 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - run: dotnet test tests/DS4Handler.Core.Tests
+      # The Mac app builds on Linux too; packaging it needs macOS (release.yml).
+      - run: dotnet build src/DS4Handler.Mac -c Release
 
   build-app:
     runs-on: windows-latest

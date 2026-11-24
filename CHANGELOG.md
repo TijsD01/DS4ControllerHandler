@@ -3,6 +3,13 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
+## 2.4.0
+
+- DS4 Handler is er nu ook voor de Mac (macOS 12 of nieuwer). Neem bij de downloads de zip met "arm64" voor een Mac met een Apple-chip, of "x64" voor een Mac met een Intel-processor.
+- Op de Mac zie je je controller live, leert de app de kalibratie van je triggers en sticks en bewaart hij profielen. Een profiel werkt op de Mac en op Windows.
+- Wat games krijgen verandert op de Mac niet: games op de Mac lezen de PlayStation-controller zelf, en macOS laat de app geen virtuele controller maken.
+- De Mac-versie is niet bij Apple ondertekend. Open hem de eerste keer met de rechtermuisknop en "Open", of via Systeeminstellingen, Privacy en beveiliging en "Open toch".
+
 ## 2.3.1
 
 - Knoppen geven nu een klein, kort indrukeffect als je erop klikt.

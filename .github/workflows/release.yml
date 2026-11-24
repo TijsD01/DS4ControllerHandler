@@ -1,8 +1,9 @@
 name: Release
 
-# Builds the downloadable Windows app:
+# Builds the downloadable apps:
 #   DS4Handler-Setup-<versie>.exe  installer, installs ViGEmBus/HidHide too when they are missing
 #   DS4Handler-<versie>-portable.exe  one exe, no installation (drivers must be installed separately)
+#   DS4Handler-<versie>-macOS-arm64.zip / -macOS-x64.zip  "DS4 Handler.app" for Apple-chip / Intel Macs
 #
 # The files land on the GitHub Releases page when you:
 #   - push a tag like v1.0.0, or
@@ -19,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag van de release waar de exe-bestanden bij moeten (leeg = alleen bouwen)'
+        description: 'Tag van de release waar de bestanden bij moeten (leeg = alleen bouwen)'
         required: false
         default: ''
   pull_request:
@@ -27,13 +28,72 @@ on:
       - '.github/workflows/release.yml'
       - 'installer/**'
       - 'src/DS4Handler.App/DS4Handler.App.csproj'
+      - 'src/DS4Handler.Mac/**'
       - 'Directory.Build.props'
 
 permissions:
   contents: write
 
 jobs:
+  package-mac:
+    runs-on: macos-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Bepaal versie
+        id: version
+        shell: pwsh
+        run: |
+          # Tag to publish to: a pushed tag, a hand-made release, or the "Run workflow" input.
+          $tag = "${{ github.event.release.tag_name || inputs.tag }}"
+          if (-not $tag -and "${{ github.ref_type }}" -eq "tag") { $tag = "${{ github.ref_name }}" }
+          if ($tag -match '^v?(\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?)$') {
+            $v = $Matches[1]
+          } elseif ($tag) {
+            # A tag that is not a version number (e.g. "release1") still gets a usable version.
+            $v = "1.0.${{ github.run_number }}"
+          } else {
+            $v = "0.0.0-dev.${{ github.run_number }}"
+          }
+          # Assembly versions only take numbers; drop any "-beta" style suffix there.
+          $numeric = ($v -split '-')[0]
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$v" >> $env:GITHUB_OUTPUT
+          "numeric=$numeric" >> $env:GITHUB_OUTPUT
+          Write-Host "Versie: $v (tag: '$tag')"
+
+      - name: Publiceer en bouw DS4 Handler.app (Apple-chip en Intel)
+        shell: bash
+        run: |
+          for arch in arm64 x64; do
+            dotnet publish src/DS4Handler.Mac -c Release -r osx-$arch \
+              --self-contained true \
+              -p:DebugType=none \
+              -p:Version=${{ steps.version.outputs.numeric }} \
+              -p:InformationalVersion=${{ steps.version.outputs.version }} \
+              -o build/publish-$arch
+            sh installer/mac/make-app.sh build/publish-$arch ${{ steps.version.outputs.numeric }} \
+              "build/dist/DS4Handler-${{ steps.version.outputs.version }}-macOS-$arch.zip"
+          done
+          ls -l build/dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DS4Handler-macOS
+          path: build/dist/*.zip
+
+  # Waits for the Mac zips so the one release step below uploads every file together.
   package:
+    needs: package-mac
     runs-on: windows-latest
     env:
       DOTNET_NOLOGO: true
@@ -126,10 +186,18 @@ jobs:
           Copy-Item build/publish/DS4Handler.exe "build/dist/DS4Handler-${{ steps.version.outputs.version }}-portable.exe"
           Get-ChildItem build/dist | Format-Table Name, Length
 
+      - name: Haal de Mac-zips op
+        uses: actions/download-artifact@v4
+        with:
+          name: DS4Handler-macOS
+          path: build/dist
+
       - uses: actions/upload-artifact@v4
         with:
           name: DS4Handler-${{ steps.version.outputs.version }}
-          path: build/dist/*.exe
+          path: |
+            build/dist/*.exe
+            build/dist/*.zip
 
       - name: Schrijf releasetekst
         shell: pwsh
@@ -164,6 +232,8 @@ jobs:
           Liever zonder installatie? Neem ``DS4Handler-$env:VERSION-portable.exe`` en installeer [ViGEmBus](https://github.com/nefarius/ViGEmBus/releases) (en bij voorkeur [HidHide](https://github.com/nefarius/HidHide/releases)) zelf. De app waarschuwt bij het starten als een driver ontbreekt.
 
           Windows SmartScreen kan "Onbekende uitgever" tonen omdat de app niet ondertekend is. Klik dan op *Meer informatie* en *Toch uitvoeren*.
+
+          **Mac.** Heb je een Mac met een Apple-chip (M1 of nieuwer), neem dan ``DS4Handler-$env:VERSION-macOS-arm64.zip``; met een Intel-processor neem je ``DS4Handler-$env:VERSION-macOS-x64.zip``. Dubbelklik de zip en sleep *DS4 Handler* naar je map Apps. De app is niet bij Apple ondertekend, dus de eerste keer klik je met de rechtermuisknop op de app en kies je *Open*. Lukt dat niet, ga dan naar *Systeeminstellingen*, *Privacy en beveiliging* en klik op *Open toch*. Op de Mac laat de app je controller live zien, leert hij de kalibratie en bewaart hij profielen (die ook op Windows werken), maar wat games krijgen verandert hij niet: games op de Mac lezen de PlayStation-controller zelf.
           "@
           Set-Content -Path build/release-body.md -Value $body -Encoding utf8
           Get-Content build/release-body.md
@@ -175,6 +245,8 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           name: DS4 Handler ${{ steps.version.outputs.version }}
           prerelease: ${{ contains(steps.version.outputs.version, '-') }}
-          files: build/dist/*.exe
+          files: |
+            build/dist/*.exe
+            build/dist/*.zip
           body_path: build/release-body.md
           generate_release_notes: true

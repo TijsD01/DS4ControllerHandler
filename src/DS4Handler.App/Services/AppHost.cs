@@ -20,7 +20,8 @@ public sealed class AppHost : IDisposable
     {
         SettingsStore = new SettingsStore();
         Profiles = new ProfileStore(ProfileStore.DefaultDirectory);
-        Manager = new ControllerManager(Profiles, id => SettingsStore.Read(s => (s.For(id).LearningEnabled, s.For(id).Output, s.For(id).JitterFilterEnabled)));
+        Manager = new ControllerManager(Profiles, id => SettingsStore.Read(s =>
+            (s.For(id).LearningEnabled, s.For(id).Output, s.For(id).JitterFilterEnabled, OutputReports.ParseLightBar(s.For(id).LightBar))));
         HidHide = new HidHideService(SettingsStore);
         Manager.SessionStarted += session => HidHide.ApplyAsync(session);
         Library = new ProfileLibrary(Profiles, SettingsStore, Manager);
@@ -51,6 +52,13 @@ public sealed class AppHost : IDisposable
     {
         session.JitterFilterEnabled = enabled;
         SettingsStore.Update(s => s.For(session.Id).JitterFilterEnabled = enabled);
+    }
+
+    /// <summary>Sets the DS4 light bar colour ("#RRGGBB") at once and remembers it for this controller.</summary>
+    public void SetLightBar(ControllerSession session, string hex)
+    {
+        session.LightBarColor = OutputReports.ParseLightBar(hex);
+        SettingsStore.Update(s => s.For(session.Id).LightBar = hex);
     }
 
     /// <summary>

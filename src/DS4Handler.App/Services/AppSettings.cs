@@ -21,6 +21,9 @@ public sealed class ControllerPreferences
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public OutputMode Output { get; set; } = OutputMode.Xbox360;
 
+    /// <summary>DS4 light bar colour as "#RRGGBB"; null = the app's blue.</summary>
+    public string? LightBar { get; set; }
+
     /// <summary>Friendly name chosen by the user ("Controller van Sem"); null = model name. Never changes the file key.</summary>
     public string? Name { get; set; }
 

@@ -14,6 +14,19 @@ public class OutputReportsTests
     public void Crc32MatchesStandardCheckValue() =>
         Assert.Equal(0xCBF43926u, ~Crc32.Compute("123456789"u8));
 
+    [Theory]
+    [InlineData("#FF6000", 0xFF6000)]
+    [InlineData("#000000", 0x000000)]
+    [InlineData("#ffffff", 0xFFFFFF)]
+    [InlineData(null, OutputReports.LightBarDefault)]
+    [InlineData("", OutputReports.LightBarDefault)]
+    [InlineData("FF6000", OutputReports.LightBarDefault)]
+    [InlineData("#FF60", OutputReports.LightBarDefault)]
+    [InlineData("#GG0000", OutputReports.LightBarDefault)]
+    [InlineData("#-12345", OutputReports.LightBarDefault)]
+    public void LightBarSettingParsesOrFallsBack(string? hex, int expected) =>
+        Assert.Equal(expected, OutputReports.ParseLightBar(hex));
+
     [Fact]
     public void Ds4BluetoothReportLayoutAndCrc()
     {

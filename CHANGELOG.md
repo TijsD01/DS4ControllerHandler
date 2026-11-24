@@ -3,6 +3,10 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
+## 2.4.1
+
+- Kies zelf de kleur van de lichtbalk van je DualShock 4: onderaan het tabblad Live. Zwart zet hem uit.
+
 ## 2.4.0
 
 - De app is er nu ook in het Engels. Kies de taal bij Instellingen → Taal. The app is now available in English too: pick it under Settings → Language.

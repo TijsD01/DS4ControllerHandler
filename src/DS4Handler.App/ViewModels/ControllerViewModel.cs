@@ -263,6 +263,8 @@ public sealed class ControllerViewModel : ObservableObject
         _jitterFilter = host.SettingsStore.Read(s => s.For(session.Id).JitterFilterEnabled);
         _hide = host.SettingsStore.Read(s => s.For(session.Id).HideFromGames);
         _output = host.SettingsStore.Read(s => s.For(session.Id).Output);
+        string savedLightBar = $"#{OutputReports.ParseLightBar(host.SettingsStore.Read(s => s.For(session.Id).LightBar)):X6}";
+        LightBarColors = BuildLightBarChoices(savedLightBar);
         _tabMeta = IsBluetooth ? "BT" : "USB";
 
         Tuning = new TuningViewModel(session, host);
@@ -271,6 +273,7 @@ public sealed class ControllerViewModel : ObservableObject
         RecenterCommand = new RelayCommand(() => Session.StartGuidedCenter());
         CancelRecenterCommand = new RelayCommand(() => Session.CancelGuidedCenter());
         ShowCalibrationCommand = new RelayCommand(() => SelectedTab = TabCalibration);
+        SetLightBarCommand = new RelayCommand<LightBarChoice>(PickLightBar);
     }
 
     private const int TabCalibration = 1, TabButtons = 3;
@@ -378,6 +381,51 @@ public sealed class ControllerViewModel : ObservableObject
             _host.SetJitterFilter(Session, value);
             _tick = 0; // refresh the summary soon
         }
+    }
+
+    /// <summary>Light bar colours to pick from; the first is the app's blue. Black switches it off.</summary>
+    public IReadOnlyList<LightBarChoice> LightBarColors { get; }
+
+    /// <summary>Only a DualShock 4 gets its light bar set by the app.</summary>
+    public bool HasLightBar => Session.Model == ControllerModel.DualShock4;
+
+    /// <summary>Applies the clicked swatch (also when already selected, to take back control after a DS4 game changed it).</summary>
+    public ICommand SetLightBarCommand { get; }
+
+    private void PickLightBar(LightBarChoice? choice)
+    {
+        if (choice == null) return;
+        foreach (var c in LightBarColors) c.Selected = c == choice;
+        _host.SetLightBar(Session, choice.Hex);
+    }
+
+    private static LightBarChoice[] BuildLightBarChoices(string selectedHex)
+    {
+        LightBarChoice Swatch(string hex, string name) =>
+            new(hex, name, string.Equals(hex, selectedHex, StringComparison.OrdinalIgnoreCase));
+
+        return new[]
+        {
+            Swatch("#0030FF", Loc.Get("LightBar_Blue")),
+            Swatch("#00C8FF", Loc.Get("LightBar_Cyan")),
+            Swatch("#00FF40", Loc.Get("LightBar_Green")),
+            Swatch("#FFE000", Loc.Get("LightBar_Yellow")),
+            Swatch("#FF6000", Loc.Get("LightBar_Orange")),
+            Swatch("#FF0000", Loc.Get("LightBar_Red")),
+            Swatch("#FF00A0", Loc.Get("LightBar_Pink")),
+            Swatch("#8000FF", Loc.Get("LightBar_Purple")),
+            Swatch("#FFFFFF", Loc.Get("LightBar_White")),
+            Swatch("#000000", Loc.Get("LightBar_Off")),
+        };
+    }
+
+    public sealed class LightBarChoice : ObservableObject
+    {
+        private bool _selected;
+        public LightBarChoice(string hex, string name, bool selected) { Hex = hex; Name = name; _selected = selected; }
+        public string Hex { get; }
+        public string Name { get; }
+        public bool Selected { get => _selected; internal set => SetField(ref _selected, value); }
     }
 
     public bool OutputXbox

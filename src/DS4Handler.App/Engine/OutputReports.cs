@@ -20,6 +20,27 @@ internal static class OutputReports
             ? rgb
             : LightBarDefault;
 
+    /// <summary>
+    /// The light bar to show for a colour a game sent to the virtual DS4. A game that only sets rumble
+    /// still sends a full report with the colour bytes left at zero, so black means "no colour set" and
+    /// keeps <paramref name="chosen"/>; otherwise the first rumble would switch the light bar off.
+    /// </summary>
+    public static int LightBarFromGame(byte red, byte green, byte blue, int chosen) =>
+        (red | green | blue) == 0 ? chosen : (red << 16) | (green << 8) | blue;
+
+    private static readonly TimeSpan StartupWindow = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan StartupResend = TimeSpan.FromMilliseconds(200);
+    private static readonly TimeSpan KeepAliveResend = TimeSpan.FromSeconds(1);
+
+    /// <summary>
+    /// How long the output writer waits before sending the same report again. A pad can drop reports
+    /// (right after connecting, or later on a Bluetooth hiccup or a pad that resets its light bar), and
+    /// nothing would send them again because the values did not change: so resend quickly just after
+    /// connecting, and once a second after that.
+    /// </summary>
+    public static TimeSpan ResendInterval(TimeSpan sinceStart) =>
+        sinceStart < StartupWindow ? StartupResend : KeepAliveResend;
+
     /// <summary>Bytes the report itself needs; the write buffer is at least this long.</summary>
     public static int RequiredLength(ControllerModel model, ConnectionType connection) => (model, connection) switch
     {

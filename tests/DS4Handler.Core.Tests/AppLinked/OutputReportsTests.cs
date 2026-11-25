@@ -28,6 +28,26 @@ public class OutputReportsTests
         Assert.Equal(expected, OutputReports.ParseLightBar(hex));
 
     [Fact]
+    public void BlackFromAGameKeepsTheChosenLightBar() =>
+        // A game's rumble-only report carries an empty light bar; it must not switch the bar off.
+        Assert.Equal(0xFF6000, OutputReports.LightBarFromGame(0, 0, 0, chosen: 0xFF6000));
+
+    [Fact]
+    public void AColourFromAGameIsUsed() =>
+        Assert.Equal(0x102030, OutputReports.LightBarFromGame(0x10, 0x20, 0x30, chosen: 0xFF6000));
+
+    [Fact]
+    public void OutputIsResentQuicklyRightAfterConnectingThenKeptAlive()
+    {
+        // A pad that drops the first report(s) after connecting still lights up almost at once ...
+        Assert.True(OutputReports.ResendInterval(TimeSpan.Zero) <= TimeSpan.FromMilliseconds(250));
+        Assert.True(OutputReports.ResendInterval(TimeSpan.FromSeconds(2)) <= TimeSpan.FromMilliseconds(250));
+        // ... and later the light bar is refreshed now and then, so it never stays off for long.
+        var later = OutputReports.ResendInterval(TimeSpan.FromMinutes(5));
+        Assert.True(later > TimeSpan.FromMilliseconds(250) && later <= TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
     public void Ds4BluetoothReportLayoutAndCrc()
     {
         var buf = new byte[78];

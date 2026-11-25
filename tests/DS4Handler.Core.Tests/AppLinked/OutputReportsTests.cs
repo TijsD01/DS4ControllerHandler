@@ -28,13 +28,28 @@ public class OutputReportsTests
         Assert.Equal(expected, OutputReports.ParseLightBar(hex));
 
     [Fact]
-    public void BlackFromAGameKeepsTheChosenLightBar() =>
-        // A game's rumble-only report carries an empty light bar; it must not switch the bar off.
-        Assert.Equal(0xFF6000, OutputReports.LightBarFromGame(0, 0, 0, chosen: 0xFF6000));
+    public void BlackFromAGameKeepsTheCurrentLightBar() =>
+        // A game's rumble-only report carries an empty light bar; it must not switch the bar off,
+        // nor undo a colour the game set before (red stays red, not back to the user's choice).
+        Assert.Equal(0xFF0000, OutputReports.LightBarFromGame(0, 0, 0, current: 0xFF0000));
 
     [Fact]
     public void AColourFromAGameIsUsed() =>
-        Assert.Equal(0x102030, OutputReports.LightBarFromGame(0x10, 0x20, 0x30, chosen: 0xFF6000));
+        Assert.Equal(0x102030, OutputReports.LightBarFromGame(0x10, 0x20, 0x30, current: 0xFF6000));
+
+    [Theory]
+    // Unchanged, but the pad may have dropped it: resent quickly just after connecting ...
+    [InlineData(false, 300, 1_000, true)]
+    [InlineData(false, 100, 1_000, false)]
+    // ... and once a second after that.
+    [InlineData(false, 500, 60_000, false)]
+    [InlineData(false, 1_000, 60_000, true)]
+    // Something changed: always sent at once.
+    [InlineData(true, 0, 0, true)]
+    [InlineData(true, 0, 60_000, true)]
+    public void OutputIsWrittenWhenChangedOrDue(bool changed, int sinceLastWriteMs, int sinceStartMs, bool expected) =>
+        Assert.Equal(expected, OutputReports.NeedsWrite(changed,
+            TimeSpan.FromMilliseconds(sinceLastWriteMs), TimeSpan.FromMilliseconds(sinceStartMs)));
 
     [Fact]
     public void OutputIsResentQuicklyRightAfterConnectingThenKeptAlive()

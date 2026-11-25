@@ -890,7 +890,7 @@ public sealed class ControllerSession : IDisposable
     {
         Volatile.Write(ref _rumbleWanted, (e.LargeMotor << 8) | e.SmallMotor);
         if (e.LightbarColor is { } c)
-            Volatile.Write(ref _lightbarWanted, OutputReports.LightBarFromGame(c.Red, c.Green, c.Blue, Volatile.Read(ref _lightbarChosen)));
+            Volatile.Write(ref _lightbarWanted, OutputReports.LightBarFromGame(c.Red, c.Green, c.Blue, Volatile.Read(ref _lightbarWanted)));
         _rumbleSignal.Set();
     }
 
@@ -909,14 +909,13 @@ public sealed class ControllerSession : IDisposable
         {
             while (!token.IsCancellationRequested)
             {
-                var resend = OutputReports.ResendInterval(Stopwatch.GetElapsedTime(started));
-                _rumbleSignal.WaitOne(resend);
+                _rumbleSignal.WaitOne(OutputReports.ResendInterval(Stopwatch.GetElapsedTime(started)));
                 if (token.IsCancellationRequested) break;
                 int rumble = Volatile.Read(ref _rumbleWanted);
                 int light = Volatile.Read(ref _lightbarWanted);
                 int poll = WantedPollInterval();
                 long wanted = ((long)poll << 40) | ((long)light << 16) | (uint)rumble;
-                if (wanted == sent && Stopwatch.GetElapsedTime(lastWrite) < resend) continue;
+                if (!OutputReports.NeedsWrite(wanted != sent, Stopwatch.GetElapsedTime(lastWrite), Stopwatch.GetElapsedTime(started))) continue;
                 if (WriteOutput((byte)(rumble & 0xFF), (byte)(rumble >> 8), light, poll))
                 {
                     sent = wanted;

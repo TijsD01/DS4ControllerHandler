@@ -3,6 +3,11 @@
 Bij elke nieuwe versie komt bovenaan een kopje `## <versie>` met wat er nieuw is, in gewone woorden.
 De bovenste sectie komt automatisch in de release op GitHub en de app laat hem na het bijwerken één keer zien.
 
+## 2.4.2
+
+- De lichtbalk van je DualShock 4 gaat nu meteen aan als je hem aansluit, ook als de controller het eerste signaal mist.
+- De lichtbalk gaat niet meer zomaar uit na een paar minuten: trillen in een game zet hem niet meer uit, en de app stuurt de kleur regelmatig opnieuw.
+
 ## 2.4.1
 
 - Kies zelf de kleur van de lichtbalk van je DualShock 4: onderaan het tabblad Live. Zwart zet hem uit.

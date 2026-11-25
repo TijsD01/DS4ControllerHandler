@@ -28,6 +28,41 @@ public class OutputReportsTests
         Assert.Equal(expected, OutputReports.ParseLightBar(hex));
 
     [Fact]
+    public void BlackFromAGameKeepsTheCurrentLightBar() =>
+        // A game's rumble-only report carries an empty light bar; it must not switch the bar off,
+        // nor undo a colour the game set before (red stays red, not back to the user's choice).
+        Assert.Equal(0xFF0000, OutputReports.LightBarFromGame(0, 0, 0, current: 0xFF0000));
+
+    [Fact]
+    public void AColourFromAGameIsUsed() =>
+        Assert.Equal(0x102030, OutputReports.LightBarFromGame(0x10, 0x20, 0x30, current: 0xFF6000));
+
+    [Theory]
+    // Unchanged, but the pad may have dropped it: resent quickly just after connecting ...
+    [InlineData(false, 300, 1_000, true)]
+    [InlineData(false, 100, 1_000, false)]
+    // ... and once a second after that.
+    [InlineData(false, 500, 60_000, false)]
+    [InlineData(false, 1_000, 60_000, true)]
+    // Something changed: always sent at once.
+    [InlineData(true, 0, 0, true)]
+    [InlineData(true, 0, 60_000, true)]
+    public void OutputIsWrittenWhenChangedOrDue(bool changed, int sinceLastWriteMs, int sinceStartMs, bool expected) =>
+        Assert.Equal(expected, OutputReports.NeedsWrite(changed,
+            TimeSpan.FromMilliseconds(sinceLastWriteMs), TimeSpan.FromMilliseconds(sinceStartMs)));
+
+    [Fact]
+    public void OutputIsResentQuicklyRightAfterConnectingThenKeptAlive()
+    {
+        // A pad that drops the first report(s) after connecting still lights up almost at once ...
+        Assert.True(OutputReports.ResendInterval(TimeSpan.Zero) <= TimeSpan.FromMilliseconds(250));
+        Assert.True(OutputReports.ResendInterval(TimeSpan.FromSeconds(2)) <= TimeSpan.FromMilliseconds(250));
+        // ... and later the light bar is refreshed now and then, so it never stays off for long.
+        var later = OutputReports.ResendInterval(TimeSpan.FromMinutes(5));
+        Assert.True(later > TimeSpan.FromMilliseconds(250) && later <= TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
     public void Ds4BluetoothReportLayoutAndCrc()
     {
         var buf = new byte[78];
